@@ -3,13 +3,14 @@ import {
   LOCATION_TYPE,
   IProcessor,
   IProducer,
-  TIER,
   IBaseLocation,
-} from "./entities/worldLocation";
+  IProcessorRecipe,
+} from "./entities/location";
 import readline from "readline";
-import { RESOURCE_TYPE } from "./resources";
 import { IContract } from "./entities/contract";
 import { randomUUID } from "crypto";
+import { Truck as ITruck } from "./entities/truck";
+import { IStorage, RESOURCE_TYPE, testFn } from "./entities/storage";
 
 // Creating locations
 
@@ -20,13 +21,27 @@ let producers: IProducer[] = [];
 let processors: IProcessor[] = [];
 let consumers: IConsumer[] = [];
 let contracts: IContract[] = [];
+let trucks: ITruck[] = [];
 
 // .. CREATE
 
+const createAndGetStorage = (
+  resourceType: RESOURCE_TYPE,
+  resourceCapacity: number,
+  resourceCount?: number,
+): IStorage => {
+  const newStorage: IStorage = {
+    id: randomUUID(),
+    resourceType,
+    resourceCapacity,
+    resourceCount: resourceCount ?? 0,
+  };
+
+  return newStorage;
+};
 const createProducer = (
   name: string,
   position: number,
-  tier: TIER,
   produces: RESOURCE_TYPE,
   productionRate: number,
   maxStock: number,
@@ -37,8 +52,7 @@ const createProducer = (
     name,
     position,
     type: LOCATION_TYPE.PRODUCER,
-    tier,
-    produces,
+    storage: [createAndGetStorage(produces, maxStock, currentStock)],
     productionRate,
     currentStock: currentStock ?? 0,
     maxStock,
@@ -49,43 +63,42 @@ const createProducer = (
 const createProcessor = (
   name: string,
   position: number,
-  tier: TIER,
-  inputType: RESOURCE_TYPE,
-  outputType: RESOURCE_TYPE,
-  inputConsumptionRate: number,
-  outputProductionRate: number,
+  recipe: IProcessorRecipe,
+  //inputConsumptionRate: number,
+  //outputProductionRate: number,
   minInputThreshold: number,
-  maxInputStock: number,
-  maxOutputStock: number,
-  inputStock?: number,
-  outputStock?: number,
+  //maxInputStock: number,
+  //maxOutputStock: number,
+  //inputStock?: number,
+  //outputStock?: number,
 ) => {
+  const inputStorage: IStorage[] = Object.entries(recipe.inputs).map(([r, _]) =>
+    createAndGetStorage(r as RESOURCE_TYPE, 25),
+  );
+  const outputStorage: IStorage[] = Object.entries(recipe.outputs).map(
+    ([r, _]) => createAndGetStorage(r as RESOURCE_TYPE, 25),
+  );
+
   const newProcessor: IProcessor = {
     id: randomUUID(),
     name,
     position,
     type: LOCATION_TYPE.PROCESSOR,
-    tier,
-    inputType,
-    outputType,
-    inputStock: inputStock ?? 0,
-    outputStock: outputStock ?? 0,
-    inputConsumptionRate,
-    outputProductionRate,
+    storage: [...inputStorage, ...outputStorage],
+    recipe,
     minInputThreshold,
-    maxInputStock,
-    maxOutputStock,
   };
 
   processors.push(newProcessor);
 };
+
 const createConsumer = (
   name: string,
   position: number,
-  tier: TIER,
   consumes: RESOURCE_TYPE,
   consumptionRate: number,
   minStockThreshold: number,
+  maxStock: number,
   currentStock?: number,
 ) => {
   const newConsumer: IConsumer = {
@@ -93,10 +106,8 @@ const createConsumer = (
     name,
     position,
     type: LOCATION_TYPE.CONSUMER,
-    tier,
-    consumes,
+    storage: [createAndGetStorage(consumes, maxStock, currentStock)],
     consumptionRate,
-    currentStock: currentStock ?? 0,
     minStockThreshold,
   };
 
@@ -127,6 +138,23 @@ const createContract = (
   console.log("Created contract: ", newContract);
 
   contracts.push(newContract);
+};
+
+const createTruck = (
+  resourceType: RESOURCE_TYPE,
+  resourceCapacity: number,
+  position: number,
+  speed: number,
+  resourceCount?: number,
+) => {
+  const newTruck: ITruck = {
+    id: randomUUID(),
+    storage: createAndGetStorage(resourceType, resourceCapacity, resourceCount),
+    position,
+    speed,
+  };
+
+  trucks.push(newTruck);
 };
 
 // .. UPDATE
@@ -171,8 +199,24 @@ const findClosest = (
 
   return closest;
 };
+
 const updateProcessors = () => {
   processors.forEach((processor) => {
+    Object.entries(processor.recipe.outputs).forEach(
+      ([resource, productionRate]) => {
+        const inputStorage = processor.storage.filter(
+          (s) => s.resourceType == resource,
+        );
+
+        const outputStorage = processor.storage.filter(
+          (s) => s.resourceType == resource,
+        );
+
+        outputStorage.forEach((s) => {
+          s.resourceCount;
+        });
+      },
+    );
     if (processor.outputStock < processor.maxOutputStock) {
       if (
         processor.outputStock + processor.outputProductionRate >=
@@ -221,6 +265,7 @@ const updateProcessors = () => {
   });
 };
 
+//const removeResource = ()
 const updateConsumers = () => {
   consumers.forEach((consumer) => {
     if (consumer.currentStock > 0) {
@@ -271,6 +316,61 @@ const updateContracts = () => {
         contract.dueTicks--;
         console.log(
           `Contract ${contract.id} is due in ${contract.dueTicks} ticks`,
+        );
+      }
+    }
+  });
+};
+
+/* const transferTruckCargo = (truck: ITruck, destination : IBaseLocation, amount?: number) => {
+  if(destination.type == LOCATION_TYPE.CONSUMER) {
+    const consumer = (destination as IConsumer);
+
+    if(truck.resourceCount > 0) {
+      consumer.currentStock += truck.resourceCount;
+      truck.resourceCount = 0;
+    }
+    else {
+      throw Error(`Error: Truck ${truck.id} tried to deliver ${truck.resourceType} to ${destination.name}, but it was empty`);
+    }
+  }
+  else if(destination.type == LOCATION_TYPE.PROCESSOR) {
+    const processor = (destination as IProcessor);
+
+    if(truck.resourceCount > 0) { // .. if the truck is full, unload it
+      const amountToUnload : number = amount ?? truck.resourceCapacity;
+
+      processor.inputStock += Math.min(processor);
+      truck.resourceCount = 0;
+    }
+    else { // .. if the truck is empty, load it
+      if(processor.outputStock > 0) {
+        const amountToLoad : number = amount ?? truck.resourceCapacity;
+
+        truck.resourceCount += Math.min(processor.outputStock,amountToLoad); // .. if we don't specify an amount, just fill it as much as we can
+        processor.outputStock = Math.max(0,processor.outputStock-amountToLoad);
+      }
+    }
+  }
+  else if(destination.type == LOCATION_TYPE.PRODUCER) {
+    const producer = (destination as IProducer);
+  }
+} */
+const updateTrucks = () => {
+  trucks.forEach((truck) => {
+    if (truck.destination && truck.position != truck.destination.position) {
+      const distance = truck.position - truck.destination.position;
+      const direction = Math.sign(distance);
+
+      truck.position -= direction * truck.speed;
+
+      if (Math.abs(truck.position - truck.destination.position) < truck.speed) {
+        truck.position = truck.destination.position; // Snap to destination
+      }
+
+      if (truck.position == truck.destination.position) {
+        console.log(
+          `Truck ${truck.id} has arrived at ${truck.destination.name}`,
         );
       }
     }

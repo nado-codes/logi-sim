@@ -1,4 +1,4 @@
-import { RESOURCE_TYPE } from "../resources";
+import { RESOURCE_TYPE } from "./storage";
 
 export interface IContract {
   id: string;
