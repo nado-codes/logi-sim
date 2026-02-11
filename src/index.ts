@@ -10,7 +10,12 @@ import readline from "readline";
 import { IContract } from "./entities/contract";
 import { randomUUID } from "crypto";
 import { Truck as ITruck } from "./entities/truck";
-import { IStorage, removeResources, RESOURCE_TYPE } from "./entities/storage";
+import {
+  addResources,
+  IStorage,
+  removeResources,
+  RESOURCE_TYPE,
+} from "./entities/storage";
 
 // Creating locations
 
@@ -116,8 +121,7 @@ const createConsumer = (
 
 const createContract = (
   owner: string,
-  origin: string,
-  destination: string,
+  supplier: string,
   resource: RESOURCE_TYPE,
   amount: number,
   payment: number,
@@ -126,9 +130,8 @@ const createContract = (
   const newContract: IContract = {
     id: randomUUID(),
     owner,
-    origin,
+    supplier,
     shipper: undefined,
-    destination,
     resource,
     amount,
     payment,
@@ -173,26 +176,35 @@ const updateProducers = () => {
         producer.maxStock,
       );
       console.log(
-        `${producer.name} produced ${producer.productionRate} units of ${producer.produces}`,
+        `${producer.name} produced ${producer.productionRate} units of ${producer.storage}`,
       );
     }
   });
 };
 
-const findClosest = (
+const findClosestSupplier = (
   destination: IBaseLocation,
-  origins: IBaseLocation[],
+  resourceType: RESOURCE_TYPE,
 ): IBaseLocation | undefined => {
-  if (origins.length === 0) return undefined;
+  const suppliers = [...producers, ...processors, ...consumers].filter((s) => {
+    const hasResources = s.storage.some(
+      (st) => st.resourceType == resourceType && st.resourceCount > 0,
+    );
+    return hasResources && s.id !== destination.id;
+  });
 
-  let closest = origins[0];
+  if (suppliers.length == 0) {
+    return undefined;
+  }
+
+  let closest = suppliers[0];
   let closestDistance = Math.abs(destination.position - closest.position);
 
-  for (const origin of origins) {
-    const distance = Math.abs(destination.position - origin.position);
+  for (const supplier of suppliers) {
+    const distance = Math.abs(destination.position - supplier.position);
 
     if (distance < closestDistance) {
-      closest = origin;
+      closest = supplier;
       closestDistance = distance;
     }
   }
@@ -204,138 +216,111 @@ const updateProcessors = () => {
   processors.forEach((processor) => {
     let canProcess = false;
 
-    Object.entries(processor.recipe.inputs).forEach(([resourceType,requiredAmount]) => {
+    Object.entries(processor.recipe.inputs).forEach(
+      ([resourceType, requiredAmount]) => {
         const inputStorage = processor.storage.filter(
           (s) => s.resourceType == resourceType,
         );
-        const availableAmount = inputStorage.map(s => s.resourceCount).reduce((p,c) => p+c);
+        const availableAmount = inputStorage
+          .map((s) => s.resourceCount)
+          .reduce((p, c) => p + c);
 
-        if(availableAmount < requiredAmount) {
-          console.log(`[PROCESSOR ERROR] Not enough ${resourceType} - need ${requiredAmount}, only have ${availableAmount}`);
-          
-          // .. if an active contract exists, create an urgent purchase order and clear other active orders
-          // otherwise just stop production
-          // .. the due date of the purchase order should take into account expected shipping time + 
-          // time needed to produce the goods
-          // MVP = just create a contract that's due in 5 ticks, but only if one doesn't already exist
+        if (availableAmount < requiredAmount) {
+          if (!contracts.find((c) => c.owner === processor.id)) {
+            console.log(
+              `[PROCESSOR ERROR] ${processor.id} doesn't have enough ${resourceType} - need ${requiredAmount}, only have ${availableAmount}`,
+            );
+
+            // .. if an active contract exists, create an urgent purchase order and clear other active orders
+            // otherwise just stop production
+            // .. the due date of the purchase order should take into account expected shipping time +
+            // time needed to produce the goods
+            // MVP = just create a contract that's due in 5 ticks, but only if one doesn't already exist
+
+            const supplier = findClosestSupplier(
+              processor,
+              resourceType as RESOURCE_TYPE,
+            );
+
+            if (supplier) {
+              createContract(
+                processor.id,
+                supplier.id,
+                resourceType as RESOURCE_TYPE,
+                Math.ceil(requiredAmount * 1.5),
+                100,
+                5,
+              );
+            } else {
+              console.log(
+                `[PROCESSOR ERROR] No suppliers available to resupply ${processor.id}. Production terminated.`,
+              );
+            }
+          }
+
+          canProcess = false;
         } else {
           let amountLeftToRemove = requiredAmount;
 
-          inputStorage.forEach(storage => {
-            const amountToRemove = Math.max(storage.resourceCount-amountLeftToRemove,storage.resourceCount);
-            const amountRemoved = removeResources(amountToRemove,storage);
+          inputStorage.forEach((storage) => {
+            const amountToRemove = Math.max(
+              storage.resourceCount - amountLeftToRemove,
+              storage.resourceCount,
+            );
+            const amountRemoved = removeResources(amountToRemove, storage);
 
-            if(amountLeftToRemove > 0)
-            amountLeftToRemove -= amountRemoved;
-
-            if(amountLeftToRemove <= 0) {
-              console.log(``);
-              //break;
-            }
-          }); 
+            amountLeftToRemove = Math.max(
+              amountLeftToRemove - amountRemoved,
+              0,
+            );
+          });
         }
-
-        
-    });
-
-
-    Object.entries(processor.recipe.outputs).forEach(
-      ([outputResource, productionRate]) => {
-        
-
-        const outputStorage = processor.storage.filter(
-          (s) => s.resourceType == outputResource,
-        );
-
-        outputStorage.forEach((s) => {
-          s.resourceCount;
-        });
       },
     );
-    if (processor.outputStock < processor.maxOutputStock) {
-      if (
-        processor.outputStock + processor.outputProductionRate >=
-        processor.maxOutputStock
-      ) {
-        console.log(`${processor.name} is full`);
-      }
 
-      processor.outputStock = Math.min(
-        processor.outputStock + processor.outputProductionRate,
-        processor.maxOutputStock,
-      );
-      processor.inputStock = Math.max(
-        processor.inputStock - processor.inputConsumptionRate,
-        0,
-      );
-
-      console.log(
-        `${processor.name} processed ${processor.inputConsumptionRate} units of ${processor.inputType} to produce ${processor.outputProductionRate} units of ${processor.outputType} and has ${processor.inputStock} left`,
-      );
-    }
-
-    if (processor.inputStock <= processor.minInputThreshold) {
-      console.log(`${processor.name} demands ${processor.inputType}`);
-
-      if (!contracts.find((c) => c.owner == processor.id)) {
-        const origin = findClosest(processor, producers);
-
-        if (origin) {
-          createContract(
-            processor.id,
-            origin.id,
-            processor.id,
-            processor.inputType,
-            Math.ceil(processor.minInputThreshold * 1.5),
-            100,
-            2,
+    if (canProcess) {
+      Object.entries(processor.recipe.outputs).forEach(
+        ([outputResource, productionRate]) => {
+          const outputStorage = processor.storage.filter(
+            (s) => s.resourceType == outputResource,
           );
-        } else {
-          throw Error(
-            `${processor.name} was unable to create a contract: no producer available`,
-          );
-        }
-      }
-    }
-  });
-};
+          const availableCapacity = outputStorage
+            .map((s) => s.resourceCapacity - s.resourceCount)
+            .reduce((p, c) => p + c, 0);
 
-//const removeResource = ()
-const updateConsumers = () => {
-  consumers.forEach((consumer) => {
-    if (consumer.currentStock > 0) {
-      console.log(
-        `${consumer.name} consumed ${consumer.consumptionRate} units of ${consumer.consumes} and has ${consumer.currentStock} left`,
+          if (availableCapacity < productionRate) {
+            console.log(
+              `${processor.name} is full and cannot produce more ${outputResource}`,
+            );
+          } else {
+            let amountLeftToAdd = productionRate;
+
+            outputStorage.forEach((storage) => {
+              const amountToAdd = Math.min(
+                storage.resourceCapacity - storage.resourceCount,
+                amountLeftToAdd,
+              );
+              const amountAdded = addResources(amountToAdd, storage);
+
+              amountLeftToAdd = Math.max(amountLeftToAdd - amountAdded, 0);
+            });
+
+            const recipeInputs = Object.entries(processor.recipe.inputs);
+            const recipeInputsString = recipeInputs
+              .map(([resource, amount]) => `${amount} units of ${resource}`)
+              .join(", ");
+
+            const recipeOutputs = Object.entries(processor.recipe.outputs);
+            const recipeOutputsString = recipeOutputs
+              .map(([resource, amount]) => `${amount} units of ${resource}`)
+              .join(", ");
+
+            console.log(
+              `${processor.name} processed ${recipeInputsString} to produce ${recipeOutputsString}`,
+            );
+          }
+        },
       );
-    }
-
-    consumer.currentStock = Math.max(
-      consumer.currentStock - consumer.consumptionRate,
-      0,
-    );
-
-    if (consumer.currentStock <= consumer.minStockThreshold) {
-      console.log(`${consumer.name} demands ${consumer.consumes}`);
-
-      if (!contracts.find((c) => c.owner == consumer.id)) {
-        const origin = findClosest(consumer, processors);
-
-        if (origin) {
-          createContract(
-            consumer.id,
-            origin.id,
-            consumer.id,
-            consumer.consumes,
-            Math.ceil(consumer.minStockThreshold * 1.5),
-            100,
-            10,
-          );
-        } else {
-          throw Error(
-            `${consumer.name} was unable to create a contract: no processor available`,
-          );
-        }
-      }
     }
   });
 };

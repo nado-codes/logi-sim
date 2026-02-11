@@ -5,8 +5,6 @@ export interface IContract {
   owner: string;
   supplier: string;
   shipper: string | undefined;
-  origin: string;
-  destination: string;
   resource: RESOURCE_TYPE;
   amount: number;
   payment: number;
