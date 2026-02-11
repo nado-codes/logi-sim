@@ -1,4 +1,4 @@
-import { IStorage, RESOURCE_TYPE } from "./storage";
+import { IRecipe, IStorage, RESOURCE_TYPE } from "./storage";
 
 export enum LOCATION_TYPE {
   PRODUCER = "Producer",
@@ -21,14 +21,9 @@ export interface IProducer extends IBaseLocation {
   maxStock: number; // optional storage limit
 }
 
-export interface IProcessorRecipe {
-  inputs: Partial<Record<RESOURCE_TYPE, number>>;
-  outputs: Partial<Record<RESOURCE_TYPE, number>>;
-}
-
 export interface IProcessor extends IBaseLocation {
   type: LOCATION_TYPE.PROCESSOR;
-  recipe: IProcessorRecipe;
+  recipe: IRecipe;
   minInputThreshold: number; // stock level that triggers input contract
 }
 

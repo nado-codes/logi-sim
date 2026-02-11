@@ -3,8 +3,7 @@ import {
   LOCATION_TYPE,
   IProcessor,
   IProducer,
-  IBaseLocation,
-  IProcessorRecipe,
+  IBaseLocation
 } from "./entities/location";
 import readline from "readline";
 import { IContract } from "./entities/contract";
@@ -12,7 +11,9 @@ import { randomUUID } from "crypto";
 import { Truck as ITruck } from "./entities/truck";
 import {
   addResources,
+  IRecipe,
   IStorage,
+  processRecipe,
   removeResources,
   RESOURCE_TYPE,
 } from "./entities/storage";
@@ -68,14 +69,8 @@ const createProducer = (
 const createProcessor = (
   name: string,
   position: number,
-  recipe: IProcessorRecipe,
-  //inputConsumptionRate: number,
-  //outputProductionRate: number,
+  recipe: IRecipe,
   minInputThreshold: number,
-  //maxInputStock: number,
-  //maxOutputStock: number,
-  //inputStock?: number,
-  //outputStock?: number,
 ) => {
   const inputStorage: IStorage[] = Object.entries(recipe.inputs).map(([r, _]) =>
     createAndGetStorage(r as RESOURCE_TYPE, 25),
@@ -216,6 +211,22 @@ const updateProcessors = () => {
   processors.forEach((processor) => {
     let canProcess = false;
 
+    if(processRecipe(processor.recipe,processor.storage)) {
+      const recipeInputs = Object.entries(processor.recipe.inputs);
+              const recipeInputsString = recipeInputs
+                .map(([resource, amount]) => `${amount} units of ${resource}`)
+                .join(", ");
+  
+              const recipeOutputs = Object.entries(processor.recipe.outputs);
+              const recipeOutputsString = recipeOutputs
+                .map(([resource, amount]) => `${amount} units of ${resource}`)
+                .join(", ");
+  
+              console.log(
+                `${name} processed ${recipeInputsString} to produce ${recipeOutputsString}`,
+              );
+    }
+
     Object.entries(processor.recipe.inputs).forEach(
       ([resourceType, requiredAmount]) => {
         const inputStorage = processor.storage.filter(
@@ -348,6 +359,47 @@ const updateProcessors = () => {
           }
         },
       );
+    }
+  });
+};
+
+// .. TODO: consumers basically use the same "recipe" system as processors - except they only have
+// input storage that the recipe "consumes" resources from ... effectively making consumers resource sinks
+const updateConsumers = () => {
+  consumers.forEach((consumer) => {
+    if (consumer.currentStock > 0) {
+      console.log(
+        `${consumer.name} consumed ${consumer.consumptionRate} units of ${consumer.consumes} and has ${consumer.currentStock} left`,
+      );
+    }
+
+    consumer.currentStock = Math.max(
+      consumer.currentStock - consumer.consumptionRate,
+      0,
+    );
+
+    if (consumer.currentStock <= consumer.minStockThreshold) {
+      console.log(`${consumer.name} demands ${consumer.consumes}`);
+
+      if (!contracts.find((c) => c.owner == consumer.id)) {
+        const origin = findClosest(consumer, processors);
+
+        if (origin) {
+          createContract(
+            consumer.id,
+            origin.id,
+            consumer.id,
+            consumer.consumes,
+            Math.ceil(consumer.minStockThreshold * 1.5),
+            100,
+            10,
+          );
+        } else {
+          throw Error(
+            `${consumer.name} was unable to create a contract: no processor available`,
+          );
+        }
+      }
     }
   });
 };

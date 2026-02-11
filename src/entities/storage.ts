@@ -3,11 +3,96 @@ export enum RESOURCE_TYPE {
   METAL = "Metal",
 }
 
+// RECIPES
+
+export interface IRecipe {
+  inputs: Partial<Record<RESOURCE_TYPE, number>>;
+  outputs: Partial<Record<RESOURCE_TYPE, number>>;
+}
+
+export const processRecipe = (recipe: IRecipe,storage: IStorage[]) => {
+  let canProcess = false;
+  
+      Object.entries(recipe.inputs).forEach(
+        ([resourceType, requiredAmount]) => {
+          const inputStorage = storage.filter(
+            (s) => s.resourceType == resourceType,
+          );
+          const availableAmount = inputStorage
+            .map((s) => s.resourceCount)
+            .reduce((p, c) => p + c);
+  
+          if (availableAmount < requiredAmount) {
+            canProcess = false;
+          } else {
+            let amountLeftToRemove = requiredAmount;
+  
+            inputStorage.forEach((storage) => {
+              const amountToRemove = Math.max(
+                storage.resourceCount - amountLeftToRemove,
+                storage.resourceCount,
+              );
+              const amountRemoved = removeResources(amountToRemove, storage);
+  
+              amountLeftToRemove = Math.max(
+                amountLeftToRemove - amountRemoved,
+                0,
+              );
+            });
+  
+            canProcess = true;
+          }
+        },
+      );
+  
+      if (canProcess) {
+        Object.entries(recipe.outputs).forEach(
+          ([outputResource, outputAmount]) => {
+            const outputStorage = storage.filter(
+              (s) => s.resourceType == outputResource,
+            );
+            const availableCapacity = outputStorage
+              .map((s) => s.resourceCapacity - s.resourceCount)
+              .reduce((p, c) => p + c, 0);
+  
+            if (availableCapacity < outputAmount) {
+              console.log(
+                `${name} is full and cannot produce more ${outputResource}`,
+              );
+            } else {
+              let amountLeftToAdd = outputAmount;
+  
+              outputStorage.forEach((storage) => {
+                const amountToAdd = Math.min(
+                  storage.resourceCapacity - storage.resourceCount,
+                  amountLeftToAdd,
+                );
+                const amountAdded = addResources(amountToAdd, storage);
+  
+                amountLeftToAdd = Math.max(amountLeftToAdd - amountAdded, 0);
+              });
+  
+              
+            }
+          },
+        );
+      }
+
+      return canProcess;
+}
+
+
+// STORAGE
+
 export interface IStorage {
   id: string;
   resourceType: RESOURCE_TYPE;
   resourceCapacity: number;
   resourceCount: number;
+}
+
+export const getAvailableStorage = (storage: IStorage[]) => {
+  
 }
 
 export const transferResources = (
