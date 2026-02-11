@@ -237,17 +237,17 @@ const updateProcessors = () => {
             // time needed to produce the goods
             // MVP = just create a contract that's due in 5 ticks, but only if one doesn't already exist
 
-            const supplier = findClosestSupplier(
+            const closestSupplier = findClosestSupplier(
               processor,
               resourceType as RESOURCE_TYPE,
             );
 
-            if (supplier) {
+            if (closestSupplier) {
               createContract(
                 processor.id,
-                supplier.id,
+                closestSupplier.id,
                 resourceType as RESOURCE_TYPE,
-                Math.ceil(requiredAmount * 1.5),
+                Math.ceil(processor.minInputThreshold * 1.5),
                 100,
                 5,
               );
@@ -256,9 +256,12 @@ const updateProcessors = () => {
                 `[PROCESSOR ERROR] No suppliers available to resupply ${processor.id}. Production terminated.`,
               );
             }
+            
+          
           }
 
           canProcess = false;
+
         } else {
           let amountLeftToRemove = requiredAmount;
 
@@ -274,6 +277,30 @@ const updateProcessors = () => {
               0,
             );
           });
+
+          canProcess = true;
+        }
+
+        if(availableAmount < processor.minInputThreshold && !contracts.find(c => c.owner == processor.id)) {
+          const closestSupplier = findClosestSupplier(
+              processor,
+              resourceType as RESOURCE_TYPE,
+            );
+
+            if (closestSupplier) {
+              createContract(
+                processor.id,
+                closestSupplier.id,
+                resourceType as RESOURCE_TYPE,
+                Math.ceil(processor.minInputThreshold * 1.5),
+                100,
+                5,
+              );
+            } else {
+              console.log(
+                `[PROCESSOR ERROR] No suppliers available to resupply ${processor.id}. Production terminated.`,
+              );
+            }
         }
       },
     );
@@ -398,20 +425,18 @@ const updateTrucks = () => {
 };
 
 // .. BUILD THE WORLD
-createConsumer("Town A", 50, 1, RESOURCE_TYPE.METAL, 3, 5, 25);
+createConsumer("Town A", 50, RESOURCE_TYPE.METAL, 3, 5, 25);
+
+
 createProcessor(
   "Steel Refinery",
   30, // .. position
-  1, // .. tier
-  RESOURCE_TYPE.ORE,
-  RESOURCE_TYPE.METAL,
-  6, // .. input consumption
-  3, // .. output production
-  12, // .. min input threshold
-  50, // .. max input stock
-  25, // .. max output stock
-  35, // .. input stock
-  0, // .. output stock
+  {inputs: {
+    [RESOURCE_TYPE.ORE] : 6
+  }, outputs: {
+    [RESOURCE_TYPE.METAL] : 3
+  }},
+  12 // .. min input threshold
 );
 createProducer("Iron Mine", 10, 1, RESOURCE_TYPE.ORE, 5, 25, 0);
 

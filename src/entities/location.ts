@@ -22,8 +22,8 @@ export interface IProducer extends IBaseLocation {
 }
 
 export interface IProcessorRecipe {
-  inputs: Record<RESOURCE_TYPE, number>;
-  outputs: Record<RESOURCE_TYPE, number>;
+  inputs: Partial<Record<RESOURCE_TYPE, number>>;
+  outputs: Partial<Record<RESOURCE_TYPE, number>>;
 }
 
 export interface IProcessor extends IBaseLocation {
