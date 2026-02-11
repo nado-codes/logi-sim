@@ -10,7 +10,7 @@ import readline from "readline";
 import { IContract } from "./entities/contract";
 import { randomUUID } from "crypto";
 import { Truck as ITruck } from "./entities/truck";
-import { IStorage, RESOURCE_TYPE, testFn } from "./entities/storage";
+import { IStorage, removeResources, RESOURCE_TYPE } from "./entities/storage";
 
 // Creating locations
 
@@ -202,14 +202,49 @@ const findClosest = (
 
 const updateProcessors = () => {
   processors.forEach((processor) => {
-    Object.entries(processor.recipe.outputs).forEach(
-      ([resource, productionRate]) => {
+    let canProcess = false;
+
+    Object.entries(processor.recipe.inputs).forEach(([resourceType,requiredAmount]) => {
         const inputStorage = processor.storage.filter(
-          (s) => s.resourceType == resource,
+          (s) => s.resourceType == resourceType,
         );
+        const availableAmount = inputStorage.map(s => s.resourceCount).reduce((p,c) => p+c);
+
+        if(availableAmount < requiredAmount) {
+          console.log(`[PROCESSOR ERROR] Not enough ${resourceType} - need ${requiredAmount}, only have ${availableAmount}`);
+          
+          // .. if an active contract exists, create an urgent purchase order and clear other active orders
+          // otherwise just stop production
+          // .. the due date of the purchase order should take into account expected shipping time + 
+          // time needed to produce the goods
+          // MVP = just create a contract that's due in 5 ticks, but only if one doesn't already exist
+        } else {
+          let amountLeftToRemove = requiredAmount;
+
+          inputStorage.forEach(storage => {
+            const amountToRemove = Math.max(storage.resourceCount-amountLeftToRemove,storage.resourceCount);
+            const amountRemoved = removeResources(amountToRemove,storage);
+
+            if(amountLeftToRemove > 0)
+            amountLeftToRemove -= amountRemoved;
+
+            if(amountLeftToRemove <= 0) {
+              console.log(``);
+              //break;
+            }
+          }); 
+        }
+
+        
+    });
+
+
+    Object.entries(processor.recipe.outputs).forEach(
+      ([outputResource, productionRate]) => {
+        
 
         const outputStorage = processor.storage.filter(
-          (s) => s.resourceType == resource,
+          (s) => s.resourceType == outputResource,
         );
 
         outputStorage.forEach((s) => {

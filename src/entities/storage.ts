@@ -64,14 +64,17 @@ export const transferResources = (
 export const addResources = (amount: number, to: IStorage) => {
   if (to.resourceCount + amount > to.resourceCapacity) {
     console.log(
-      `[STORAGE WARNING] ${to.id} was too full of ${to.resourceType} to transfer ${amount}`,
+      `[STORAGE WARNING] ${to.id} is too full of ${to.resourceType} to add ${amount}`,
     );
   }
 
   const amountToAdd = Math.min(amount, to.resourceCapacity - to.resourceCount);
   to.resourceCount += amountToAdd;
   console.log(`[STORAGE] Added ${amountToAdd} ${to.resourceType} to ${to.id}`);
+
+  return amountToAdd;
 };
+
 export const removeResources = (amount: number, from: IStorage) => {
   if (from.resourceCount - amount < 0) {
     console.log(
@@ -85,4 +88,6 @@ export const removeResources = (amount: number, from: IStorage) => {
   console.log(
     `[STORAGE] Removed ${amountToRemove} ${from.resourceType} from ${from.id}`,
   );
+
+  return amountToRemove;
 };
