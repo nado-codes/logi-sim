@@ -6,37 +6,41 @@ export enum RESOURCE_TYPE {
 // RECIPES
 
 export interface IRecipe {
-  inputs: Partial<Record<RESOURCE_TYPE, number>>;
+  inputs?: Partial<Record<RESOURCE_TYPE, number>>;
   outputs?: Partial<Record<RESOURCE_TYPE, number>>;
 }
 
 export const processRecipe = (recipe: IRecipe, storage: IStorage[]) => {
   let canProcess = false;
 
-  Object.entries(recipe.inputs).forEach(([resourceType, requiredAmount]) => {
-    const inputStorage = storage.filter((s) => s.resourceType == resourceType);
-    const availableAmount = inputStorage
-      .map((s) => s.resourceCount)
-      .reduce((p, c) => p + c);
+  if (recipe.inputs) {
+    Object.entries(recipe.inputs).forEach(([resourceType, requiredAmount]) => {
+      const inputStorage = storage.filter(
+        (s) => s.resourceType == resourceType,
+      );
+      const availableAmount = inputStorage
+        .map((s) => s.resourceCount)
+        .reduce((p, c) => p + c);
 
-    if (availableAmount < requiredAmount) {
-      canProcess = false;
-    } else {
-      let amountLeftToRemove = requiredAmount;
+      if (availableAmount < requiredAmount) {
+        canProcess = false;
+      } else {
+        let amountLeftToRemove = requiredAmount;
 
-      inputStorage.forEach((storage) => {
-        const amountToRemove = Math.max(
-          storage.resourceCount - amountLeftToRemove,
-          storage.resourceCount,
-        );
-        const amountRemoved = removeResources(amountToRemove, storage);
+        inputStorage.forEach((storage) => {
+          const amountToRemove = Math.max(
+            storage.resourceCount - amountLeftToRemove,
+            storage.resourceCount,
+          );
+          const amountRemoved = removeResources(amountToRemove, storage);
 
-        amountLeftToRemove = Math.max(amountLeftToRemove - amountRemoved, 0);
-      });
+          amountLeftToRemove = Math.max(amountLeftToRemove - amountRemoved, 0);
+        });
 
-      canProcess = true;
-    }
-  });
+        canProcess = true;
+      }
+    });
+  }
 
   if (canProcess && recipe.outputs) {
     Object.entries(recipe.outputs).forEach(([outputResource, outputAmount]) => {
@@ -77,7 +81,7 @@ export interface IStorage {
 }
 
 export const getInputStorage = (recipe: IRecipe, storage: IStorage[]) =>
-  storage.filter((s) => s.resourceType in recipe.inputs);
+  storage.filter((s) => s.resourceType in (recipe.inputs ?? {}));
 
 export const getOutputStorage = (recipe: IRecipe, storage: IStorage[]) =>
   storage.filter((s) => s.resourceType in (recipe.outputs ?? {}));

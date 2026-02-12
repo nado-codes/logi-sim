@@ -11,6 +11,7 @@ export interface IBaseLocation {
   name: string;
   position: number;
   storage: IStorage[];
+  recipe: IRecipe;
 }
 
 export interface IProducer extends IBaseLocation {
@@ -20,12 +21,10 @@ export interface IProducer extends IBaseLocation {
 }
 
 export interface IProcessor extends IBaseLocation {
-  recipe: IRecipe;
   minInputThreshold: number; // stock level that triggers input contract
 }
 
 export interface IConsumer extends IBaseLocation {
-  recipe: IRecipe;
   minInputThreshold: number; // stock level that triggers delivery contract
 }
 

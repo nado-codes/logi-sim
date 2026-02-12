@@ -59,6 +59,7 @@ const createProducer = (
     id: randomUUID(),
     name,
     position,
+    recipe: { inputs: { [produces]: productionRate } },
     storage: [createAndGetStorage(produces, maxStock, currentStock)],
     productionRate,
     currentStock: currentStock ?? 0,
@@ -73,6 +74,10 @@ const createProcessor = (
   recipe: IRecipe,
   minInputThreshold: number,
 ) => {
+  if (!recipe.inputs) {
+    throw Error(`[ERROR] Processors require at least one input`);
+  }
+
   const inputStorage: IStorage[] = Object.entries(recipe.inputs).map(([r, _]) =>
     createAndGetStorage(r as RESOURCE_TYPE, 25),
   );
@@ -214,6 +219,10 @@ const findClosestSupplier = (
 const updateProcessors = () => {
   processors.forEach((processor) => {
     if (processRecipe(processor.recipe, processor.storage)) {
+      if (!processor.recipe.inputs) {
+        throw Error(`[PROCESSOR ERROR] Processors require at least one input`);
+      }
+
       const recipeInputs = Object.entries(processor.recipe.inputs);
       const recipeInputsString = recipeInputs
         .map(([resource, amount]) => `${amount} units of ${resource}`)
