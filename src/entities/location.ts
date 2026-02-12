@@ -29,7 +29,7 @@ export interface IProcessor extends IBaseLocation {
 
 export interface IConsumer extends IBaseLocation {
   type: LOCATION_TYPE.CONSUMER;
-  consumptionRate: number;
+  recipe: IRecipe;
   minStockThreshold: number; // stock level that triggers delivery contract
 }
 

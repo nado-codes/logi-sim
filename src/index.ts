@@ -3,7 +3,7 @@ import {
   LOCATION_TYPE,
   IProcessor,
   IProducer,
-  IBaseLocation
+  IBaseLocation,
 } from "./entities/location";
 import readline from "readline";
 import { IContract } from "./entities/contract";
@@ -11,6 +11,7 @@ import { randomUUID } from "crypto";
 import { Truck as ITruck } from "./entities/truck";
 import {
   addResources,
+  getInputStorage,
   IRecipe,
   IStorage,
   processRecipe,
@@ -75,6 +76,11 @@ const createProcessor = (
   const inputStorage: IStorage[] = Object.entries(recipe.inputs).map(([r, _]) =>
     createAndGetStorage(r as RESOURCE_TYPE, 25),
   );
+
+  if (!recipe.outputs) {
+    throw Error(`[ERROR] Processors require at least one output`);
+  }
+
   const outputStorage: IStorage[] = Object.entries(recipe.outputs).map(
     ([r, _]) => createAndGetStorage(r as RESOURCE_TYPE, 25),
   );
@@ -107,7 +113,7 @@ const createConsumer = (
     position,
     type: LOCATION_TYPE.CONSUMER,
     storage: [createAndGetStorage(consumes, maxStock, currentStock)],
-    consumptionRate,
+    recipe: { inputs: { [consumes]: consumptionRate } },
     minStockThreshold,
   };
 
@@ -209,24 +215,34 @@ const findClosestSupplier = (
 
 const updateProcessors = () => {
   processors.forEach((processor) => {
-    let canProcess = false;
-
-    if(processRecipe(processor.recipe,processor.storage)) {
+    if (processRecipe(processor.recipe, processor.storage)) {
       const recipeInputs = Object.entries(processor.recipe.inputs);
-              const recipeInputsString = recipeInputs
-                .map(([resource, amount]) => `${amount} units of ${resource}`)
-                .join(", ");
-  
-              const recipeOutputs = Object.entries(processor.recipe.outputs);
-              const recipeOutputsString = recipeOutputs
-                .map(([resource, amount]) => `${amount} units of ${resource}`)
-                .join(", ");
-  
-              console.log(
-                `${name} processed ${recipeInputsString} to produce ${recipeOutputsString}`,
-              );
+      const recipeInputsString = recipeInputs
+        .map(([resource, amount]) => `${amount} units of ${resource}`)
+        .join(", ");
+
+      if (!processor.recipe.outputs) {
+        throw Error(`[PROCESSOR ERROR] Processors require at least one output`);
+      }
+
+      const recipeOutputs = Object.entries(processor.recipe.outputs);
+      const recipeOutputsString = recipeOutputs
+        .map(([resource, amount]) => `${amount} units of ${resource}`)
+        .join(", ");
+
+      console.log(
+        `${processor.name} processed ${recipeInputsString} to produce ${recipeOutputsString}`,
+      );
+    } else {
+      // .. PROCESSING FAILED
+      // .. check if the inputs are empty or not enough and create contracts
+      // .. check if the output is full
     }
 
+    /* 
+    
+    let canProcess = false;
+    
     Object.entries(processor.recipe.inputs).forEach(
       ([resourceType, requiredAmount]) => {
         const inputStorage = processor.storage.filter(
@@ -267,12 +283,9 @@ const updateProcessors = () => {
                 `[PROCESSOR ERROR] No suppliers available to resupply ${processor.id}. Production terminated.`,
               );
             }
-            
-          
           }
 
           canProcess = false;
-
         } else {
           let amountLeftToRemove = requiredAmount;
 
@@ -292,29 +305,32 @@ const updateProcessors = () => {
           canProcess = true;
         }
 
-        if(availableAmount < processor.minInputThreshold && !contracts.find(c => c.owner == processor.id)) {
+        if (
+          availableAmount < processor.minInputThreshold &&
+          !contracts.find((c) => c.owner == processor.id)
+        ) {
           const closestSupplier = findClosestSupplier(
-              processor,
-              resourceType as RESOURCE_TYPE,
-            );
+            processor,
+            resourceType as RESOURCE_TYPE,
+          );
 
-            if (closestSupplier) {
-              createContract(
-                processor.id,
-                closestSupplier.id,
-                resourceType as RESOURCE_TYPE,
-                Math.ceil(processor.minInputThreshold * 1.5),
-                100,
-                5,
-              );
-            } else {
-              console.log(
-                `[PROCESSOR ERROR] No suppliers available to resupply ${processor.id}. Production terminated.`,
-              );
-            }
+          if (closestSupplier) {
+            createContract(
+              processor.id,
+              closestSupplier.id,
+              resourceType as RESOURCE_TYPE,
+              Math.ceil(processor.minInputThreshold * 1.5),
+              100,
+              5,
+            );
+          } else {
+            console.log(
+              `[PROCESSOR ERROR] No suppliers available to resupply ${processor.id}. Production terminated.`,
+            );
+          }
         }
       },
-    );
+    ); 
 
     if (canProcess) {
       Object.entries(processor.recipe.outputs).forEach(
@@ -359,7 +375,7 @@ const updateProcessors = () => {
           }
         },
       );
-    }
+    }*/
   });
 };
 
@@ -367,7 +383,45 @@ const updateProcessors = () => {
 // input storage that the recipe "consumes" resources from ... effectively making consumers resource sinks
 const updateConsumers = () => {
   consumers.forEach((consumer) => {
-    if (consumer.currentStock > 0) {
+    processRecipe(consumer.recipe, consumer.storage);
+
+    const inputStorage = getInputStorage(consumer.recipe, consumer.storage);
+    const inputStorageCount = inputStorage
+      .map((s) => s.resourceCount)
+      .reduce((c, v) => c + v);
+
+    if (inputStorageCount < consumer.minStockThreshold) {
+      if (inputStorageCount <= 0) {
+        // .. consumption straight up failed because we literally have NOTHING
+        // .. we need to create an URGENT contract
+        // MVP: just create a normal contract
+      } else {
+        // .. create a normal contract
+        const closestSupplier = findClosestSupplier(
+          consumer,
+          inputStorage[0].resourceType,
+        );
+
+        if (!closestSupplier) {
+          console.log(
+            `[CONSUMER ERROR] No nearby suppliers to resupply ${consumer.name}`,
+          );
+        } else {
+          createContract(
+            consumer.id,
+            closestSupplier.id,
+            inputStorage[0].resourceType,
+            Math.ceil(consumer.minStockThreshold * 1.5),
+            100,
+            10,
+          );
+        }
+      }
+    } else {
+      // .. consumed successfully
+    }
+
+    /*if (consumer.currentStock > 0) {
       console.log(
         `${consumer.name} consumed ${consumer.consumptionRate} units of ${consumer.consumes} and has ${consumer.currentStock} left`,
       );
@@ -400,7 +454,7 @@ const updateConsumers = () => {
           );
         }
       }
-    }
+    }*/
   });
 };
 
@@ -479,16 +533,18 @@ const updateTrucks = () => {
 // .. BUILD THE WORLD
 createConsumer("Town A", 50, RESOURCE_TYPE.METAL, 3, 5, 25);
 
-
 createProcessor(
   "Steel Refinery",
   30, // .. position
-  {inputs: {
-    [RESOURCE_TYPE.ORE] : 6
-  }, outputs: {
-    [RESOURCE_TYPE.METAL] : 3
-  }},
-  12 // .. min input threshold
+  {
+    inputs: {
+      [RESOURCE_TYPE.ORE]: 6,
+    },
+    outputs: {
+      [RESOURCE_TYPE.METAL]: 3,
+    },
+  },
+  12, // .. min input threshold
 );
 createProducer("Iron Mine", 10, 1, RESOURCE_TYPE.ORE, 5, 25, 0);
 
