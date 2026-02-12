@@ -12,6 +12,7 @@ import { Truck as ITruck } from "./entities/truck";
 import {
   addResources,
   getInputStorage,
+  getOutputStorage,
   IRecipe,
   IStorage,
   processRecipe,
@@ -58,7 +59,6 @@ const createProducer = (
     id: randomUUID(),
     name,
     position,
-    type: LOCATION_TYPE.PRODUCER,
     storage: [createAndGetStorage(produces, maxStock, currentStock)],
     productionRate,
     currentStock: currentStock ?? 0,
@@ -89,7 +89,6 @@ const createProcessor = (
     id: randomUUID(),
     name,
     position,
-    type: LOCATION_TYPE.PROCESSOR,
     storage: [...inputStorage, ...outputStorage],
     recipe,
     minInputThreshold,
@@ -111,10 +110,9 @@ const createConsumer = (
     id: randomUUID(),
     name,
     position,
-    type: LOCATION_TYPE.CONSUMER,
     storage: [createAndGetStorage(consumes, maxStock, currentStock)],
     recipe: { inputs: { [consumes]: consumptionRate } },
-    minStockThreshold,
+    minInputThreshold: minStockThreshold,
   };
 
   consumers.push(newConsumer);
@@ -234,148 +232,52 @@ const updateProcessors = () => {
         `${processor.name} processed ${recipeInputsString} to produce ${recipeOutputsString}`,
       );
     } else {
+      const inputStorage = getInputStorage(processor.recipe, processor.storage);
+      const inputStorageCount = inputStorage
+        .map((s) => s.resourceCount)
+        .reduce((c, v) => c + v);
+
       // .. PROCESSING FAILED
       // .. check if the inputs are empty or not enough and create contracts
-      // .. check if the output is full
-    }
-
-    /* 
-    
-    let canProcess = false;
-    
-    Object.entries(processor.recipe.inputs).forEach(
-      ([resourceType, requiredAmount]) => {
-        const inputStorage = processor.storage.filter(
-          (s) => s.resourceType == resourceType,
+      if (inputStorageCount < processor.minInputThreshold) {
+        const closestSupplier = findClosestSupplier(
+          processor,
+          inputStorage[0].resourceType,
         );
-        const availableAmount = inputStorage
-          .map((s) => s.resourceCount)
-          .reduce((p, c) => p + c);
 
-        if (availableAmount < requiredAmount) {
-          if (!contracts.find((c) => c.owner === processor.id)) {
-            console.log(
-              `[PROCESSOR ERROR] ${processor.id} doesn't have enough ${resourceType} - need ${requiredAmount}, only have ${availableAmount}`,
-            );
-
-            // .. if an active contract exists, create an urgent purchase order and clear other active orders
-            // otherwise just stop production
-            // .. the due date of the purchase order should take into account expected shipping time +
-            // time needed to produce the goods
-            // MVP = just create a contract that's due in 5 ticks, but only if one doesn't already exist
-
-            const closestSupplier = findClosestSupplier(
-              processor,
-              resourceType as RESOURCE_TYPE,
-            );
-
-            if (closestSupplier) {
-              createContract(
-                processor.id,
-                closestSupplier.id,
-                resourceType as RESOURCE_TYPE,
-                Math.ceil(processor.minInputThreshold * 1.5),
-                100,
-                5,
-              );
-            } else {
-              console.log(
-                `[PROCESSOR ERROR] No suppliers available to resupply ${processor.id}. Production terminated.`,
-              );
-            }
-          }
-
-          canProcess = false;
-        } else {
-          let amountLeftToRemove = requiredAmount;
-
-          inputStorage.forEach((storage) => {
-            const amountToRemove = Math.max(
-              storage.resourceCount - amountLeftToRemove,
-              storage.resourceCount,
-            );
-            const amountRemoved = removeResources(amountToRemove, storage);
-
-            amountLeftToRemove = Math.max(
-              amountLeftToRemove - amountRemoved,
-              0,
-            );
-          });
-
-          canProcess = true;
-        }
-
-        if (
-          availableAmount < processor.minInputThreshold &&
-          !contracts.find((c) => c.owner == processor.id)
-        ) {
-          const closestSupplier = findClosestSupplier(
-            processor,
-            resourceType as RESOURCE_TYPE,
+        if (!closestSupplier) {
+          console.log(
+            `[PROCESSOR ERROR] No nearby suppliers to resupply ${processor.name}`,
           );
-
-          if (closestSupplier) {
-            createContract(
-              processor.id,
-              closestSupplier.id,
-              resourceType as RESOURCE_TYPE,
-              Math.ceil(processor.minInputThreshold * 1.5),
-              100,
-              5,
-            );
-          } else {
-            console.log(
-              `[PROCESSOR ERROR] No suppliers available to resupply ${processor.id}. Production terminated.`,
-            );
-          }
-        }
-      },
-    ); 
-
-    if (canProcess) {
-      Object.entries(processor.recipe.outputs).forEach(
-        ([outputResource, productionRate]) => {
-          const outputStorage = processor.storage.filter(
-            (s) => s.resourceType == outputResource,
+        } else if (!contracts.find((c) => c.owner === processor.id)) {
+          // .. if there's literally NO STOCK left, we need to create an URGENT contract (due sooner, more needs to be transported)
+          createContract(
+            processor.id,
+            closestSupplier.id,
+            inputStorage[0].resourceType,
+            Math.ceil(processor.minInputThreshold * 1.5),
+            100,
+            10,
           );
-          const availableCapacity = outputStorage
-            .map((s) => s.resourceCapacity - s.resourceCount)
-            .reduce((p, c) => p + c, 0);
+        }
+      }
 
-          if (availableCapacity < productionRate) {
-            console.log(
-              `${processor.name} is full and cannot produce more ${outputResource}`,
-            );
-          } else {
-            let amountLeftToAdd = productionRate;
-
-            outputStorage.forEach((storage) => {
-              const amountToAdd = Math.min(
-                storage.resourceCapacity - storage.resourceCount,
-                amountLeftToAdd,
-              );
-              const amountAdded = addResources(amountToAdd, storage);
-
-              amountLeftToAdd = Math.max(amountLeftToAdd - amountAdded, 0);
-            });
-
-            const recipeInputs = Object.entries(processor.recipe.inputs);
-            const recipeInputsString = recipeInputs
-              .map(([resource, amount]) => `${amount} units of ${resource}`)
-              .join(", ");
-
-            const recipeOutputs = Object.entries(processor.recipe.outputs);
-            const recipeOutputsString = recipeOutputs
-              .map(([resource, amount]) => `${amount} units of ${resource}`)
-              .join(", ");
-
-            console.log(
-              `${processor.name} processed ${recipeInputsString} to produce ${recipeOutputsString}`,
-            );
-          }
-        },
+      // .. check if the output is full
+      const outputStorage = getOutputStorage(
+        processor.recipe,
+        processor.storage,
       );
-    }*/
+      const outputStorageCapacity = outputStorage
+        .map((s) => s.resourceCapacity)
+        .reduce((c, v) => c + v);
+      const outputStorageCount = outputStorage
+        .map((s) => s.resourceCount)
+        .reduce((c, v) => c + v);
+
+      if (outputStorageCount > outputStorageCapacity) {
+        console.log(`${processor.name} is full and can't produce any more`);
+      }
+    }
   });
 };
 
@@ -390,28 +292,37 @@ const updateConsumers = () => {
       .map((s) => s.resourceCount)
       .reduce((c, v) => c + v);
 
-    if (inputStorageCount < consumer.minStockThreshold) {
-      if (inputStorageCount <= 0) {
-        // .. consumption straight up failed because we literally have NOTHING
-        // .. we need to create an URGENT contract
-        // MVP: just create a normal contract
-      } else {
-        // .. create a normal contract
-        const closestSupplier = findClosestSupplier(
-          consumer,
-          inputStorage[0].resourceType,
-        );
+    if (inputStorageCount < consumer.minInputThreshold) {
+      const closestSupplier = findClosestSupplier(
+        consumer,
+        inputStorage[0].resourceType,
+      );
 
-        if (!closestSupplier) {
-          console.log(
-            `[CONSUMER ERROR] No nearby suppliers to resupply ${consumer.name}`,
-          );
-        } else {
+      if (!closestSupplier) {
+        console.log(
+          `[CONSUMER ERROR] No nearby suppliers to resupply ${consumer.name}`,
+        );
+      } else if (!contracts.find((c) => c.owner === consumer.id)) {
+        if (inputStorageCount <= 0) {
+          // .. consumption straight up failed because we literally have NOTHING
+          // .. we need to create an URGENT contract
+          // MVP: just create a normal contract
           createContract(
             consumer.id,
             closestSupplier.id,
             inputStorage[0].resourceType,
-            Math.ceil(consumer.minStockThreshold * 1.5),
+            Math.ceil(consumer.minInputThreshold * 1.5),
+            100,
+            10,
+          );
+        } else {
+          // .. create a normal contract
+
+          createContract(
+            consumer.id,
+            closestSupplier.id,
+            inputStorage[0].resourceType,
+            Math.ceil(consumer.minInputThreshold * 1.5),
             100,
             10,
           );
@@ -420,41 +331,6 @@ const updateConsumers = () => {
     } else {
       // .. consumed successfully
     }
-
-    /*if (consumer.currentStock > 0) {
-      console.log(
-        `${consumer.name} consumed ${consumer.consumptionRate} units of ${consumer.consumes} and has ${consumer.currentStock} left`,
-      );
-    }
-
-    consumer.currentStock = Math.max(
-      consumer.currentStock - consumer.consumptionRate,
-      0,
-    );
-
-    if (consumer.currentStock <= consumer.minStockThreshold) {
-      console.log(`${consumer.name} demands ${consumer.consumes}`);
-
-      if (!contracts.find((c) => c.owner == consumer.id)) {
-        const origin = findClosest(consumer, processors);
-
-        if (origin) {
-          createContract(
-            consumer.id,
-            origin.id,
-            consumer.id,
-            consumer.consumes,
-            Math.ceil(consumer.minStockThreshold * 1.5),
-            100,
-            10,
-          );
-        } else {
-          throw Error(
-            `${consumer.name} was unable to create a contract: no processor available`,
-          );
-        }
-      }
-    }*/
   });
 };
 
@@ -546,7 +422,7 @@ createProcessor(
   },
   12, // .. min input threshold
 );
-createProducer("Iron Mine", 10, 1, RESOURCE_TYPE.ORE, 5, 25, 0);
+createProducer("Iron Mine", 10, RESOURCE_TYPE.ORE, 5, 25, 0);
 
 const update = () => {
   rl.removeAllListeners();
