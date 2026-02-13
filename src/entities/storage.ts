@@ -62,7 +62,7 @@ export const processRecipe = (recipe: IRecipe, storage: IStorage[]) => {
           amountLeftToAdd = Math.max(amountLeftToAdd - amountAdded, 0);
         });
 
-        console.log(`[RECIPE] Processing:`);
+        /*console.log(`[RECIPE] Processing:`);
         const recipeInputs = Object.entries(
           recipe.inputs ?? ({} as Record<RESOURCE_TYPE, number>),
         ).map((r) => {
@@ -78,6 +78,7 @@ export const processRecipe = (recipe: IRecipe, storage: IStorage[]) => {
         });
         recipeOutputs.length > 0 &&
           console.log(" - Outputs:", recipeOutputs.join(","));
+          */
       } else {
         canProcess = false;
       }
@@ -118,54 +119,111 @@ export const getResourceCount = (
   return resourceStorage.map((s) => s.resourceCount).reduce((a, c) => a + c);
 };
 
+// .. eventually, this method will allow the transfer of many different types of cargo in one call
+// .. (e.g. trains with different cargo types) but this is (very) complicated to do
+// so for now - we'll just transfer everything
 export const transferResources = (
   amount: number,
-  from: IStorage,
-  to: IStorage,
+  resourceType: RESOURCE_TYPE,
+  fromStorage: IStorage[],
+  toStorage: IStorage[],
 ) => {
-  if (from.resourceType != to.resourceType) {
+  console.log(`[STORAGE] We'll try to transfer ${amount} ${resourceType}...`);
+  const matchingSourceStorage = fromStorage.filter(
+    (s) => s.resourceType === resourceType,
+  );
+  const matchingDestinationStorage = toStorage.filter(
+    (s) => s.resourceType === resourceType,
+  );
+
+  if (
+    matchingSourceStorage.length == 0 ||
+    matchingDestinationStorage.length == 0
+  ) {
     throw Error(
-      `[STORAGE ERROR] Containers ${from.id} and ${to.id} have incompatible resource types and cannot be transferred between`,
+      `[STORAGE ERROR] No matching source & destination storage found for ${resourceType}`,
     );
   }
 
-  const amountToMoveFrom = Math.min(from.resourceCount, amount);
-
-  if (from.resourceCount < amount) {
+  const matchingSourceResourceCount = matchingSourceStorage
+    .map((s) => s.resourceCount)
+    .reduce((a, c) => a + c);
+  if (matchingSourceResourceCount < amount) {
     console.log(
-      `[STORAGE] ${from.id} doesn't have enough ${from.resourceType} to transfer ${amount}`,
-    );
-  }
-  if (to.resourceCount + amountToMoveFrom > to.resourceCapacity) {
-    console.log(
-      `[STORAGE] ${to.id} is too full of ${from.resourceType} to transfer ${amount}`,
+      `[STORAGE WARNING] Not enough ${resourceType} to transfer - only ${matchingSourceResourceCount} available ... we'll transfer what we can`,
     );
   }
 
-  const amountToMoveTo = Math.min(
-    amountToMoveFrom,
-    to.resourceCapacity - to.resourceCount,
-  );
+  const matchingDestinationAvailableCapacity = matchingDestinationStorage
+    .map((s) => s.resourceCapacity - s.resourceCount)
+    .reduce((a, c) => a + c);
 
-  from.resourceCount -= amountToMoveTo;
-  to.resourceCount += amountToMoveTo;
-
-  console.log(
-    `[STORAGE] Transferred ${amountToMoveTo} ${from.resourceType} from ${from.id} to ${to.id}`,
-  );
-
-  if (from.resourceCount < 0) {
+  if (matchingDestinationAvailableCapacity < amount) {
     console.log(
-      `[STORAGE WARNING] ${from.id} had negative storage and was corrected`,
+      `[STORAGE WARNING] Not enough space available to transfer - only ${matchingDestinationAvailableCapacity} ... we'll transfer what we can`,
     );
-    from.resourceCount = 0;
   }
-  if (to.resourceCount > to.resourceCapacity) {
-    console.log(`[STORAGE WARNING] ${to.id} was overflowing and was corrected`);
-    console.log(
-      ` - ${to.resourceCount - to.resourceCapacity} units of ${to.resourceType} were lost`,
+
+  // SCENARIO 1:
+  // - Iron Mine has 30 ore
+  // - Truck has 25 capacity and wants 25
+  // - Truck gets 25 ore, 5 left in the mine
+
+  // SCENARIO 2:
+  // - Iron Mine has 15 ore
+  // - Truck has 25 capacity and wants 25
+  // - Truck can only take 15 ore, so the truck needs to wait for more to get mined
+
+  let amountLeftToTransfer = amount;
+
+  // .. this is the ore in the mine e.g. 30
+  matchingSourceStorage.forEach((source) => {
+    // .. do we still have stuff to move? if not, we'll just skip over everything else
+    if (amountLeftToTransfer > 0) {
+      console.log(` - We have ${amountLeftToTransfer} left to transfer`);
+      // .. we know how much we have in total, but how much does this box have in it?
+      // .. we'll try to get everything we need from this box, but if we can't - that's fine
+      const availableToTransfer = Math.min(
+        source.resourceCount,
+        amountLeftToTransfer,
+      );
+
+      console.log(` - Theres ${availableToTransfer} in this box`);
+
+      matchingDestinationStorage.forEach((destination) => {
+        // .. ok, now how much space is available in this box to put it into
+        // .. can we transfer everything? or only a bit at a time?
+        const availableCapacity =
+          destination.resourceCapacity - destination.resourceCount;
+        const amountToTransfer = Math.min(
+          availableCapacity,
+          availableToTransfer,
+        );
+
+        console.log(
+          ` - The box we want to put it in can take ${availableCapacity}, so we'll move ${amountToTransfer}`,
+        );
+
+        // .. ok cool, let's move the stuff and track how much we moved
+        removeResources(amountToTransfer, source);
+        addResources(amountToTransfer, destination);
+        amountLeftToTransfer -= amountToTransfer;
+      });
+    }
+  });
+
+  // .. we (really) dont expect this to happen, but if it does, we need to know
+  if (amountLeftToTransfer < 0) {
+    throw Error(
+      `[STORAGE ERROR] Tried to transfer too much  (amount left: ${amountLeftToTransfer} - this is wrong)`,
     );
-    to.resourceCount = to.resourceCapacity;
+  } else if (amountLeftToTransfer > 0) {
+    console.log(
+      `[STORAGE WARNING] We couldn't transfer everything, still have ${amountLeftToTransfer} left to go`,
+    );
+    return false;
+  } else {
+    return true;
   }
 };
 
@@ -184,13 +242,13 @@ export const addResources = (amount: number, to: IStorage) => {
 };
 
 export const removeResources = (amount: number, from: IStorage) => {
-  if (from.resourceCount - amount < 0) {
+  if (from.resourceCount < amount) {
     console.log(
       `[STORAGE WARNING] ${from.id} doesn't have enough ${from.resourceType} to remove ${amount}`,
     );
   }
 
-  const amountToRemove = Math.max(from.resourceCount - amount, 0);
+  const amountToRemove = Math.min(from.resourceCount, amount);
   from.resourceCount -= amountToRemove;
 
   console.log(

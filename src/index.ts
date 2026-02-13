@@ -8,7 +8,7 @@ import {
 import readline from "readline";
 import { IContract } from "./entities/contract";
 import { randomUUID } from "crypto";
-import { Truck as ITruck } from "./entities/truck";
+import { ITruck as ITruck } from "./entities/truck";
 import {
   addResources,
   getInputStorage,
@@ -20,6 +20,7 @@ import {
   processRecipe,
   removeResources,
   RESOURCE_TYPE,
+  transferResources,
 } from "./entities/storage";
 
 // Creating locations
@@ -125,9 +126,9 @@ const createConsumer = (
 };
 
 const createContract = (
-  owner: string,
-  supplier: string,
-  resource: RESOURCE_TYPE,
+  owner: IBaseLocation,
+  supplier: IBaseLocation,
+  resourceType: RESOURCE_TYPE,
   amount: number,
   payment: number,
   dueTicks: number,
@@ -137,13 +138,15 @@ const createContract = (
     owner,
     supplier,
     shipper: undefined,
-    resource,
+    resourceType,
     amount,
     payment,
     dueTicks,
   };
 
-  console.log("Created contract: ", newContract);
+  console.log(
+    `${owner.name} created a contract with ${supplier.name} for ${amount} ${resourceType} - due in ${dueTicks} ticks`,
+  );
 
   contracts.push(newContract);
 };
@@ -215,7 +218,6 @@ const updateProducers = () => {
     }
   });
 };
-
 const findClosestSupplier = (
   destination: IBaseLocation,
   resourceType: RESOURCE_TYPE,
@@ -245,7 +247,6 @@ const findClosestSupplier = (
 
   return closest;
 };
-
 const updateProcessors = () => {
   processors.forEach((processor) => {
     if (processRecipe(processor.recipe, processor.storage)) {
@@ -278,7 +279,14 @@ const updateProcessors = () => {
 
       // .. PROCESSING FAILED
       // .. check if the inputs are empty or not enough and create contracts
-      if (inputStorageCount < processor.minInputThreshold) {
+      if (
+        inputStorageCount < processor.minInputThreshold &&
+        !contracts.find((c) => c.owner === processor)
+      ) {
+        console.log(
+          `[PROCESSOR WARNING] ${processor.name} doesn't have enough ${inputStorage[0].resourceType} ${inputStorageCount > 0 ? `(only ${inputStorageCount} available) ` : ""}- so we'll create a contract`,
+        );
+
         const closestSupplier = findClosestSupplier(
           processor,
           inputStorage[0].resourceType,
@@ -288,15 +296,28 @@ const updateProcessors = () => {
           console.log(
             `[PROCESSOR ERROR] No nearby suppliers to resupply ${processor.name}`,
           );
-        } else if (!contracts.find((c) => c.owner === processor.id)) {
+        } else {
           // .. if there's literally NO STOCK left, we need to create an URGENT contract (due sooner, more needs to be transported)
           createContract(
-            processor.id,
-            closestSupplier.id,
+            processor,
+            closestSupplier,
             inputStorage[0].resourceType,
             Math.ceil(processor.minInputThreshold * 1.5),
             100,
             10,
+          );
+        }
+      }
+
+      if (inputStorageCount >= processor.minInputThreshold) {
+        const contractsToRemove = contracts.filter(
+          (c) => c.owner === processor,
+        );
+
+        if (contractsToRemove.length > 0) {
+          console.log("contracts to void: ", contractsToRemove);
+          contracts = contracts.filter(
+            (c) => !contractsToRemove.find((ctr) => ctr.id == c.id),
           );
         }
       }
@@ -319,7 +340,6 @@ const updateProcessors = () => {
     }
   });
 };
-
 // .. TODO: consumers basically use the same "recipe" system as processors - except they only have
 // input storage that the recipe "consumes" resources from ... effectively making consumers resource sinks
 const updateConsumers = () => {
@@ -341,14 +361,14 @@ const updateConsumers = () => {
         console.log(
           `[CONSUMER ERROR] No nearby suppliers to resupply ${consumer.name}`,
         );
-      } else if (!contracts.find((c) => c.owner === consumer.id)) {
+      } else if (!contracts.find((c) => c.owner === consumer)) {
         if (inputStorageCount <= 0) {
           // .. consumption straight up failed because we literally have NOTHING
           // .. we need to create an URGENT contract
           // MVP: just create a normal contract
           createContract(
-            consumer.id,
-            closestSupplier.id,
+            consumer,
+            closestSupplier,
             inputStorage[0].resourceType,
             Math.ceil(consumer.minInputThreshold * 1.5),
             100,
@@ -358,8 +378,8 @@ const updateConsumers = () => {
           // .. create a normal contract
 
           createContract(
-            consumer.id,
-            closestSupplier.id,
+            consumer,
+            closestSupplier,
             inputStorage[0].resourceType,
             Math.ceil(consumer.minInputThreshold * 1.5),
             100,
@@ -378,7 +398,6 @@ const updateContracts = () => {
     if (contract.dueTicks > 0) {
       if (contract.dueTicks - 1 <= 0) {
         console.log(`Contract ${contract.id} has expired`);
-        contracts = contracts.filter((c) => c.id !== contract.id);
         // .. impose some sort of penalty on the shipper if they fail to deliver?
       } else {
         contract.dueTicks--;
@@ -390,56 +409,98 @@ const updateContracts = () => {
   });
 };
 
-/* const transferTruckCargo = (truck: ITruck, destination : IBaseLocation, amount?: number) => {
-  if(destination.type == LOCATION_TYPE.CONSUMER) {
-    const consumer = (destination as IConsumer);
-
-    if(truck.resourceCount > 0) {
-      consumer.currentStock += truck.resourceCount;
-      truck.resourceCount = 0;
-    }
-    else {
-      throw Error(`Error: Truck ${truck.id} tried to deliver ${truck.resourceType} to ${destination.name}, but it was empty`);
-    }
-  }
-  else if(destination.type == LOCATION_TYPE.PROCESSOR) {
-    const processor = (destination as IProcessor);
-
-    if(truck.resourceCount > 0) { // .. if the truck is full, unload it
-      const amountToUnload : number = amount ?? truck.resourceCapacity;
-
-      processor.inputStock += Math.min(processor);
-      truck.resourceCount = 0;
-    }
-    else { // .. if the truck is empty, load it
-      if(processor.outputStock > 0) {
-        const amountToLoad : number = amount ?? truck.resourceCapacity;
-
-        truck.resourceCount += Math.min(processor.outputStock,amountToLoad); // .. if we don't specify an amount, just fill it as much as we can
-        processor.outputStock = Math.max(0,processor.outputStock-amountToLoad);
-      }
-    }
-  }
-  else if(destination.type == LOCATION_TYPE.PRODUCER) {
-    const producer = (destination as IProducer);
-  }
-} */
+// .. TRUCKS
 const updateTrucks = () => {
   trucks.forEach((truck) => {
-    if (truck.destination && truck.position != truck.destination.position) {
+    if (truck.destination) {
       const distance = truck.position - truck.destination.position;
       const direction = Math.sign(distance);
 
-      truck.position -= direction * truck.speed;
+      if (truck.position != truck.destination.position) {
+        truck.position -= direction * truck.speed;
 
-      if (Math.abs(truck.position - truck.destination.position) < truck.speed) {
-        truck.position = truck.destination.position; // Snap to destination
-      }
+        if (
+          Math.abs(truck.position - truck.destination.position) < truck.speed
+        ) {
+          truck.position = truck.destination.position; // Snap to destination
+        }
 
-      if (truck.position == truck.destination.position) {
+        if (truck.position == truck.destination.position) {
+          console.log(
+            `[TRUCK] ${truck.id} has arrived at ${truck.destination.name}`,
+          );
+        }
+
         console.log(
-          `Truck ${truck.id} has arrived at ${truck.destination.name}`,
+          `[TRUCK] ${truck.id} moved ${truck.speed} distance units and is ${distance} units away from the destination`,
         );
+      } else {
+        if (truck.contract) {
+          if (truck.destination == truck.contract.supplier) {
+            const amountLeftToLoad =
+              truck.contract.amount - truck.storage.resourceCount;
+
+            console.log(
+              `[TRUCK] ${truck.id} requested ${amountLeftToLoad} ${truck.contract.resourceType} from ${truck.destination.name}`,
+            );
+
+            if (
+              transferResources(
+                amountLeftToLoad,
+                truck.contract.resourceType,
+                truck.destination.storage,
+                [truck.storage],
+              ) ||
+              amountLeftToLoad <= 0
+            ) {
+              console.log(
+                `[TRUCK] ${truck.id} finished loading at ${truck.destination.name}. Heading to ${truck.contract.owner.name}`,
+              );
+              truck.destination = truck.contract.owner;
+            } else {
+              console.log(
+                `[TRUCK] ${truck.id} will wait for the rest of the ${truck.contract.resourceType}`,
+              );
+            }
+          } else if (truck.destination == truck.contract.owner) {
+            if (
+              transferResources(
+                truck.contract.amount,
+                truck.contract.resourceType,
+                [truck.storage],
+                truck.destination.storage,
+              )
+            ) {
+              console.log(
+                `[TRUCK] ${truck.id} finished unloading at ${truck.destination.name}. Contract completed`,
+              );
+              truck.destination = undefined;
+              truck.contract = undefined;
+            } else {
+              console.log(
+                `[TRUCK] ${truck.id} will wait for the rest of the ${truck.contract.resourceType}`,
+              );
+            }
+          }
+        }
+      }
+    } else if (contracts.length > 0) {
+      console.log(`[TRUCK] ${truck.id} is looking for a contract...`);
+      // .. if there's a contract available and the truck is doing nothing, accept the contract
+      const contract = contracts.filter(
+        (c) => !c.shipper && c.resourceType == truck.storage.resourceType,
+      )[0];
+
+      // .. TODO: if a particular truck can't complete the contract on its own, it will subcontract it to someone who can
+
+      if (!contract) {
+        console.log(` - No contracts available`);
+      } else {
+        contract.shipper = truck;
+        truck.contract = contract;
+        truck.destination = contract.supplier;
+
+        console.log(` - Accepted contract ${contract.id}`);
       }
     }
   });
@@ -463,6 +524,8 @@ createProcessor(
 );
 createProducer("Iron Mine", 10, RESOURCE_TYPE.ORE, 5, 25, 0);
 
+createTruck(RESOURCE_TYPE.ORE, 30, 0, 2);
+
 const update = () => {
   rl.removeAllListeners();
 
@@ -470,6 +533,7 @@ const update = () => {
   updateProcessors();
   //updateConsumers();
   updateContracts();
+  updateTrucks();
 
   rl.on("line", (input: string) => {
     const [command, ...args] = input.trim().split(" ");
