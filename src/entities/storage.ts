@@ -11,7 +11,7 @@ export interface IRecipe {
 }
 
 export const processRecipe = (recipe: IRecipe, storage: IStorage[]) => {
-  let canProcess = false;
+  let canProcess = true;
 
   if (recipe.inputs) {
     Object.entries(recipe.inputs).forEach(([resourceType, requiredAmount]) => {
@@ -36,8 +36,6 @@ export const processRecipe = (recipe: IRecipe, storage: IStorage[]) => {
 
           amountLeftToRemove = Math.max(amountLeftToRemove - amountRemoved, 0);
         });
-
-        canProcess = true;
       }
     });
   }
@@ -63,12 +61,30 @@ export const processRecipe = (recipe: IRecipe, storage: IStorage[]) => {
 
           amountLeftToAdd = Math.max(amountLeftToAdd - amountAdded, 0);
         });
-        return true;
+
+        console.log(`[RECIPE] Processing:`);
+        const recipeInputs = Object.entries(
+          recipe.inputs ?? ({} as Record<RESOURCE_TYPE, number>),
+        ).map((r) => {
+          return `${r[1]} ${r[0]}`;
+        });
+        recipeInputs.length > 0 &&
+          console.log(" - Inputs:", recipeInputs.join(","));
+
+        const recipeOutputs = Object.entries(
+          recipe.outputs ?? ({} as Record<RESOURCE_TYPE, number>),
+        ).map((r) => {
+          return `${r[1]} ${r[0]}`;
+        });
+        recipeOutputs.length > 0 &&
+          console.log(" - Outputs:", recipeOutputs.join(","));
+      } else {
+        canProcess = false;
       }
     });
   }
 
-  return false;
+  return canProcess;
 };
 
 // STORAGE
@@ -85,6 +101,22 @@ export const getInputStorage = (recipe: IRecipe, storage: IStorage[]) =>
 
 export const getOutputStorage = (recipe: IRecipe, storage: IStorage[]) =>
   storage.filter((s) => s.resourceType in (recipe.outputs ?? {}));
+
+export const getResourceCapacity = (
+  resourceType: RESOURCE_TYPE,
+  storage: IStorage[],
+) => {
+  const resourceStorage = storage.filter((s) => s.resourceType == resourceType);
+  return resourceStorage.map((s) => s.resourceCapacity).reduce((a, c) => a + c);
+};
+
+export const getResourceCount = (
+  resourceType: RESOURCE_TYPE,
+  storage: IStorage[],
+) => {
+  const resourceStorage = storage.filter((s) => s.resourceType == resourceType);
+  return resourceStorage.map((s) => s.resourceCount).reduce((a, c) => a + c);
+};
 
 export const transferResources = (
   amount: number,

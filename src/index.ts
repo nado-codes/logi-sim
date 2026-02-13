@@ -13,6 +13,8 @@ import {
   addResources,
   getInputStorage,
   getOutputStorage,
+  getResourceCapacity,
+  getResourceCount,
   IRecipe,
   IStorage,
   processRecipe,
@@ -59,7 +61,7 @@ const createProducer = (
     id: randomUUID(),
     name,
     position,
-    recipe: { inputs: { [produces]: productionRate } },
+    recipe: { outputs: { [produces]: productionRate } },
     storage: [createAndGetStorage(produces, maxStock, currentStock)],
     productionRate,
     currentStock: currentStock ?? 0,
@@ -101,7 +103,6 @@ const createProcessor = (
 
   processors.push(newProcessor);
 };
-
 const createConsumer = (
   name: string,
   position: number,
@@ -167,21 +168,50 @@ const createTruck = (
 // .. UPDATE
 const updateProducers = () => {
   producers.forEach((producer) => {
-    if (producer.currentStock < producer.maxStock) {
-      if (
-        producer.currentStock + producer.productionRate >=
-        producer.maxStock
-      ) {
-        console.log(`${producer.name} is full`);
-      }
-      producer.currentStock = Math.min(
-        producer.currentStock,
-        producer.productionRate,
-        producer.maxStock,
+    if (
+      Object.entries(
+        producer.recipe.outputs ??
+          ({} as Partial<Record<RESOURCE_TYPE, number>>),
+      ).length > 1
+    ) {
+      throw Error(
+        `[PRODUCER ERROR] Producers currently only support one output`,
       );
+    } else if (!producer.recipe.outputs) {
+      throw Error(`[PRODUCER ERROR] Producers require at least one output`);
+    }
+
+    const resourceType = Object.keys(
+      producer.recipe.outputs,
+    )[0] as RESOURCE_TYPE;
+    const productionRate = Object.values(producer.recipe.outputs)[0];
+
+    const outputStorage = getOutputStorage(producer.recipe, producer.storage);
+
+    const outputStorageCapacity = getResourceCapacity(
+      resourceType,
+      outputStorage,
+    );
+
+    if (processRecipe(producer.recipe, producer.storage)) {
+      const outputStorageCount = getResourceCount(resourceType, outputStorage);
       console.log(
-        `${producer.name} produced ${producer.productionRate} units of ${producer.storage}`,
+        `${producer.name} produced ${productionRate} ${resourceType} and has ${outputStorageCount} available`,
       );
+    } else {
+      const outputStorageCount = getResourceCount(resourceType, outputStorage);
+      console.log(
+        `${producer.name} has ${outputStorageCount} ${resourceType} with a capacity of ${outputStorageCapacity}`,
+      );
+      if (outputStorageCount >= outputStorageCapacity) {
+        console.log(
+          `${producer.name} is full and can't produce any more ${resourceType}`,
+        );
+      } else {
+        console.error(
+          `[PRODUCER ERROR] ${producer.name} was unable to produce anything due to an unknown error`,
+        );
+      }
     }
   });
 };
@@ -436,9 +466,9 @@ createProducer("Iron Mine", 10, RESOURCE_TYPE.ORE, 5, 25, 0);
 const update = () => {
   rl.removeAllListeners();
 
-  updateConsumers();
-  updateProcessors();
   updateProducers();
+  updateProcessors();
+  //updateConsumers();
   updateContracts();
 
   rl.on("line", (input: string) => {
@@ -458,5 +488,3 @@ const rl = readline.createInterface({
 });
 
 update();
-
-//printMenu();
