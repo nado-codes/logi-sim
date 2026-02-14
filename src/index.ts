@@ -4,7 +4,7 @@ import { createWorld } from "./world/world";
 import { notify } from "./notifications";
 
 notify.info("Logi sim starting...");
-notify.info("LogiSim v1.0 10-02-26");
+notify.info("LogiSim v0.2.4");
 
 // .. CREATE
 

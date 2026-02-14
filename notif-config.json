@@ -1,7 +1,7 @@
 {
-  "showStorageNotifications": false,
+  "showStorageNotifications": true,
   "showProcessorNotifications": true,
-  "showProducerNotifications": true,
+  "showProducerNotifications": false,
   "showConsumerNotifications": false,
   "showContractNotifications": false,
   "showTruckNotifications": true,
