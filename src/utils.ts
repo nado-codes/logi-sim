@@ -1,21 +1,30 @@
 import { IBaseLocation } from "./entities/location";
 import { RESOURCE_TYPE } from "./entities/storage";
+import { loadNotificationConfig, notify } from "./notifications";
+
+const notificationConfig = loadNotificationConfig();
 
 export const findClosestSupplier = (
   destination: IBaseLocation,
   resourceType: RESOURCE_TYPE,
   candidates: IBaseLocation[],
 ): IBaseLocation | undefined => {
-  console.log(`[LOGISTICS] ${destination.name} is searching for a supplier...`);
+  if (notificationConfig.showUtilsNotifications) {
+    notify.info(
+      `[LOGISTICS] ${destination.name} is searching for a supplier...`,
+    );
+  }
   const suppliers = candidates.filter((s) => {
     const hasResources = s.storage.some(
       (st) => st.resourceType === resourceType && st.resourceCount > 0,
     );
 
     if (s.id !== destination.id) {
-      console.log(
-        ` - Contacted ${s.name} -> ${hasResources ? "Found some resources!" : "Nothing available"}`,
-      );
+      if (notificationConfig.showUtilsNotifications) {
+        notify.info(
+          ` - Contacted ${s.name} -> ${hasResources ? "Found some resources!" : "Nothing available"}`,
+        );
+      }
     }
     return hasResources && s.id !== destination.id;
   });

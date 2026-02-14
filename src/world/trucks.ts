@@ -6,6 +6,9 @@ import {
 } from "../entities/storage";
 import { ITruck } from "../entities/truck";
 import { IWorldState } from "./state";
+import { loadNotificationConfig, notify } from "../notifications";
+
+const notificationConfig = loadNotificationConfig();
 
 export const createTruck = (
   state: IWorldState,
@@ -41,23 +44,29 @@ export const updateTrucks = (state: IWorldState) => {
         }
 
         if (truck.position === truck.destination.position) {
-          console.log(
-            `[TRUCK] ${truck.id} has arrived at ${truck.destination.name}`,
-          );
+          if (notificationConfig.showTruckNotifications) {
+            notify.success(
+              `[TRUCK] ${truck.id} has arrived at ${truck.destination.name}`,
+            );
+          }
+        } else {
+          if (notificationConfig.showTruckNotifications) {
+            notify.info(
+              `[TRUCK] ${truck.id} moved ${truck.speed} distance units and is ${Math.abs(distance)} units away from the destination`,
+            );
+          }
         }
-
-        console.log(
-          `[TRUCK] ${truck.id} moved ${truck.speed} distance units and is ${distance} units away from the destination`,
-        );
       } else {
         if (truck.contract) {
           if (truck.destination === truck.contract.supplier) {
             const amountLeftToLoad =
               truck.contract.amount - truck.storage.resourceCount;
 
-            console.log(
-              `[TRUCK] ${truck.id} requested ${amountLeftToLoad} ${truck.contract.resourceType} from ${truck.destination.name}`,
-            );
+            if (notificationConfig.showTruckNotifications) {
+              notify.info(
+                `[TRUCK] ${truck.id} requested ${amountLeftToLoad} ${truck.contract.resourceType} from ${truck.destination.name}`,
+              );
+            }
 
             if (
               transferResources(
@@ -68,14 +77,18 @@ export const updateTrucks = (state: IWorldState) => {
               ) ||
               amountLeftToLoad <= 0
             ) {
-              console.log(
-                `[TRUCK] ${truck.id} finished loading at ${truck.destination.name}. Heading to ${truck.contract.owner.name}`,
-              );
+              if (notificationConfig.showTruckNotifications) {
+                notify.success(
+                  `[TRUCK] ${truck.id} finished loading at ${truck.destination.name}. Heading to ${truck.contract.owner.name}`,
+                );
+              }
               truck.destination = truck.contract.owner;
             } else {
-              console.log(
-                `[TRUCK] ${truck.id} will wait for the rest of the ${truck.contract.resourceType}`,
-              );
+              if (notificationConfig.showTruckNotifications) {
+                notify.info(
+                  `[TRUCK] ${truck.id} will wait for the rest of the ${truck.contract.resourceType} (${truck.contract.amount - truck.storage.resourceCount} left)`,
+                );
+              }
             }
           } else if (truck.destination === truck.contract.owner) {
             if (
@@ -86,21 +99,31 @@ export const updateTrucks = (state: IWorldState) => {
                 truck.destination.storage,
               )
             ) {
-              console.log(
-                `[TRUCK] ${truck.id} finished unloading at ${truck.destination.name}. Contract completed`,
-              );
+              if (notificationConfig.showTruckNotifications) {
+                notify.success(
+                  `[TRUCK] ${truck.id} finished unloading at ${truck.destination.name}. Contract completed`,
+                );
+              }
+
+              // .. probably a bit messy to do it like this ... should we have a util function that does
+              // .. some sort of handshake between owner + shipper to verify that a contract is completed?
               truck.destination = undefined;
+              truck.contract.shipper = undefined;
               truck.contract = undefined;
             } else {
-              console.log(
-                `[TRUCK] ${truck.id} will wait for the rest of the ${truck.contract.resourceType}`,
-              );
+              if (notificationConfig.showTruckNotifications) {
+                notify.info(
+                  `[TRUCK] ${truck.id} will wait to unload the rest of the ${truck.contract.resourceType} (${truck.storage.resourceCount} left)`,
+                );
+              }
             }
           }
         }
       }
     } else if (state.contracts.length > 0) {
-      console.log(`[TRUCK] ${truck.id} is looking for a contract...`);
+      if (notificationConfig.showTruckNotifications) {
+        notify.info(`[TRUCK] ${truck.id} is looking for a contract...`);
+      }
       // .. if there's a contract available and the truck is doing nothing, accept the contract
       const contract = state.contracts.filter(
         (c) => !c.shipper && c.resourceType === truck.storage.resourceType,
@@ -109,13 +132,17 @@ export const updateTrucks = (state: IWorldState) => {
       // .. TODO: if a particular truck can't complete the contract on its own, it will subcontract it to someone who can
 
       if (!contract) {
-        console.log(` - No contracts available`);
+        if (notificationConfig.showTruckNotifications) {
+          notify.info(` - No contracts available`);
+        }
       } else {
         contract.shipper = truck;
         truck.contract = contract;
         truck.destination = contract.supplier;
 
-        console.log(` - Accepted contract ${contract.id}`);
+        if (notificationConfig.showTruckNotifications) {
+          notify.success(` - Accepted contract ${contract.id}`);
+        }
       }
     }
   });

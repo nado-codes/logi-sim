@@ -3,16 +3,25 @@ import { IProcessor } from "../entities/location";
 import {
   addResources,
   createAndGetStorage,
+  createRecipeStorage,
   getInputStorage,
   getOutputStorage,
+  getResourceStorage,
   IRecipe,
   IStorage,
   processRecipe,
   RESOURCE_TYPE,
 } from "../entities/storage";
 import { findClosestSupplier } from "../utils";
-import { createContract, removeOwnedContracts } from "./contracts";
+import {
+  createContract,
+  getResourceContract,
+  removeOwnedContracts,
+} from "./contracts";
 import { IWorldState } from "./state";
+import { loadNotificationConfig, notify } from "../notifications";
+
+const notificationConfig = loadNotificationConfig();
 
 export const createProcessor = (
   state: IWorldState,
@@ -26,38 +35,29 @@ export const createProcessor = (
   startWithFullOutputs: boolean = false,
 ) => {
   if (!recipe.inputs) {
-    throw Error(`[ERROR] Processors require at least one input`);
+    throw Error(
+      `[CRITICAL SYSTEM ERROR] Processors require at least one input`,
+    );
   }
-
-  const inputStorage: IStorage[] = Object.entries(recipe.inputs).map(([r, _]) =>
-    createAndGetStorage(r as RESOURCE_TYPE, inputCapacity),
-  );
-
-  if (startWithFullInputs) {
-    inputStorage.forEach((storage) => {
-      addResources(storage.resourceCapacity, storage);
-    });
-  }
-
   if (!recipe.outputs) {
-    throw Error(`[ERROR] Processors require at least one output`);
+    throw Error(
+      `[CRITICAL SYSTEM ERROR] Processors require at least one output`,
+    );
   }
 
-  const outputStorage: IStorage[] = Object.entries(recipe.outputs).map(
-    ([r, _]) => createAndGetStorage(r as RESOURCE_TYPE, outputCapacity),
+  const storage = createRecipeStorage(
+    recipe,
+    inputCapacity,
+    outputCapacity,
+    startWithFullInputs,
+    startWithFullOutputs,
   );
-
-  if (startWithFullOutputs) {
-    outputStorage.forEach((storage) => {
-      addResources(storage.resourceCapacity, storage);
-    });
-  }
 
   const newProcessor: IProcessor = {
     id: randomUUID(),
     name,
     position,
-    storage: [...inputStorage, ...outputStorage],
+    storage,
     recipe,
     minInputThreshold,
   };
@@ -67,9 +67,16 @@ export const createProcessor = (
 
 export const updateProcessors = (state: IWorldState) => {
   state.processors.forEach((processor) => {
+    const inputStorage = getInputStorage(processor.recipe, processor.storage);
+    const inputStorageCount = inputStorage
+      .map((s) => s.resourceCount)
+      .reduce((a, c) => a + c);
+
     if (processRecipe(processor.recipe, processor.storage)) {
       if (!processor.recipe.inputs) {
-        throw Error(`[PROCESSOR ERROR] Processors require at least one input`);
+        throw Error(
+          `[CRITICAL PROCESSOR ERROR] Processors require at least one input`,
+        );
       }
 
       const recipeInputs = Object.entries(processor.recipe.inputs);
@@ -78,7 +85,9 @@ export const updateProcessors = (state: IWorldState) => {
         .join(", ");
 
       if (!processor.recipe.outputs) {
-        throw Error(`[PROCESSOR ERROR] Processors require at least one output`);
+        throw Error(
+          `[CRITICAL PROCESSOR ERROR] Processors require at least one output`,
+        );
       }
 
       const recipeOutputs = Object.entries(processor.recipe.outputs);
@@ -86,57 +95,68 @@ export const updateProcessors = (state: IWorldState) => {
         .map(([resource, amount]) => `${amount} units of ${resource}`)
         .join(", ");
 
-      const inputStorage = getInputStorage(processor.recipe, processor.storage);
-      const inputStorageCount = inputStorage
-        .map((s) => s.resourceCount)
-        .reduce((a, c) => a + c);
-
-      console.log(
-        `${processor.name} processed ${recipeInputsString} to produce ${recipeOutputsString} and has ${inputStorageCount} left`,
-      );
+      if (notificationConfig.showProcessorNotifications) {
+        notify.success(
+          `${processor.name} processed ${recipeInputsString} to produce ${recipeOutputsString} and has ${inputStorageCount} left`,
+        );
+      }
     } else {
-      const inputStorage = getInputStorage(processor.recipe, processor.storage);
-      const inputStorageCount = inputStorage
-        .map((s) => s.resourceCount)
-        .reduce((c, v) => c + v);
-
-      // .. PROCESSING FAILED
-      // .. check if the inputs are empty or not enough and create contracts
-      if (
-        inputStorageCount < processor.minInputThreshold &&
-        !state.contracts.find((c) => c.owner === processor)
-      ) {
-        console.log(
-          `[PROCESSOR WARNING] ${processor.name} doesn't have enough ${inputStorage[0].resourceType} ${inputStorageCount > 0 ? `(only ${inputStorageCount} available) ` : ""}- so we'll create a contract`,
-        );
-
-        const closestSupplier = findClosestSupplier(
-          processor,
-          inputStorage[0].resourceType,
-          [...state.consumers, ...state.processors, ...state.producers],
-        );
-
-        if (!closestSupplier) {
-          console.log(
-            `[PROCESSOR ERROR] No nearby suppliers to resupply ${processor.name}`,
+      Object.entries(processor.recipe.inputs ?? {}).map(
+        ([resourceType, requiredAmount]) => {
+          const inputStorage = getResourceStorage(
+            resourceType as RESOURCE_TYPE,
+            processor.storage,
           );
-        } else {
-          // .. if there's literally NO STOCK left, we need to create an URGENT contract (due sooner, more needs to be transported)
-          createContract(
+          const inputStorageCount = inputStorage
+            .map((s) => s.resourceCount)
+            .reduce((c, v) => c + v);
+
+          const resourceContract = getResourceContract(
             state,
-            processor,
-            closestSupplier,
-            inputStorage[0].resourceType,
-            Math.ceil(processor.minInputThreshold * 1.5),
-            100,
-            10,
+            processor.id,
+            resourceType as RESOURCE_TYPE,
           );
-        }
-      }
 
-      if (inputStorageCount >= processor.minInputThreshold) {
-        removeOwnedContracts(state, processor.id);
-      }
+          if (inputStorageCount < processor.minInputThreshold) {
+            if (!resourceContract) {
+              if (notificationConfig.showProcessorNotifications) {
+                notify.warning(
+                  `[PROCESSOR WARNING] ${processor.name} doesn't have enough ${inputStorage[0].resourceType} ${inputStorageCount > 0 ? `(only ${inputStorageCount} available) ` : ""}- so we'll create a contract`,
+                );
+              }
+
+              const closestSupplier = findClosestSupplier(
+                processor,
+                inputStorage[0].resourceType,
+                [...state.consumers, ...state.processors, ...state.producers],
+              );
+
+              if (!closestSupplier) {
+                if (notificationConfig.showProcessorNotifications) {
+                  notify.error(
+                    `[PROCESSOR ERROR] No nearby suppliers to resupply ${processor.name}`,
+                  );
+                }
+              } else {
+                // .. if there's literally NO STOCK left, we need to create an URGENT contract (due sooner, more needs to be transported)
+                createContract(
+                  state,
+                  processor,
+                  closestSupplier,
+                  inputStorage[0].resourceType,
+                  Math.ceil(processor.minInputThreshold * 1.5),
+                  100,
+                  10,
+                );
+              }
+            } else if (!resourceContract.shipper) {
+              notify.error(
+                `[PROCESSOR ERROR] ${processor.name} was unable to create a contract because one already exists and is NOT being shipped`,
+              );
+            }
+          }
+        },
+      );
 
       // .. check if the output is full
       const outputStorage = getOutputStorage(
@@ -151,8 +171,16 @@ export const updateProcessors = (state: IWorldState) => {
         .reduce((c, v) => c + v);
 
       if (outputStorageCount > outputStorageCapacity) {
-        console.log(`${processor.name} is full and can't produce any more`);
+        if (notificationConfig.showProcessorNotifications) {
+          notify.warning(
+            `${processor.name} is full and can't produce any more`,
+          );
+        }
       }
+    }
+
+    if (inputStorageCount >= processor.minInputThreshold) {
+      //removeOwnedContracts(state, processor.id);
     }
   });
 };

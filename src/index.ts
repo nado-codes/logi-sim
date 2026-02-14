@@ -1,9 +1,10 @@
 import readline from "readline";
 import { RESOURCE_TYPE } from "./entities/storage";
 import { createWorld } from "./world/world";
+import { notify } from "./notifications";
 
-console.log("Logi sim starting...");
-console.log("LogiSim v1.0 10-02-26");
+notify.info("Logi sim starting...");
+notify.info("LogiSim v1.0 10-02-26");
 
 // .. CREATE
 
@@ -27,7 +28,7 @@ world.createProcessor(
   25,
 );
 world.createConsumer("Town A", 50, RESOURCE_TYPE.METAL, 3, 5, 25);
-world.createTruck(RESOURCE_TYPE.ORE, 30, 0, 2);
+world.createTruck(RESOURCE_TYPE.ORE, 30, 10, 2);
 
 // Main game loop with CLI
 const rl = readline.createInterface({
@@ -39,10 +40,10 @@ const update = () => {
   rl.removeAllListeners();
 
   world.updateProducers();
-  //world.updateProcessors();
+  world.updateProcessors();
   //world.updateConsumers();
-  //world.updateContracts();
-  //world.updateTrucks();
+  world.updateContracts();
+  world.updateTrucks();
 
   rl.on("line", (input: string) => {
     const [command, ...args] = input.trim().split(" ");

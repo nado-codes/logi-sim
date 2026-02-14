@@ -9,6 +9,7 @@ import {
 import { findClosestSupplier } from "../utils";
 import { createContract } from "./contracts";
 import { IWorldState } from "./state";
+import { notify } from "../notifications";
 
 export const createConsumer = (
   state: IWorldState,
@@ -49,7 +50,7 @@ export const updateConsumers = (state: IWorldState) => {
       );
 
       if (!closestSupplier) {
-        console.log(
+        notify.error(
           `[CONSUMER ERROR] No nearby suppliers to resupply ${consumer.name}`,
         );
       } else if (!state.contracts.find((c) => c.owner === consumer)) {

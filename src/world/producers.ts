@@ -9,7 +9,7 @@ import {
   processRecipe,
 } from "../entities/storage";
 import { IWorldState } from "./state";
-import { loadNotificationConfig } from "../notifications";
+import { loadNotificationConfig, notify } from "../notifications";
 
 const notificationConfig = loadNotificationConfig();
 
@@ -45,10 +45,12 @@ export const updateProducers = (state: IWorldState) => {
       ).length > 1
     ) {
       throw Error(
-        `[PRODUCER ERROR] Producers currently only support one output`,
+        `[CRITICAL PRODUCER ERROR] Producers currently only support one output`,
       );
     } else if (!producer.recipe.outputs) {
-      throw Error(`[PRODUCER ERROR] Producers require at least one output`);
+      throw Error(
+        `[CRITICAL PRODUCER ERROR] Producers require at least one output`,
+      );
     }
 
     const resourceType = Object.keys(
@@ -67,28 +69,27 @@ export const updateProducers = (state: IWorldState) => {
       const outputStorageCount = getResourceCount(resourceType, outputStorage);
 
       if (notificationConfig.showProducerNotifications) {
-        console.log(
+        notify.success(
           `${producer.name} produced ${productionRate} ${resourceType} and has ${outputStorageCount} available`,
         );
       }
     } else {
       const outputStorageCount = getResourceCount(resourceType, outputStorage);
 
-      if (notificationConfig.showProducerNotifications) {
-        console.log(
-          `${producer.name} has ${outputStorageCount} ${resourceType} with a capacity of ${outputStorageCapacity}`,
-        );
-      }
       if (outputStorageCount >= outputStorageCapacity) {
         if (notificationConfig.showProducerNotifications) {
-          console.log(
+          notify.warning(
             `${producer.name} is full and can't produce any more ${resourceType}`,
           );
         }
       } else {
-        console.error(
+        notify.error(
           `[PRODUCER ERROR] ${producer.name} was unable to produce anything due to an unknown error`,
         );
+        notify.info(
+          ` - Output Storage has ${outputStorageCount} ${resourceType}`,
+        );
+        notify.info(` - Output Storage can store ${outputStorageCapacity}`);
       }
     }
   });
