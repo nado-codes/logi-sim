@@ -35,7 +35,6 @@ let contracts: IContract[] = [];
 let trucks: ITruck[] = [];
 
 // .. CREATE
-
 const createAndGetStorage = (
   resourceType: RESOURCE_TYPE,
   resourceCapacity: number,
@@ -124,7 +123,6 @@ const createConsumer = (
 
   consumers.push(newConsumer);
 };
-
 const createContract = (
   owner: IBaseLocation,
   supplier: IBaseLocation,
@@ -150,7 +148,6 @@ const createContract = (
 
   contracts.push(newContract);
 };
-
 const createTruck = (
   resourceType: RESOURCE_TYPE,
   resourceCapacity: number,
@@ -522,7 +519,7 @@ createProcessor(
   },
   12, // .. min input threshold
 );
-createProducer("Iron Mine", 10, RESOURCE_TYPE.ORE, 5, 25, 0);
+createProducer("Iron Mine", 10, RESOURCE_TYPE.ORE, 5, 25, 3);
 
 createTruck(RESOURCE_TYPE.ORE, 30, 0, 2);
 
@@ -530,10 +527,10 @@ const update = () => {
   rl.removeAllListeners();
 
   updateProducers();
-  updateProcessors();
+  //updateProcessors();
   //updateConsumers();
-  updateContracts();
-  updateTrucks();
+  //updateContracts();
+  //updateTrucks();
 
   rl.on("line", (input: string) => {
     const [command, ...args] = input.trim().split(" ");

@@ -49,37 +49,19 @@ export const processRecipe = (recipe: IRecipe, storage: IStorage[]) => {
         .map((s) => s.resourceCapacity - s.resourceCount)
         .reduce((p, c) => p + c, 0);
 
-      if (availableCapacity >= outputAmount) {
-        let amountLeftToAdd = outputAmount;
+      let amountLeftToAdd = outputAmount;
 
-        outputStorage.forEach((storage) => {
-          const amountToAdd = Math.min(
-            storage.resourceCapacity - storage.resourceCount,
-            amountLeftToAdd,
-          );
-          const amountAdded = addResources(amountToAdd, storage);
+      outputStorage.forEach((storage) => {
+        const amountToAdd = Math.min(
+          storage.resourceCapacity - storage.resourceCount,
+          amountLeftToAdd,
+        );
+        const amountAdded = addResources(amountToAdd, storage);
 
-          amountLeftToAdd = Math.max(amountLeftToAdd - amountAdded, 0);
-        });
+        amountLeftToAdd = Math.max(amountLeftToAdd - amountAdded, 0);
+      });
 
-        /*console.log(`[RECIPE] Processing:`);
-        const recipeInputs = Object.entries(
-          recipe.inputs ?? ({} as Record<RESOURCE_TYPE, number>),
-        ).map((r) => {
-          return `${r[1]} ${r[0]}`;
-        });
-        recipeInputs.length > 0 &&
-          console.log(" - Inputs:", recipeInputs.join(","));
-
-        const recipeOutputs = Object.entries(
-          recipe.outputs ?? ({} as Record<RESOURCE_TYPE, number>),
-        ).map((r) => {
-          return `${r[1]} ${r[0]}`;
-        });
-        recipeOutputs.length > 0 &&
-          console.log(" - Outputs:", recipeOutputs.join(","));
-          */
-      } else {
+      if (availableCapacity <= outputAmount) {
         canProcess = false;
       }
     });
