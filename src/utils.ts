@@ -9,7 +9,7 @@ export const findClosestSupplier = (
   console.log(`[LOGISTICS] ${destination.name} is searching for a supplier...`);
   const suppliers = candidates.filter((s) => {
     const hasResources = s.storage.some(
-      (st) => st.resourceType == resourceType && st.resourceCount > 0,
+      (st) => st.resourceType === resourceType && st.resourceCount > 0,
     );
 
     if (s.id !== destination.id) {
@@ -20,7 +20,7 @@ export const findClosestSupplier = (
     return hasResources && s.id !== destination.id;
   });
 
-  if (suppliers.length == 0) {
+  if (suppliers.length === 0) {
     return undefined;
   }
 

@@ -25,7 +25,6 @@ world.createProcessor(
   12, // .. min input threshold,
   50,
   25,
-  true,
 );
 world.createConsumer("Town A", 50, RESOURCE_TYPE.METAL, 3, 5, 25);
 world.createTruck(RESOURCE_TYPE.ORE, 30, 0, 2);
@@ -39,8 +38,8 @@ const rl = readline.createInterface({
 const update = () => {
   rl.removeAllListeners();
 
-  //world.updateProducers();
-  world.updateProcessors();
+  world.updateProducers();
+  //world.updateProcessors();
   //world.updateConsumers();
   //world.updateContracts();
   //world.updateTrucks();

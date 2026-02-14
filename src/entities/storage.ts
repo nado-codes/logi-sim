@@ -36,7 +36,7 @@ export const processRecipe = (recipe: IRecipe, storage: IStorage[]) => {
   if (recipe.inputs) {
     Object.entries(recipe.inputs).forEach(([resourceType, requiredAmount]) => {
       const inputStorage = storage.filter(
-        (s) => s.resourceType == resourceType,
+        (s) => s.resourceType === resourceType,
       );
       const availableAmount = inputStorage
         .map((s) => s.resourceCount)
@@ -64,25 +64,25 @@ export const processRecipe = (recipe: IRecipe, storage: IStorage[]) => {
   if (canProcess && recipe.outputs) {
     Object.entries(recipe.outputs).forEach(([outputResource, outputAmount]) => {
       const outputStorage = storage.filter(
-        (s) => s.resourceType == outputResource,
+        (s) => s.resourceType === outputResource,
       );
       const availableCapacity = outputStorage
         .map((s) => s.resourceCapacity - s.resourceCount)
         .reduce((p, c) => p + c, 0);
 
-      let amountLeftToAdd = outputAmount;
+      if (availableCapacity >= outputAmount) {
+        let amountLeftToAdd = outputAmount;
 
-      outputStorage.forEach((storage) => {
-        const amountToAdd = Math.min(
-          storage.resourceCapacity - storage.resourceCount,
-          amountLeftToAdd,
-        );
-        const amountAdded = addResources(amountToAdd, storage);
+        outputStorage.forEach((storage) => {
+          const amountToAdd = Math.min(
+            storage.resourceCapacity - storage.resourceCount,
+            amountLeftToAdd,
+          );
+          const amountAdded = addResources(amountToAdd, storage);
 
-        amountLeftToAdd = Math.max(amountLeftToAdd - amountAdded, 0);
-      });
-
-      if (availableCapacity <= outputAmount) {
+          amountLeftToAdd = Math.max(amountLeftToAdd - amountAdded, 0);
+        });
+      } else {
         canProcess = false;
       }
     });
@@ -110,7 +110,9 @@ export const getResourceCapacity = (
   resourceType: RESOURCE_TYPE,
   storage: IStorage[],
 ) => {
-  const resourceStorage = storage.filter((s) => s.resourceType == resourceType);
+  const resourceStorage = storage.filter(
+    (s) => s.resourceType === resourceType,
+  );
   return resourceStorage.map((s) => s.resourceCapacity).reduce((a, c) => a + c);
 };
 
@@ -118,7 +120,9 @@ export const getResourceCount = (
   resourceType: RESOURCE_TYPE,
   storage: IStorage[],
 ) => {
-  const resourceStorage = storage.filter((s) => s.resourceType == resourceType);
+  const resourceStorage = storage.filter(
+    (s) => s.resourceType === resourceType,
+  );
   return resourceStorage.map((s) => s.resourceCount).reduce((a, c) => a + c);
 };
 
@@ -143,8 +147,8 @@ export const transferResources = (
   );
 
   if (
-    matchingSourceStorage.length == 0 ||
-    matchingDestinationStorage.length == 0
+    matchingSourceStorage.length === 0 ||
+    matchingDestinationStorage.length === 0
   ) {
     throw Error(
       `[STORAGE ERROR] No matching source & destination storage found for ${resourceType}`,

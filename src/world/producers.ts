@@ -9,6 +9,9 @@ import {
   processRecipe,
 } from "../entities/storage";
 import { IWorldState } from "./state";
+import { loadNotificationConfig } from "../notifications";
+
+const notificationConfig = loadNotificationConfig();
 
 export const createProducer = (
   state: IWorldState,
@@ -62,18 +65,26 @@ export const updateProducers = (state: IWorldState) => {
 
     if (processRecipe(producer.recipe, producer.storage)) {
       const outputStorageCount = getResourceCount(resourceType, outputStorage);
-      console.log(
-        `${producer.name} produced ${productionRate} ${resourceType} and has ${outputStorageCount} available`,
-      );
+
+      if (notificationConfig.showProducerNotifications) {
+        console.log(
+          `${producer.name} produced ${productionRate} ${resourceType} and has ${outputStorageCount} available`,
+        );
+      }
     } else {
       const outputStorageCount = getResourceCount(resourceType, outputStorage);
-      console.log(
-        `${producer.name} has ${outputStorageCount} ${resourceType} with a capacity of ${outputStorageCapacity}`,
-      );
-      if (outputStorageCount >= outputStorageCapacity) {
+
+      if (notificationConfig.showProducerNotifications) {
         console.log(
-          `${producer.name} is full and can't produce any more ${resourceType}`,
+          `${producer.name} has ${outputStorageCount} ${resourceType} with a capacity of ${outputStorageCapacity}`,
         );
+      }
+      if (outputStorageCount >= outputStorageCapacity) {
+        if (notificationConfig.showProducerNotifications) {
+          console.log(
+            `${producer.name} is full and can't produce any more ${resourceType}`,
+          );
+        }
       } else {
         console.error(
           `[PRODUCER ERROR] ${producer.name} was unable to produce anything due to an unknown error`,

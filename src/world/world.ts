@@ -1,11 +1,11 @@
 import { IBaseLocation } from "../entities/location";
 import { IRecipe, RESOURCE_TYPE } from "../entities/storage";
-import { createConsumer } from "./consumers";
+import { createConsumer, updateConsumers } from "./consumers";
 import { createContract, updateContracts } from "./contracts";
 import { createProcessor, updateProcessors } from "./processors";
-import { createProducer } from "./producers";
+import { createProducer, updateProducers } from "./producers";
 import { IWorldState, createInitialState } from "./state";
-import { createTruck } from "./trucks";
+import { createTruck, updateTrucks } from "./trucks";
 
 export const createWorld = () => {
   const state: IWorldState = createInitialState();
@@ -17,9 +17,10 @@ export const createWorld = () => {
     // behaviour stays in its own file,
     // but is only accessible through world
     updateProcessors: () => updateProcessors(state),
-    //updateConsumers: () => updateConsumers(state),
-    //updateProducers: () => updateProducers(state),
+    updateConsumers: () => updateConsumers(state),
+    updateProducers: () => updateProducers(state),
     updateContracts: () => updateContracts(state),
+    updateTrucks: () => updateTrucks(state),
 
     // factory methods
     createProducer: (

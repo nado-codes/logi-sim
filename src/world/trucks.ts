@@ -40,7 +40,7 @@ export const updateTrucks = (state: IWorldState) => {
           truck.position = truck.destination.position; // Snap to destination
         }
 
-        if (truck.position == truck.destination.position) {
+        if (truck.position === truck.destination.position) {
           console.log(
             `[TRUCK] ${truck.id} has arrived at ${truck.destination.name}`,
           );
@@ -51,7 +51,7 @@ export const updateTrucks = (state: IWorldState) => {
         );
       } else {
         if (truck.contract) {
-          if (truck.destination == truck.contract.supplier) {
+          if (truck.destination === truck.contract.supplier) {
             const amountLeftToLoad =
               truck.contract.amount - truck.storage.resourceCount;
 
@@ -77,7 +77,7 @@ export const updateTrucks = (state: IWorldState) => {
                 `[TRUCK] ${truck.id} will wait for the rest of the ${truck.contract.resourceType}`,
               );
             }
-          } else if (truck.destination == truck.contract.owner) {
+          } else if (truck.destination === truck.contract.owner) {
             if (
               transferResources(
                 truck.contract.amount,
@@ -103,7 +103,7 @@ export const updateTrucks = (state: IWorldState) => {
       console.log(`[TRUCK] ${truck.id} is looking for a contract...`);
       // .. if there's a contract available and the truck is doing nothing, accept the contract
       const contract = state.contracts.filter(
-        (c) => !c.shipper && c.resourceType == truck.storage.resourceType,
+        (c) => !c.shipper && c.resourceType === truck.storage.resourceType,
       )[0];
 
       // .. TODO: if a particular truck can't complete the contract on its own, it will subcontract it to someone who can
