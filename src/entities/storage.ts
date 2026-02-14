@@ -1,3 +1,6 @@
+import { randomUUID } from "crypto";
+import { loadNotificationConfig, NotificationConfig } from "../notifications";
+
 export enum RESOURCE_TYPE {
   ORE = "Ore",
   METAL = "Metal",
@@ -9,6 +12,23 @@ export interface IRecipe {
   inputs?: Partial<Record<RESOURCE_TYPE, number>>;
   outputs?: Partial<Record<RESOURCE_TYPE, number>>;
 }
+
+const notificationConfig = loadNotificationConfig();
+
+export const createAndGetStorage = (
+  resourceType: RESOURCE_TYPE,
+  resourceCapacity: number,
+  resourceCount?: number,
+): IStorage => {
+  const newStorage: IStorage = {
+    id: randomUUID(),
+    resourceType,
+    resourceCapacity,
+    resourceCount: resourceCount ?? 0,
+  };
+
+  return newStorage;
+};
 
 export const processRecipe = (recipe: IRecipe, storage: IStorage[]) => {
   let canProcess = true;
@@ -28,10 +48,11 @@ export const processRecipe = (recipe: IRecipe, storage: IStorage[]) => {
         let amountLeftToRemove = requiredAmount;
 
         inputStorage.forEach((storage) => {
-          const amountToRemove = Math.max(
-            storage.resourceCount - amountLeftToRemove,
+          const amountToRemove = Math.min(
+            amountLeftToRemove,
             storage.resourceCount,
           );
+
           const amountRemoved = removeResources(amountToRemove, storage);
 
           amountLeftToRemove = Math.max(amountLeftToRemove - amountRemoved, 0);
@@ -110,7 +131,10 @@ export const transferResources = (
   fromStorage: IStorage[],
   toStorage: IStorage[],
 ) => {
-  console.log(`[STORAGE] We'll try to transfer ${amount} ${resourceType}...`);
+  if (notificationConfig.showStorageNotifications) {
+    console.log(`[STORAGE] We'll try to transfer ${amount} ${resourceType}...`);
+  }
+
   const matchingSourceStorage = fromStorage.filter(
     (s) => s.resourceType === resourceType,
   );
@@ -130,7 +154,10 @@ export const transferResources = (
   const matchingSourceResourceCount = matchingSourceStorage
     .map((s) => s.resourceCount)
     .reduce((a, c) => a + c);
-  if (matchingSourceResourceCount < amount) {
+  if (
+    matchingSourceResourceCount < amount &&
+    notificationConfig.showStorageNotifications
+  ) {
     console.log(
       `[STORAGE WARNING] Not enough ${resourceType} to transfer - only ${matchingSourceResourceCount} available ... we'll transfer what we can`,
     );
@@ -140,7 +167,10 @@ export const transferResources = (
     .map((s) => s.resourceCapacity - s.resourceCount)
     .reduce((a, c) => a + c);
 
-  if (matchingDestinationAvailableCapacity < amount) {
+  if (
+    matchingDestinationAvailableCapacity < amount &&
+    notificationConfig.showStorageNotifications
+  ) {
     console.log(
       `[STORAGE WARNING] Not enough space available to transfer - only ${matchingDestinationAvailableCapacity} ... we'll transfer what we can`,
     );
@@ -162,7 +192,9 @@ export const transferResources = (
   matchingSourceStorage.forEach((source) => {
     // .. do we still have stuff to move? if not, we'll just skip over everything else
     if (amountLeftToTransfer > 0) {
-      console.log(` - We have ${amountLeftToTransfer} left to transfer`);
+      if (notificationConfig.showStorageNotifications) {
+        console.log(` - We have ${amountLeftToTransfer} left to transfer`);
+      }
       // .. we know how much we have in total, but how much does this box have in it?
       // .. we'll try to get everything we need from this box, but if we can't - that's fine
       const availableToTransfer = Math.min(
@@ -170,7 +202,9 @@ export const transferResources = (
         amountLeftToTransfer,
       );
 
-      console.log(` - Theres ${availableToTransfer} in this box`);
+      if (notificationConfig.showStorageNotifications) {
+        console.log(` - Theres ${availableToTransfer} in this box`);
+      }
 
       matchingDestinationStorage.forEach((destination) => {
         // .. ok, now how much space is available in this box to put it into
@@ -182,9 +216,11 @@ export const transferResources = (
           availableToTransfer,
         );
 
-        console.log(
-          ` - The box we want to put it in can take ${availableCapacity}, so we'll move ${amountToTransfer}`,
-        );
+        if (notificationConfig.showStorageNotifications) {
+          console.log(
+            ` - The box we want to put it in can take ${availableCapacity}, so we'll move ${amountToTransfer}`,
+          );
+        }
 
         // .. ok cool, let's move the stuff and track how much we moved
         removeResources(amountToTransfer, source);
@@ -200,9 +236,11 @@ export const transferResources = (
       `[STORAGE ERROR] Tried to transfer too much  (amount left: ${amountLeftToTransfer} - this is wrong)`,
     );
   } else if (amountLeftToTransfer > 0) {
-    console.log(
-      `[STORAGE WARNING] We couldn't transfer everything, still have ${amountLeftToTransfer} left to go`,
-    );
+    if (notificationConfig.showStorageNotifications) {
+      console.log(
+        `[STORAGE WARNING] We couldn't transfer everything, still have ${amountLeftToTransfer} left to go`,
+      );
+    }
     return false;
   } else {
     return true;
@@ -210,7 +248,10 @@ export const transferResources = (
 };
 
 export const addResources = (amount: number, to: IStorage) => {
-  if (to.resourceCount + amount > to.resourceCapacity) {
+  if (
+    to.resourceCount + amount > to.resourceCapacity &&
+    notificationConfig.showStorageNotifications
+  ) {
     console.log(
       `[STORAGE WARNING] ${to.id} is too full of ${to.resourceType} to add ${amount}`,
     );
@@ -218,13 +259,21 @@ export const addResources = (amount: number, to: IStorage) => {
 
   const amountToAdd = Math.min(amount, to.resourceCapacity - to.resourceCount);
   to.resourceCount += amountToAdd;
-  console.log(`[STORAGE] Added ${amountToAdd} ${to.resourceType} to ${to.id}`);
+
+  if (notificationConfig.showStorageNotifications) {
+    console.log(
+      `[STORAGE] Added ${amountToAdd} ${to.resourceType} to ${to.id}`,
+    );
+  }
 
   return amountToAdd;
 };
 
 export const removeResources = (amount: number, from: IStorage) => {
-  if (from.resourceCount < amount) {
+  if (
+    from.resourceCount < amount &&
+    notificationConfig.showStorageNotifications
+  ) {
     console.log(
       `[STORAGE WARNING] ${from.id} doesn't have enough ${from.resourceType} to remove ${amount}`,
     );
@@ -233,9 +282,11 @@ export const removeResources = (amount: number, from: IStorage) => {
   const amountToRemove = Math.min(from.resourceCount, amount);
   from.resourceCount -= amountToRemove;
 
-  console.log(
-    `[STORAGE] Removed ${amountToRemove} ${from.resourceType} from ${from.id}`,
-  );
+  if (notificationConfig.showStorageNotifications) {
+    console.log(
+      `[STORAGE] Removed ${amountToRemove} ${from.resourceType} from ${from.id}`,
+    );
+  }
 
   return amountToRemove;
 };

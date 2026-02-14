@@ -1,0 +1,8 @@
+{
+  "showStorageNotifications": true,
+  "showProcessorNotifications": false,
+  "showProducerNotifications": false,
+  "showConsumerNotifications": false,
+  "showContractNotifications": false,
+  "showTruckNotifications": false
+}
