@@ -7,6 +7,7 @@ import {
 import { ITruck } from "../entities/truck";
 import { IWorldState } from "./state";
 import { loadNotificationConfig, notify } from "../notifications";
+import { completeContract } from "./contracts";
 
 const notificationConfig = loadNotificationConfig();
 
@@ -107,9 +108,11 @@ export const updateTrucks = (state: IWorldState) => {
 
               // .. probably a bit messy to do it like this ... should we have a util function that does
               // .. some sort of handshake between owner + shipper to verify that a contract is completed?
-              truck.destination = undefined;
-              truck.contract.shipper = undefined;
-              truck.contract = undefined;
+
+              if (completeContract(state, truck.contract)) {
+                truck.destination = undefined;
+                truck.contract = undefined;
+              }
             } else {
               if (notificationConfig.showTruckNotifications) {
                 notify.info(
