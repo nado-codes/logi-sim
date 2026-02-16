@@ -59,37 +59,46 @@ export const updateProducers = (state: IWorldState) => {
     const productionRate = Object.values(producer.recipe.outputs)[0];
 
     const outputStorage = getOutputStorage(producer.recipe, producer.storage);
-
     const outputStorageCapacity = getResourceCapacity(
       resourceType,
       outputStorage,
     );
+    const outputStorageCount = getResourceCount(resourceType, outputStorage);
 
-    if (processRecipe(producer.recipe, producer.storage)) {
-      const outputStorageCount = getResourceCount(resourceType, outputStorage);
-
+    if (outputStorageCount >= outputStorageCapacity) {
       if (notificationConfig.showProducerNotifications) {
-        notify.success(
-          `${producer.name} produced ${productionRate} ${resourceType} and has ${outputStorageCount} available`,
+        notify.warning(
+          `${producer.name} is full and can't produce any more ${resourceType}`,
         );
       }
     } else {
-      const outputStorageCount = getResourceCount(resourceType, outputStorage);
+      if (processRecipe(producer.recipe, producer.storage)) {
+        const outputStorageCount = getResourceCount(
+          resourceType,
+          outputStorage,
+        );
 
-      if (outputStorageCount >= outputStorageCapacity) {
         if (notificationConfig.showProducerNotifications) {
-          notify.warning(
-            `${producer.name} is full and can't produce any more ${resourceType}`,
+          notify.success(
+            `${producer.name} produced ${productionRate} ${resourceType} and has ${outputStorageCount} available`,
           );
         }
       } else {
-        notify.error(
-          `[PRODUCER ERROR] ${producer.name} was unable to produce anything due to an unknown error`,
-        );
-        notify.info(
-          ` - Output Storage has ${outputStorageCount} ${resourceType}`,
-        );
-        notify.info(` - Output Storage can store ${outputStorageCapacity}`);
+        if (outputStorageCount > outputStorageCapacity - productionRate) {
+          if (notificationConfig.showProducerNotifications) {
+            notify.warning(
+              `${producer.name} is full and can't produce any more ${resourceType}`,
+            );
+          }
+        } else {
+          notify.error(
+            `[PRODUCER ERROR] ${producer.name} was unable to produce anything due to an unknown error`,
+          );
+          notify.info(
+            ` - Output Storage has ${outputStorageCount} ${resourceType}`,
+          );
+          notify.info(` - Output Storage can store ${outputStorageCapacity}`);
+        }
       }
     }
   });
