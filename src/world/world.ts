@@ -70,7 +70,7 @@ export const createWorld = () => {
       consumptionRate: number,
       minStockThreshold: number,
       maxStock: number,
-      currentStock?: number,
+      startFull: boolean = false,
     ) =>
       createConsumer(
         state,
@@ -80,7 +80,7 @@ export const createWorld = () => {
         consumptionRate,
         minStockThreshold,
         maxStock,
-        currentStock,
+        startFull,
       ),
 
     createContract: (

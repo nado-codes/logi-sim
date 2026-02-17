@@ -27,7 +27,7 @@ world.createProcessor(
   50,
   25,
 );
-world.createConsumer("Town A", 50, RESOURCE_TYPE.METAL, 3, 5, 25);
+world.createConsumer("Town A", 50, RESOURCE_TYPE.METAL, 3, 5, 25, true);
 world.createTruck(RESOURCE_TYPE.ORE, 30, 10, 2);
 
 // Main game loop with CLI
@@ -41,7 +41,7 @@ const update = () => {
 
   world.updateProducers();
   world.updateProcessors();
-  //world.updateConsumers();
+  world.updateConsumers();
   world.updateContracts();
   world.updateTrucks();
 
