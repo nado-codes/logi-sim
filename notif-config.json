@@ -3,7 +3,7 @@
   "showProcessorNotifications": false,
   "showProducerNotifications": false,
   "showConsumerNotifications": true,
-  "showContractNotifications": false,
+  "showContractNotifications": true,
   "showTruckNotifications": true,
   "showUtilsNotifications": false,
   "showProductionNotifications": false,

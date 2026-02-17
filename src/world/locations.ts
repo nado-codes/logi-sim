@@ -27,6 +27,11 @@ export const replenishInputStorage = (
         resourceType as RESOURCE_TYPE,
       );
 
+      console.log(
+        " - " + location.name + " contracts: ",
+        state.contracts.filter((c) => c.owner.id === location.id).length,
+      );
+
       if (inputStorageCount < (minInputThreshold ?? requiredAmount)) {
         if (!contract) {
           if (notificationConfig) {
@@ -34,8 +39,6 @@ export const replenishInputStorage = (
               `[LOCATION WARNING] ${location.name} doesn't have enough ${inputStorage[0].resourceType} ${inputStorageCount > 0 ? `(only ${inputStorageCount} available) ` : ""}- so we'll create a contract`,
             );
           }
-
-          //const closestSupplier =
 
           if (notificationConfig.showLocationNotifications) {
             notify.info(

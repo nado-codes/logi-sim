@@ -6,6 +6,7 @@ MAJOR:
 
 MINOR:
 
-- The current truck never delivers metal to Town A, even though it's practically screaming for it (although
-  this could literally be by design since the truck's storage can only take ore, so we may just need to make
-  another truck lol)
+- It appears that the Town A (consumer) recognises that its contract isn't being shipped, but doesn't know why
+  .... it's probably less important for it to print out WHY its not being shipped, and simply fix it ...
+  ... but we need to know if its just because the truck that already exists is literally incapable of transporting
+  the metal (highly likely)
