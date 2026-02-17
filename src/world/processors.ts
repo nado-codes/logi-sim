@@ -1,24 +1,16 @@
 import { randomUUID } from "crypto";
 import { IProcessor } from "../entities/location";
 import {
-  addResources,
-  createAndGetStorage,
   createRecipeStorage,
   getInputStorage,
   getOutputStorage,
   getResourceStorage,
   IRecipe,
-  IStorage,
   processRecipe,
   RESOURCE_TYPE,
 } from "../entities/storage";
-import { findClosestSupplier } from "../utils";
-import {
-  completeContract,
-  createContract,
-  getResourceContract,
-  removeOwnedContracts,
-} from "./contracts";
+import { replenishInputStorage } from "./locations";
+import { completeContract, getContractByResource } from "./contracts";
 import { IWorldState } from "./state";
 import { loadNotificationConfig, notify } from "../notifications";
 
@@ -71,7 +63,7 @@ export const updateProcessors = (state: IWorldState) => {
     // .. check to see if any contracts have been fulfilled
     Object.entries(processor.recipe.inputs ?? {}).forEach(
       ([resourceType, _]) => {
-        const resourceContract = getResourceContract(
+        const resourceContract = getContractByResource(
           state,
           processor.id,
           resourceType as RESOURCE_TYPE,
@@ -130,62 +122,7 @@ export const updateProcessors = (state: IWorldState) => {
           );
         }
       } else {
-        Object.entries(processor.recipe.inputs ?? {}).map(
-          ([resourceType, _]) => {
-            const inputStorage = getResourceStorage(
-              resourceType as RESOURCE_TYPE,
-              processor.storage,
-            );
-            const inputStorageCount = inputStorage
-              .map((s) => s.resourceCount)
-              .reduce((c, v) => c + v);
-
-            const resourceContract = getResourceContract(
-              state,
-              processor.id,
-              resourceType as RESOURCE_TYPE,
-            );
-
-            if (inputStorageCount < processor.minInputThreshold) {
-              if (!resourceContract) {
-                if (notificationConfig.showProcessorNotifications) {
-                  notify.warning(
-                    `[PROCESSOR WARNING] ${processor.name} doesn't have enough ${inputStorage[0].resourceType} ${inputStorageCount > 0 ? `(only ${inputStorageCount} available) ` : ""}- so we'll create a contract`,
-                  );
-                }
-
-                const closestSupplier = findClosestSupplier(
-                  processor,
-                  inputStorage[0].resourceType,
-                  [...state.consumers, ...state.processors, ...state.producers],
-                );
-
-                if (!closestSupplier) {
-                  if (notificationConfig.showProcessorNotifications) {
-                    notify.error(
-                      `[PROCESSOR ERROR] No nearby suppliers to resupply ${processor.name}`,
-                    );
-                  }
-                } else {
-                  // .. if there's literally NO STOCK left, we need to create an URGENT contract (due sooner, more needs to be transported)
-                  createContract(
-                    state,
-                    processor,
-                    closestSupplier,
-                    inputStorage[0].resourceType,
-                    Math.ceil(processor.minInputThreshold * 1.5),
-                    100,
-                    10,
-                  );
-                }
-              } else if (!resourceContract.shipper) {
-                notify.error(
-                  `[PROCESSOR ERROR] ${processor.name} was unable to create a contract because one already exists and is NOT being shipped`,
-                );
-              }
-            }
-          },
-        );
+        replenishInputStorage(state, processor, processor.minInputThreshold);
       }
     }
   });

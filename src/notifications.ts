@@ -8,8 +8,8 @@ export interface NotificationConfig {
   showConsumerNotifications: boolean;
   showContractNotifications: boolean;
   showTruckNotifications: boolean;
-  showUtilsNotifications: boolean;
   showProductionNotifications: boolean;
+  showLocationNotifications: boolean;
 }
 
 const CONFIG_PATH = path.resolve("./notif-config.json");
@@ -20,8 +20,8 @@ const defaultConfig: NotificationConfig = {
   showConsumerNotifications: false,
   showContractNotifications: false,
   showTruckNotifications: false,
-  showUtilsNotifications: false,
   showProductionNotifications: false,
+  showLocationNotifications: false,
 };
 
 export const loadNotificationConfig = () => {

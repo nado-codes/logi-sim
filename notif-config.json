@@ -6,5 +6,6 @@
   "showContractNotifications": false,
   "showTruckNotifications": true,
   "showUtilsNotifications": false,
-  "showProductionNotifications": false
+  "showProductionNotifications": false,
+  "showLocationNotifications": true
 }
