@@ -12,6 +12,7 @@ export interface IBaseLocation {
   position: number;
   storage: IStorage[];
   recipe: IRecipe;
+  type: LOCATION_TYPE;
 }
 
 export interface IProducer extends IBaseLocation {

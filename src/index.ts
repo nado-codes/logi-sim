@@ -4,7 +4,7 @@ import { createWorld } from "./world/world";
 import { notify } from "./notifications";
 
 notify.info("Logi sim starting...");
-notify.info("LogiSim v0.2.6");
+notify.info("LogiSim v0.2.0");
 
 // .. CREATE
 
@@ -29,6 +29,7 @@ world.createProcessor(
 );
 world.createConsumer("Town A", 50, RESOURCE_TYPE.METAL, 3, 5, 25, true);
 world.createTruck(RESOURCE_TYPE.ORE, 30, 10, 2);
+world.createTruck(RESOURCE_TYPE.METAL, 30, 30, 2);
 
 // Main game loop with CLI
 const rl = readline.createInterface({
@@ -36,8 +37,15 @@ const rl = readline.createInterface({
   output: process.stdout,
 });
 
+const printMap = () => {
+  console.clear();
+  console.log(world.getMap());
+};
+
 const update = () => {
   rl.removeAllListeners();
+
+  printMap();
 
   world.updateProducers();
   world.updateProcessors();

@@ -9,6 +9,7 @@ import {
 } from "../entities/storage";
 import { IWorldState } from "./state";
 import { loadNotificationConfig, notify } from "../notifications";
+import { ITruck } from "../entities/truck";
 
 const notificationConfig = loadNotificationConfig();
 

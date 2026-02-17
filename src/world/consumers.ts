@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import { IConsumer } from "../entities/location";
+import { IConsumer, LOCATION_TYPE } from "../entities/location";
 import {
   RESOURCE_TYPE,
   createAndGetStorage,
@@ -23,6 +23,7 @@ export const createConsumer = (
 ) => {
   const newConsumer: IConsumer = {
     id: randomUUID(),
+    type: LOCATION_TYPE.CONSUMER,
     name,
     position,
     storage: [

@@ -2,6 +2,7 @@ import { IBaseLocation } from "../entities/location";
 import { IRecipe, RESOURCE_TYPE } from "../entities/storage";
 import { createConsumer, updateConsumers } from "./consumers";
 import { createContract, updateContracts } from "./contracts";
+import { getMap } from "./locations";
 import { createProcessor, updateProcessors } from "./processors";
 import { createProducer, updateProducers } from "./producers";
 import { IWorldState, createInitialState } from "./state";
@@ -21,6 +22,8 @@ export const createWorld = () => {
     updateProducers: () => updateProducers(state),
     updateContracts: () => updateContracts(state),
     updateTrucks: () => updateTrucks(state),
+
+    getMap: () => getMap(state),
 
     // factory methods
     createProducer: (

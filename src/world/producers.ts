@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import { IProducer } from "../entities/location";
+import { IProducer, LOCATION_TYPE } from "../entities/location";
 import {
   RESOURCE_TYPE,
   createAndGetStorage,
@@ -24,6 +24,7 @@ export const createProducer = (
 ) => {
   const newProducer: IProducer = {
     id: randomUUID(),
+    type: LOCATION_TYPE.PRODUCER,
     name,
     position,
     recipe: { outputs: { [produces]: productionRate } },

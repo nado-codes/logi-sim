@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import { IProcessor } from "../entities/location";
+import { IProcessor, LOCATION_TYPE } from "../entities/location";
 import {
   createRecipeStorage,
   getInputStorage,
@@ -48,6 +48,7 @@ export const createProcessor = (
 
   const newProcessor: IProcessor = {
     id: randomUUID(),
+    type: LOCATION_TYPE.PROCESSOR,
     name,
     position,
     storage,

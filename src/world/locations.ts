@@ -1,10 +1,68 @@
-import { IBaseLocation } from "../entities/location";
+import {
+  IBaseLocation,
+  IProcessor,
+  IConsumer,
+  IProducer,
+  LOCATION_TYPE,
+} from "../entities/location";
 import { getResourceStorage, RESOURCE_TYPE } from "../entities/storage";
 import { loadNotificationConfig, notify } from "../notifications";
 import { getContractByResource, createContract } from "./contracts";
 import { IWorldState } from "./state";
 
 const notificationConfig = loadNotificationConfig();
+
+export const getMap = (state: IWorldState) => {
+  const locations = [
+    ...state.producers,
+    ...state.processors,
+    ...state.consumers,
+  ];
+
+  const worldPositions = [
+    ...locations.map((l) => l.position),
+    ...state.trucks.map((t) => t.position),
+  ];
+  const maxPosition = worldPositions.reduce((a, c) => Math.max(a, c));
+
+  let map = "";
+
+  for (var pos = 0; pos <= maxPosition; pos++) {
+    const locationAtPos = locations.find((l) => l.position === pos);
+    const truckAtPos = state.trucks.find((t) => t.position === pos);
+
+    if (locationAtPos) {
+      switch (locationAtPos.type) {
+        case LOCATION_TYPE.PRODUCER:
+          map += "[PRD";
+          break;
+        case LOCATION_TYPE.PROCESSOR:
+          map += "[PRC";
+          break;
+        case LOCATION_TYPE.CONSUMER:
+          map += "[CNS";
+          break;
+      }
+
+      if (state.contracts.find((c) => c.owner === locationAtPos)) {
+        map += `\x1b[31m!\x1b[0m`;
+      }
+      map += "]";
+    } else if (truckAtPos) {
+      map += "[T";
+
+      if (truckAtPos.storage.resourceCount > 0) {
+        map += `\x1b[32mo\x1b[0m`;
+      }
+
+      map += "]";
+    } else {
+      map += "_";
+    }
+  }
+
+  return map;
+};
 
 export const replenishInputStorage = (
   state: IWorldState,
@@ -27,14 +85,9 @@ export const replenishInputStorage = (
         resourceType as RESOURCE_TYPE,
       );
 
-      console.log(
-        " - " + location.name + " contracts: ",
-        state.contracts.filter((c) => c.owner.id === location.id).length,
-      );
-
       if (inputStorageCount < (minInputThreshold ?? requiredAmount)) {
         if (!contract) {
-          if (notificationConfig) {
+          if (notificationConfig.showLocationNotifications) {
             notify.warning(
               `[LOCATION WARNING] ${location.name} doesn't have enough ${inputStorage[0].resourceType} ${inputStorageCount > 0 ? `(only ${inputStorageCount} available) ` : ""}- so we'll create a contract`,
             );

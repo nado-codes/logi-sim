@@ -106,9 +106,6 @@ export const updateTrucks = (state: IWorldState) => {
                 );
               }
 
-              // .. probably a bit messy to do it like this ... should we have a util function that does
-              // .. some sort of handshake between owner + shipper to verify that a contract is completed?
-
               if (completeContract(state, truck.contract)) {
                 truck.destination = undefined;
                 truck.contract = undefined;
@@ -127,6 +124,7 @@ export const updateTrucks = (state: IWorldState) => {
       if (notificationConfig.showTruckNotifications) {
         notify.info(`[TRUCK] ${truck.id} is looking for a contract...`);
       }
+
       // .. if there's a contract available and the truck is doing nothing, accept the contract
       const contract = state.contracts.filter(
         (c) => !c.shipper && c.resourceType === truck.storage.resourceType,
