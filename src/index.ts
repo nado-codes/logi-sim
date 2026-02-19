@@ -31,11 +31,6 @@ world.createConsumer("Town A", 50, RESOURCE_TYPE.METAL, 3, 5, 25, true);
 world.createTruck(RESOURCE_TYPE.ORE, 30, 10, 2);
 world.createTruck(RESOURCE_TYPE.METAL, 30, 30, 2);
 
-const printMap = () => {
-  console.clear();
-  console.log(world.getMap());
-};
-
 const update = () => {
   world.updateProducers();
   world.updateProcessors();

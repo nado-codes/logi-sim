@@ -28,21 +28,6 @@ export interface IMenuAction extends IMenuItemBase {
 
 export type IMenuItem = IMenuPage | IMenuAction;
 
-const renderPage = (page: IMenuPage, errorMessage?: string) => {
-  console.clear();
-  console.log(`===${page.title.toUpperCase()}===`);
-  page.items.forEach((item, i) => {
-    console.log(` - [${i + 1}] ${item.title}`);
-  });
-  console.log();
-
-  if (errorMessage) {
-    console.log(`\x1b[31m${errorMessage}\x1b[0m`);
-    console.log();
-  }
-  console.log("Enter a number corresponding to one of the above options");
-};
-
 const executeAction = (action: IMenuAction, args: any) => {
   console.clear();
   console.log(`===${action.title.toUpperCase()}===`);
@@ -79,8 +64,27 @@ export const createMenu = (
     callback();
   };
 
+  const renderPage = (page: IMenuPage, errorMessage?: string) => {
+    console.clear();
+    console.log(`WORLD MAP:`);
+    console.log(world.getMap());
+    console.log();
+    console.log(`===${page.title.toUpperCase()}===`);
+    page.items.forEach((item, i) => {
+      console.log(` - [${i + 1}] ${item.title}`);
+    });
+    console.log();
+
+    if (errorMessage) {
+      console.log(`\x1b[31m${errorMessage}\x1b[0m`);
+      console.log();
+    }
+    console.log("Enter a number corresponding to one of the above options");
+  };
+
   const waitForInput = () => {
     rl.removeAllListeners();
+
     rl.once("line", (input) => {
       // .. input gets processed
       const [command, ...args] = input.trim().split(" ");
