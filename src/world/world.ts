@@ -1,5 +1,7 @@
+import { IContract } from "../entities/contract";
 import { IBaseLocation } from "../entities/location";
 import { IRecipe, RESOURCE_TYPE } from "../entities/storage";
+import { ITruck } from "../entities/truck";
 import { createConsumer, updateConsumers } from "./consumers";
 import { createContract, updateContracts } from "./contracts";
 import { getMap } from "./locations";
@@ -8,15 +10,70 @@ import { createProducer, updateProducers } from "./producers";
 import { IWorldState, createInitialState } from "./state";
 import { createTruck, updateTrucks } from "./trucks";
 
-export const createWorld = () => {
+export interface IWorld {
+  updateProcessors: () => void;
+  updateConsumers: () => void;
+  updateProducers: () => void;
+  updateContracts: () => void;
+  updateTrucks: () => void;
+
+  getMap: () => void;
+  getContracts: () => IContract[];
+  getTrucks: () => ITruck[];
+  getLocations: () => IBaseLocation[];
+
+  createProducer: (
+    name: string,
+    position: number,
+    produces: RESOURCE_TYPE,
+    productionRate: number,
+    maxStock: number,
+    currentStock?: number,
+  ) => void;
+
+  createProcessor: (
+    name: string,
+    position: number,
+    recipe: IRecipe,
+    minInputThreshold: number,
+    inputCapacity: number,
+    outputCapacity: number,
+    startWithFullInputs?: boolean,
+    startWithFullOutputs?: boolean,
+  ) => void;
+
+  createConsumer: (
+    name: string,
+    position: number,
+    consumes: RESOURCE_TYPE,
+    consumptionRate: number,
+    minStockThreshold: number,
+    maxStock: number,
+    startFull?: boolean,
+  ) => void;
+
+  createContract: (
+    owner: IBaseLocation,
+    supplier: IBaseLocation,
+    resourceType: RESOURCE_TYPE,
+    amount: number,
+    payment: number,
+    dueTicks: number,
+  ) => void;
+
+  createTruck: (
+    resourceType: RESOURCE_TYPE,
+    resourceCapacity: number,
+    position: number,
+    speed: number,
+    resourceCount?: number,
+  ) => void;
+}
+
+export const createWorld = (): IWorld => {
   const state: IWorldState = createInitialState();
 
   return {
-    // state accessors
-
-    // delegating to system modules
-    // behaviour stays in its own file,
-    // but is only accessible through world
     updateProcessors: () => updateProcessors(state),
     updateConsumers: () => updateConsumers(state),
     updateProducers: () => updateProducers(state),
@@ -24,8 +81,14 @@ export const createWorld = () => {
     updateTrucks: () => updateTrucks(state),
 
     getMap: () => getMap(state),
+    getContracts: () => state.contracts,
+    getTrucks: () => state.trucks,
+    getLocations: () => [
+      ...state.producers,
+      ...state.processors,
+      ...state.consumers,
+    ],
 
-    // factory methods
     createProducer: (
       name: string,
       position: number,

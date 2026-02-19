@@ -1,7 +1,7 @@
-import readline from "readline";
 import { RESOURCE_TYPE } from "./entities/storage";
 import { createWorld } from "./world/world";
 import { notify } from "./notifications";
+import { createMenu } from "./menu";
 
 notify.info("Logi sim starting...");
 notify.info("LogiSim v0.2.0");
@@ -31,36 +31,21 @@ world.createConsumer("Town A", 50, RESOURCE_TYPE.METAL, 3, 5, 25, true);
 world.createTruck(RESOURCE_TYPE.ORE, 30, 10, 2);
 world.createTruck(RESOURCE_TYPE.METAL, 30, 30, 2);
 
-// Main game loop with CLI
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout,
-});
-
 const printMap = () => {
   console.clear();
   console.log(world.getMap());
 };
 
 const update = () => {
-  rl.removeAllListeners();
-
-  printMap();
-
   world.updateProducers();
   world.updateProcessors();
   world.updateConsumers();
   world.updateContracts();
   world.updateTrucks();
 
-  rl.on("line", (input: string) => {
-    const [command, ...args] = input.trim().split(" ");
-
-    if (command) {
-      console.log("you said: ", command);
-    }
-    update();
-  });
+  menu.show();
 };
+
+const menu = createMenu(update, world);
 
 update();
