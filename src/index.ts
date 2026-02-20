@@ -1,10 +1,10 @@
 import { RESOURCE_TYPE } from "./entities/storage";
 import { createWorld } from "./world/world";
-import { notify } from "./notifications";
-import { createMenu } from "./menu";
+import { createMenu } from "./menus/menu";
+import { logInfo } from "./logUtils";
 
-notify.info("Logi sim starting...");
-notify.info("LogiSim v0.2.0");
+logInfo("Logi sim starting...");
+logInfo("LogiSim v0.2.0");
 
 // .. CREATE
 

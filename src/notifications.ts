@@ -36,10 +36,3 @@ export const loadNotificationConfig = () => {
   const config = fs.readFileSync(CONFIG_PATH, "utf-8");
   return { ...defaultConfig, ...(JSON.parse(config) as NotificationConfig) };
 };
-
-export const notify = {
-  error: (text: string) => console.log(`\x1b[31m${text}\x1b[0m`), // red
-  warning: (text: string) => console.log(`\x1b[33m${text}\x1b[0m`), // yellow
-  info: (text: string) => console.log(`\x1b[36m${text}\x1b[0m`), // cyan
-  success: (text: string) => console.log(`\x1b[32m${text}\x1b[0m`), // green
-};

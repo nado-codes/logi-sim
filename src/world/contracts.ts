@@ -8,8 +8,9 @@ import {
   RESOURCE_TYPE,
 } from "../entities/storage";
 import { IWorldState } from "./state";
-import { loadNotificationConfig, notify } from "../notifications";
+import { loadNotificationConfig } from "../notifications";
 import { ITruck } from "../entities/truck";
+import { logSuccess, logWarning, logInfo, logError } from "../logUtils";
 
 const notificationConfig = loadNotificationConfig();
 
@@ -36,7 +37,7 @@ export const createContract = (
   };
 
   if (notificationConfig.showContractNotifications) {
-    notify.success(
+    logSuccess(
       `${owner.name} created a contract with ${supplier.name} for ${amount} ${resourceType} - due in ${dueTicks} ticks`,
     );
   }
@@ -69,14 +70,14 @@ export const updateContracts = (state: IWorldState) => {
     if (contract.dueTicks > 0) {
       if (contract.dueTicks - 1 <= 0) {
         if (notificationConfig.showContractNotifications) {
-          notify.warning(`Contract ${contract.id} has expired`);
+          logWarning(`Contract ${contract.id} has expired`);
         }
         // .. impose some sort of penalty on the shipper if they fail to deliver?
       } else {
         contract.dueTicks--;
 
         if (notificationConfig.showContractNotifications) {
-          notify.info(
+          logInfo(
             `Contract ${contract.id} is due in ${contract.dueTicks} ticks`,
           );
         }
@@ -92,12 +93,12 @@ export const deleteContract = (state: IWorldState, contract: IContract) => {
 
 export const completeContract = (state: IWorldState, contract: IContract) => {
   if (notificationConfig.showContractNotifications) {
-    notify.info(
+    logInfo(
       `[CONTRACT] Trying to complete ${contract.resourceType} contract...`,
     );
   }
   if (!contract.owner) {
-    notify.error(` - ERROR: No owner found - completion not possible`);
+    logError(` - ERROR: No owner found - completion not possible`);
     return false;
   }
 
@@ -107,7 +108,7 @@ export const completeContract = (state: IWorldState, contract: IContract) => {
   );
   if (resourceCount < contract.amount) {
     if (notificationConfig.showContractNotifications) {
-      notify.warning(
+      logWarning(
         ` - WARNING: Requirements not satisfied - ${contract.owner.name} needs ${contract.amount} ${contract.resourceType} - only ${resourceCount} available`,
       );
     }
@@ -115,9 +116,7 @@ export const completeContract = (state: IWorldState, contract: IContract) => {
   }
 
   if (notificationConfig.showContractNotifications) {
-    notify.success(
-      ` - SUCCESS: All requirements met. Contract will be voided.`,
-    );
+    logSuccess(` - SUCCESS: All requirements met. Contract will be voided.`);
   }
 
   deleteContract(state, contract);
@@ -132,7 +131,7 @@ export const removeOwnedContracts = (state: IWorldState, ownerId: string) => {
 
   if (contractsToRemove.length > 0) {
     if (notificationConfig.showContractNotifications) {
-      notify.success(
+      logSuccess(
         `[CONTRACTS] Voiding ${contractsToRemove.length} contracts from ${contractsToRemove[0].owner.name}`,
       );
     }

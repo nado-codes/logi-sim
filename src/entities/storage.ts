@@ -1,9 +1,6 @@
 import { randomUUID } from "crypto";
-import {
-  loadNotificationConfig,
-  NotificationConfig,
-  notify,
-} from "../notifications";
+import { loadNotificationConfig } from "../notifications";
+import { logInfo, logWarning, logSuccess } from "../logUtils";
 
 export enum RESOURCE_TYPE {
   ORE = "Ore",
@@ -79,7 +76,7 @@ export const processRecipe = (recipe: IRecipe, storage: IStorage[]) => {
   let canProcess = true;
 
   if (notificationConfig.showProductionNotifications) {
-    notify.info("[PRODUCTION] Processing recipe...");
+    logInfo("[PRODUCTION] Processing recipe...");
   }
 
   if (recipe.inputs) {
@@ -93,7 +90,7 @@ export const processRecipe = (recipe: IRecipe, storage: IStorage[]) => {
 
       if (availableAmount < requiredAmount) {
         if (notificationConfig.showProductionNotifications) {
-          notify.warning(
+          logWarning(
             ` - Missing the required ${requiredAmount} ${resourceType} to process this recipe. Production paused`,
           );
         }
@@ -101,7 +98,7 @@ export const processRecipe = (recipe: IRecipe, storage: IStorage[]) => {
         canProcess = false;
       } else {
         if (notificationConfig.showProductionNotifications) {
-          notify.info(
+          logInfo(
             ` - Found ${inputStorage.length} input storages with ${availableAmount} total units of ${resourceType} inside them`,
           );
         }
@@ -119,16 +116,14 @@ export const processRecipe = (recipe: IRecipe, storage: IStorage[]) => {
           amountLeftToRemove = Math.max(amountLeftToRemove - amountRemoved, 0);
 
           if (notificationConfig.showProductionNotifications) {
-            notify.info(
-              ` - Consumed ${amountRemoved} units of ${resourceType}`,
-            );
+            logInfo(` - Consumed ${amountRemoved} units of ${resourceType}`);
           }
         });
       }
     });
   } else {
     if (notificationConfig.showProductionNotifications) {
-      notify.info(" - No inputs for this recipe");
+      logInfo(" - No inputs for this recipe");
     }
   }
 
@@ -154,12 +149,12 @@ export const processRecipe = (recipe: IRecipe, storage: IStorage[]) => {
       });
 
       if (notificationConfig.showProductionNotifications) {
-        notify.success(` - Produced ${outputAmount} ${outputResource}`);
+        logSuccess(` - Produced ${outputAmount} ${outputResource}`);
       }
 
       if (availableCapacity <= outputAmount) {
         if (notificationConfig.showProductionNotifications) {
-          notify.warning(` - Output storage is full. Production paused`);
+          logWarning(` - Output storage is full. Production paused`);
         }
 
         canProcess = false;
@@ -222,7 +217,7 @@ export const transferResources = (
   toStorage: IStorage[],
 ) => {
   if (notificationConfig.showStorageNotifications) {
-    notify.info(`[STORAGE] We'll try to transfer ${amount} ${resourceType}...`);
+    logInfo(`[STORAGE] We'll try to transfer ${amount} ${resourceType}...`);
   }
 
   const matchingSourceStorage = fromStorage.filter(
@@ -248,7 +243,7 @@ export const transferResources = (
     matchingSourceResourceCount < amount &&
     notificationConfig.showStorageNotifications
   ) {
-    notify.warning(
+    logWarning(
       `[STORAGE WARNING] Not enough ${resourceType} to transfer - only ${matchingSourceResourceCount} available ... we'll transfer what we can`,
     );
   }
@@ -261,7 +256,7 @@ export const transferResources = (
     matchingDestinationAvailableCapacity < amount &&
     notificationConfig.showStorageNotifications
   ) {
-    notify.warning(
+    logWarning(
       `[STORAGE WARNING] Not enough space available to transfer - only ${matchingDestinationAvailableCapacity} ... we'll transfer what we can`,
     );
   }
@@ -283,7 +278,7 @@ export const transferResources = (
     // .. do we still have stuff to move? if not, we'll just skip over everything else
     if (amountLeftToTransfer > 0) {
       if (notificationConfig.showStorageNotifications) {
-        notify.info(` - We have ${amountLeftToTransfer} left to transfer`);
+        logInfo(` - We have ${amountLeftToTransfer} left to transfer`);
       }
       // .. we know how much we have in total, but how much does this box have in it?
       // .. we'll try to get everything we need from this box, but if we can't - that's fine
@@ -293,7 +288,7 @@ export const transferResources = (
       );
 
       if (notificationConfig.showStorageNotifications) {
-        notify.info(` - Theres ${availableToTransfer} in this box`);
+        logInfo(` - Theres ${availableToTransfer} in this box`);
       }
 
       matchingDestinationStorage.forEach((destination) => {
@@ -307,7 +302,7 @@ export const transferResources = (
         );
 
         if (notificationConfig.showStorageNotifications) {
-          notify.info(
+          logInfo(
             ` - The box we want to put it in can take ${availableCapacity}, so we'll move ${amountToTransfer}`,
           );
         }
@@ -327,7 +322,7 @@ export const transferResources = (
     );
   } else if (amountLeftToTransfer > 0) {
     if (notificationConfig.showStorageNotifications) {
-      notify.warning(
+      logWarning(
         `[STORAGE WARNING] We couldn't transfer everything, still have ${amountLeftToTransfer} left to go`,
       );
     }
@@ -340,7 +335,7 @@ export const transferResources = (
 export const addResources = (amount: number, to: IStorage) => {
   if (to.resourceCount + amount > to.resourceCapacity) {
     if (notificationConfig.showStorageNotifications) {
-      notify.warning(
+      logWarning(
         `[STORAGE WARNING] ${to.id} is too full of ${to.resourceType} to add ${amount}`,
       );
     }
@@ -350,9 +345,7 @@ export const addResources = (amount: number, to: IStorage) => {
   to.resourceCount += amountToAdd;
 
   if (notificationConfig.showStorageNotifications) {
-    notify.success(
-      `[STORAGE] Added ${amountToAdd} ${to.resourceType} to ${to.id}`,
-    );
+    logSuccess(`[STORAGE] Added ${amountToAdd} ${to.resourceType} to ${to.id}`);
   }
 
   return amountToAdd;
@@ -361,7 +354,7 @@ export const addResources = (amount: number, to: IStorage) => {
 export const removeResources = (amount: number, from: IStorage) => {
   if (from.resourceCount < amount) {
     if (notificationConfig.showStorageNotifications) {
-      notify.warning(
+      logWarning(
         `[STORAGE WARNING] ${from.id} doesn't have enough ${from.resourceType} to remove ${amount}`,
       );
     }
@@ -371,7 +364,7 @@ export const removeResources = (amount: number, from: IStorage) => {
   from.resourceCount -= amountToRemove;
 
   if (notificationConfig.showStorageNotifications) {
-    notify.success(
+    logSuccess(
       `[STORAGE] Removed ${amountToRemove} ${from.resourceType} from ${from.id}`,
     );
   }

@@ -6,7 +6,8 @@ import {
   LOCATION_TYPE,
 } from "../entities/location";
 import { getResourceStorage, RESOURCE_TYPE } from "../entities/storage";
-import { loadNotificationConfig, notify } from "../notifications";
+import { loadNotificationConfig } from "../notifications";
+import { logWarning, logInfo, logError } from "../logUtils";
 import { getContractByResource, createContract } from "./contracts";
 import { IWorldState } from "./state";
 
@@ -88,13 +89,13 @@ export const replenishInputStorage = (
       if (inputStorageCount < (minInputThreshold ?? requiredAmount)) {
         if (!contract) {
           if (notificationConfig.showLocationNotifications) {
-            notify.warning(
+            logWarning(
               `[LOCATION WARNING] ${location.name} doesn't have enough ${inputStorage[0].resourceType} ${inputStorageCount > 0 ? `(only ${inputStorageCount} available) ` : ""}- so we'll create a contract`,
             );
           }
 
           if (notificationConfig.showLocationNotifications) {
-            notify.info(
+            logInfo(
               `[LOCATION INFO] ${location.name} is searching for a supplier...`,
             );
           }
@@ -109,7 +110,7 @@ export const replenishInputStorage = (
 
             if (s.id !== location.id) {
               if (notificationConfig.showLocationNotifications) {
-                notify.info(
+                logInfo(
                   ` - Contacted ${s.name} -> ${hasResources ? "Found some resources!" : "Nothing available"}`,
                 );
               }
@@ -137,9 +138,7 @@ export const replenishInputStorage = (
 
           if (!closestSupplier) {
             if (notificationConfig.showLocationNotifications) {
-              notify.error(
-                `- No nearby suppliers to resupply ${location.name}`,
-              );
+              logError(`- No nearby suppliers to resupply ${location.name}`);
             }
           } else {
             // .. if there's literally NO STOCK left, we need to create an URGENT contract (due sooner, more needs to be transported)
@@ -154,7 +153,7 @@ export const replenishInputStorage = (
             );
           }
         } else if (!contract.shipper) {
-          notify.error(
+          logError(
             `- ${location.name} was unable to create a contract because one already exists and is NOT being shipped`,
           );
         }

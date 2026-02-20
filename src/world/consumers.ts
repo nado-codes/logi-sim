@@ -7,7 +7,7 @@ import {
 } from "../entities/storage";
 import { replenishInputStorage } from "./locations";
 import { IWorldState } from "./state";
-import { loadNotificationConfig, notify } from "../notifications";
+import { loadNotificationConfig } from "../notifications";
 
 const notifConfig = loadNotificationConfig();
 

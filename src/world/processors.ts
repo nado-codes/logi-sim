@@ -12,7 +12,8 @@ import {
 import { replenishInputStorage } from "./locations";
 import { completeContract, getContractByResource } from "./contracts";
 import { IWorldState } from "./state";
-import { loadNotificationConfig, notify } from "../notifications";
+import { loadNotificationConfig } from "../notifications";
+import { logWarning, logSuccess } from "../logUtils";
 
 const notificationConfig = loadNotificationConfig();
 
@@ -98,7 +99,7 @@ export const updateProcessors = (state: IWorldState) => {
 
     if (outputStorageCount >= outputStorageCapacity) {
       if (notificationConfig.showProcessorNotifications) {
-        notify.warning(`${processor.name} is full and can't produce any more`);
+        logWarning(`${processor.name} is full and can't produce any more`);
       }
     } else {
       const inputStorage = getInputStorage(processor.recipe, processor.storage);
@@ -118,7 +119,7 @@ export const updateProcessors = (state: IWorldState) => {
           .join(", ");
 
         if (notificationConfig.showProcessorNotifications) {
-          notify.success(
+          logSuccess(
             `${processor.name} processed ${recipeInputsString} to produce ${recipeOutputsString} and has ${inputStorageCount} left`,
           );
         }

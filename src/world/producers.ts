@@ -9,7 +9,8 @@ import {
   processRecipe,
 } from "../entities/storage";
 import { IWorldState } from "./state";
-import { loadNotificationConfig, notify } from "../notifications";
+import { loadNotificationConfig } from "../notifications";
+import { logWarning, logSuccess, logError, logInfo } from "../logUtils";
 
 const notificationConfig = loadNotificationConfig();
 
@@ -68,7 +69,7 @@ export const updateProducers = (state: IWorldState) => {
 
     if (outputStorageCount >= outputStorageCapacity) {
       if (notificationConfig.showProducerNotifications) {
-        notify.warning(
+        logWarning(
           `${producer.name} is full and can't produce any more ${resourceType}`,
         );
       }
@@ -80,25 +81,25 @@ export const updateProducers = (state: IWorldState) => {
         );
 
         if (notificationConfig.showProducerNotifications) {
-          notify.success(
+          logSuccess(
             `${producer.name} produced ${productionRate} ${resourceType} and has ${outputStorageCount} available`,
           );
         }
       } else {
         if (outputStorageCount > outputStorageCapacity - productionRate) {
           if (notificationConfig.showProducerNotifications) {
-            notify.warning(
+            logWarning(
               `${producer.name} is full and can't produce any more ${resourceType}`,
             );
           }
         } else {
-          notify.error(
+          logError(
             `[PRODUCER ERROR] ${producer.name} was unable to produce anything due to an unknown error`,
           );
-          notify.info(
+          logInfo(
             ` - Output Storage has ${outputStorageCount} ${resourceType}`,
           );
-          notify.info(` - Output Storage can store ${outputStorageCapacity}`);
+          logInfo(` - Output Storage can store ${outputStorageCapacity}`);
         }
       }
     }

@@ -6,8 +6,9 @@ import {
 } from "../entities/storage";
 import { ITruck } from "../entities/truck";
 import { IWorldState } from "./state";
-import { loadNotificationConfig, notify } from "../notifications";
+import { loadNotificationConfig } from "../notifications";
 import { completeContract } from "./contracts";
+import { logSuccess, logInfo } from "../logUtils";
 
 const notificationConfig = loadNotificationConfig();
 
@@ -46,13 +47,13 @@ export const updateTrucks = (state: IWorldState) => {
 
         if (truck.position === truck.destination.position) {
           if (notificationConfig.showTruckNotifications) {
-            notify.success(
+            logSuccess(
               `[TRUCK] ${truck.id} has arrived at ${truck.destination.name}`,
             );
           }
         } else {
           if (notificationConfig.showTruckNotifications) {
-            notify.info(
+            logInfo(
               `[TRUCK] ${truck.id} moved ${truck.speed} distance units and is ${Math.abs(distance)} units away from the destination`,
             );
           }
@@ -64,7 +65,7 @@ export const updateTrucks = (state: IWorldState) => {
               truck.contract.amount - truck.storage.resourceCount;
 
             if (notificationConfig.showTruckNotifications) {
-              notify.info(
+              logInfo(
                 `[TRUCK] ${truck.id} requested ${amountLeftToLoad} ${truck.contract.resourceType} from ${truck.destination.name}`,
               );
             }
@@ -79,14 +80,14 @@ export const updateTrucks = (state: IWorldState) => {
               amountLeftToLoad <= 0
             ) {
               if (notificationConfig.showTruckNotifications) {
-                notify.success(
+                logSuccess(
                   `[TRUCK] ${truck.id} finished loading at ${truck.destination.name}. Heading to ${truck.contract.owner.name}`,
                 );
               }
               truck.destination = truck.contract.owner;
             } else {
               if (notificationConfig.showTruckNotifications) {
-                notify.info(
+                logInfo(
                   `[TRUCK] ${truck.id} will wait for the rest of the ${truck.contract.resourceType} (${truck.contract.amount - truck.storage.resourceCount} left)`,
                 );
               }
@@ -101,7 +102,7 @@ export const updateTrucks = (state: IWorldState) => {
               )
             ) {
               if (notificationConfig.showTruckNotifications) {
-                notify.success(
+                logSuccess(
                   `[TRUCK] ${truck.id} finished unloading at ${truck.destination.name}. Contract completed`,
                 );
               }
@@ -112,7 +113,7 @@ export const updateTrucks = (state: IWorldState) => {
               }
             } else {
               if (notificationConfig.showTruckNotifications) {
-                notify.info(
+                logInfo(
                   `[TRUCK] ${truck.id} will wait to unload the rest of the ${truck.contract.resourceType} (${truck.storage.resourceCount} left)`,
                 );
               }
@@ -121,8 +122,11 @@ export const updateTrucks = (state: IWorldState) => {
         }
       }
     } else if (state.contracts.length > 0) {
+      // TEST: disable the auto-acceptance for contracts so that the player has to manually do it
+      // test if the core contract acceptance loop is fun
+      /*
       if (notificationConfig.showTruckNotifications) {
-        notify.info(`[TRUCK] ${truck.id} is looking for a contract...`);
+        logInfo(`[TRUCK] ${truck.id} is looking for a contract...`);
       }
 
       // .. if there's a contract available and the truck is doing nothing, accept the contract
@@ -134,7 +138,7 @@ export const updateTrucks = (state: IWorldState) => {
 
       if (!contract) {
         if (notificationConfig.showTruckNotifications) {
-          notify.info(` - No contracts available`);
+          logInfo(` - No contracts available`);
         }
       } else {
         contract.shipper = truck;
@@ -142,9 +146,9 @@ export const updateTrucks = (state: IWorldState) => {
         truck.destination = contract.supplier;
 
         if (notificationConfig.showTruckNotifications) {
-          notify.success(` - Accepted contract ${contract.id}`);
+          logSuccess(` - Accepted contract ${contract.id}`);
         }
-      }
+      } */
     }
   });
 };
