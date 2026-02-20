@@ -1,6 +1,6 @@
 {
   "name": "logi-sim",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A text-based logistics simulator grounded in reality, and implements real market demand and freight transport mechanics",
   "main": "index.js",
   "scripts": {

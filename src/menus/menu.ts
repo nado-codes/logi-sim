@@ -139,7 +139,6 @@ export const createMenu = (
               waitForInput();
             } else {
               executeAction(menuItem as IMenuAction, args);
-              pause();
             }
           }
         } else {

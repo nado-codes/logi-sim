@@ -121,6 +121,8 @@ export const updateTrucks = (state: IWorldState) => {
           }
         }
       }
+    } else if (truck.contract) {
+      truck.destination = truck.contract.supplier;
     } else if (state.contracts.length > 0) {
       // TEST: disable the auto-acceptance for contracts so that the player has to manually do it
       // test if the core contract acceptance loop is fun

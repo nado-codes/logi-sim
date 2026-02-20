@@ -4,7 +4,7 @@ import { createMenu } from "./menus/menu";
 import { logInfo } from "./logUtils";
 
 logInfo("Logi sim starting...");
-logInfo("LogiSim v0.2.0");
+logInfo("LogiSim v0.3.0");
 
 // .. CREATE
 

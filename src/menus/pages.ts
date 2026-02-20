@@ -87,6 +87,8 @@ export const createManageContractsPage = (world: IWorld): IMenuPage => {
           console.log(
             ` - It will take ${yellow("" + distance / truck.speed)} ticks to complete`,
           );
+
+          truck.contract = contract;
         },
       });
 
@@ -105,12 +107,12 @@ export const createManageContractsPage = (world: IWorld): IMenuPage => {
 
             const distance =
               Math.abs(t.position - contract.supplier.position) +
-              supplierOwnerDistance;
+              supplierOwnerDistance; //
 
             const truckString = `| Carries: ${t.storage.resourceType} | ${truckLocation ? `Location: ${truckLocation.name}` : `Position: ${t.position}`} | Total Distance: ${yellow(distance + " units")}`;
 
             console.log(
-              ` - [${i}] ${t.storage.resourceType === contract.resourceType ? truckString : red(truckString)}`,
+              `${t.storage.resourceType === contract.resourceType ? `- [${i}] ${truckString}` : `- ${red(`[${i}] ${truckString}`)}`}`,
             );
           });
 
