@@ -1,16 +1,11 @@
 import { randomUUID } from "crypto";
 import { IContract } from "../entities/contract";
 import { IBaseLocation } from "../entities/location";
-import {
-  addResources,
-  getResourceCount,
-  getResourceStorage,
-  RESOURCE_TYPE,
-} from "../entities/storage";
+import { getResourceCount, RESOURCE_TYPE } from "../entities/storage";
 import { IWorldState } from "./state";
 import { loadNotificationConfig } from "../notifications";
 import { ITruck } from "../entities/truck";
-import { logSuccess, logWarning, logInfo, logError } from "../logUtils";
+import { logSuccess, logWarning, logInfo, logError, yellow } from "../logUtils";
 
 const notificationConfig = loadNotificationConfig();
 
@@ -35,6 +30,15 @@ export const createContract = (
     payment,
     dueTicks,
   };
+
+  if (!owner) {
+    throw Error(`[CRITICAL CONTRACT ERROR] Owner cannot be null or undefined`);
+  }
+  if (!supplier) {
+    throw Error(
+      `[CRITICAL CONTRACT ERROR] Supplier cannot be null or undefined`,
+    );
+  }
 
   if (notificationConfig.showContractNotifications) {
     logSuccess(
@@ -84,6 +88,45 @@ export const updateContracts = (state: IWorldState) => {
       }
     }
   });
+};
+
+export const isValidShipperType = (contract: IContract, shipper: ITruck) => {
+  if (shipper.storage.resourceType !== contract.resourceType) {
+    if (notificationConfig.showContractNotifications) {
+      logWarning(` - WARNING: Incompatible shipper resource type`);
+    }
+    return false;
+  }
+
+  return true;
+};
+
+export const assignContract = (contract: IContract, shipper: ITruck) => {
+  if (notificationConfig.showContractNotifications) {
+    logInfo(`[CONTRACT] Trying to assign ${contract.resourceType} contract...`);
+  }
+
+  if (contract.shipper) {
+    logError(
+      ` - ERROR: Contract already being shipped - assignment not possible`,
+    );
+    return false;
+  }
+
+  if (!isValidShipperType(contract, shipper)) {
+    logError(
+      ` - ERROR: Incompatible shipper resource type - assignment not possible`,
+    );
+    return false;
+  }
+
+  shipper.contract = contract;
+
+  if (notificationConfig.showContractNotifications) {
+    logSuccess(
+      `- SUCCESS: Contract ${yellow(contract.id)} assigned to shipper ${yellow(shipper.id)}`,
+    );
+  }
 };
 
 // .. DELETE

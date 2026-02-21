@@ -8,7 +8,8 @@ import { ITruck } from "../entities/truck";
 import { IWorldState } from "./state";
 import { loadNotificationConfig } from "../notifications";
 import { completeContract } from "./contracts";
-import { logSuccess, logInfo } from "../logUtils";
+import { logSuccess, logInfo, yellow } from "../logUtils";
+import { IWorld } from "./world";
 
 const notificationConfig = loadNotificationConfig();
 
@@ -28,6 +29,14 @@ export const createTruck = (
   };
 
   state.trucks.push(newTruck);
+};
+
+export const getTruckString = (world: IWorld, truck: ITruck) => {
+  const truckLocation = world
+    .getLocations()
+    .find((l) => l.position === truck.position);
+
+  return `| Carries: ${truck.storage.resourceType} | ${truckLocation ? `Location: ${truckLocation.name}` : `Position: ${truck.position}`}`;
 };
 
 export const updateTrucks = (state: IWorldState) => {

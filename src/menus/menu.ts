@@ -1,11 +1,9 @@
 // menu.ts
 import readline from "readline";
 import { createWorld } from "../world/world";
-import {
-  createManageContractsPage,
-  createPage,
-  createTrucksPage,
-} from "./pages";
+import { createPage, createTrucksPage } from "./pages";
+import { createManageContractsPage } from "./manageContracts";
+import { red } from "../logUtils";
 
 export enum MenuItemType {
   Page,
@@ -110,6 +108,7 @@ export const createMenu = (
     } else {
       console.log("\nPress any key to continue");
       pause(renderPrevPage);
+      waitForInput();
     }
   };
 
