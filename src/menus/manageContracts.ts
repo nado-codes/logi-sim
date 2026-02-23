@@ -1,4 +1,5 @@
 import { logError, logSuccess, yellow, red, logWarning } from "../logUtils";
+import { assignContract } from "../world/contracts";
 import { getTruckString } from "../world/trucks";
 import { IWorld } from "../world/world";
 import { IMenuPage, IMenuAction, MenuItemType } from "./menu";
@@ -52,19 +53,25 @@ export const createManageContractsPage = (world: IWorld): IMenuPage => {
             return false;
           }
 
-          logSuccess(`Contract accepted`);
-          console.log();
+          if (assignContract(contract, truck)) {
+            logSuccess(`Contract accepted`);
+            console.log();
 
-          const distance =
-            Math.abs(truck.position - contract.supplier.position) +
-            supplierOwnerDistance;
+            const distance =
+              Math.abs(truck.position - contract.supplier.position) +
+              supplierOwnerDistance;
 
-          console.log(` - Truck ${yellow(truck.id)} will handle the contract`);
-          console.log(
-            ` - It will take ${yellow("" + distance / truck.speed)} ticks to complete`,
-          );
-
-          truck.contract = contract;
+            console.log(
+              ` - Truck ${yellow(truck.id)} will handle the contract`,
+            );
+            console.log(
+              ` - It will take ${yellow("" + distance / truck.speed)} ticks to complete`,
+            );
+          } else {
+            logError(
+              `[CONTRACT ERROR] Unable to assign contract due to an unknown error`,
+            );
+          }
         },
       });
 

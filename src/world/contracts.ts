@@ -127,6 +127,8 @@ export const assignContract = (contract: IContract, shipper: ITruck) => {
       `- SUCCESS: Contract ${yellow(contract.id)} assigned to shipper ${yellow(shipper.id)}`,
     );
   }
+
+  return true;
 };
 
 // .. DELETE
