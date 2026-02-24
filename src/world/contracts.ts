@@ -121,6 +121,7 @@ export const assignContract = (contract: IContract, shipper: ITruck) => {
   }
 
   shipper.contract = contract;
+  contract.shipper = shipper;
 
   if (notificationConfig.showContractNotifications) {
     logSuccess(

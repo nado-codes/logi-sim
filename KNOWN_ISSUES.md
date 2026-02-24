@@ -1,4 +1,4 @@
-v0.3.0
+v0.3.1
 
 MAJOR:
 
@@ -6,4 +6,5 @@ MAJOR:
 
 MINOR:
 
-- x
+- When a truck has completed a contract, it seems to be unavailable for a really long time ... is the truck's availability
+  being overridden by other trucks?

@@ -30,7 +30,12 @@ export const createManageContractsPage = (world: IWorld): IMenuPage => {
         return false;
       }
 
-      const idleTrucks = world.getTrucks().filter((t) => !t.contract);
+      const availableTrucks = world
+        .getTrucks()
+        .filter(
+          (t) =>
+            !t.contract && t.storage.resourceType === contract.resourceType,
+        );
       const supplierOwnerDistance = Math.abs(
         contract.owner.position - contract.supplier.position,
       );
@@ -46,7 +51,7 @@ export const createManageContractsPage = (world: IWorld): IMenuPage => {
             return false;
           }
 
-          const truck = idleTrucks.find((_, i) => i === truckChoice);
+          const truck = availableTrucks.find((_, i) => i === truckChoice);
 
           if (!truck) {
             logError(`Truck ${truckChoice} doesn't exist`);
@@ -80,8 +85,8 @@ export const createManageContractsPage = (world: IWorld): IMenuPage => {
         false,
         [createSelectTruckAction()],
         () => {
-          console.log(`\nAvailable trucks: ${idleTrucks.length}`);
-          idleTrucks.forEach((t, i) => {
+          console.log(`\nAvailable trucks: ${availableTrucks.length}`);
+          availableTrucks.forEach((t, i) => {
             const supplierOwnerDistance = contract
               ? Math.abs(contract.owner.position - contract.supplier.position)
               : 0;
@@ -99,9 +104,9 @@ export const createManageContractsPage = (world: IWorld): IMenuPage => {
             );
           });
 
-          const availableTrucks = idleTrucks.filter((t) =>
+          /* const availableTrucks = idleTrucks.filter((t) =>
             contracts.some((c) => c.resourceType === t.storage.resourceType),
-          );
+          );*/
 
           if (availableTrucks.length === 0) {
             logWarning(
@@ -118,15 +123,15 @@ export const createManageContractsPage = (world: IWorld): IMenuPage => {
     false,
     [createAcceptContractAction()],
     () => {
-      const contracts = world.getContracts();
+      const availableContracts = world.getContracts().filter((c) => !c.shipper);
 
-      if (contracts.length === 0) {
+      if (availableContracts.length === 0) {
         logWarning(` - There are no contracts available`);
         return;
       }
 
-      console.log(`\nAvailable contracts: ${contracts.length}`);
-      contracts.forEach((c, i) => {
+      console.log(`\nAvailable contracts: ${availableContracts.length}`);
+      availableContracts.forEach((c, i) => {
         console.log(
           ` - [${i}] | ${c.amount} ${c.resourceType} | Pickup: ${c.supplier.name} | Drop-off: ${c.owner.name} | Due in: ${c.dueTicks} ticks`,
         );
@@ -137,7 +142,9 @@ export const createManageContractsPage = (world: IWorld): IMenuPage => {
         .filter(
           (t) =>
             !t.contract &&
-            contracts.some((c) => c.resourceType === t.storage.resourceType),
+            availableContracts.some(
+              (c) => c.resourceType === t.storage.resourceType,
+            ),
         );
 
       if (availableTrucks.length === 0) {
