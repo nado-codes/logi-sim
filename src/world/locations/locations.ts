@@ -1,21 +1,15 @@
-import {
-  IBaseLocation,
-  IProcessor,
-  IConsumer,
-  IProducer,
-  LOCATION_TYPE,
-} from "../entities/location";
-import { getResourceStorage, RESOURCE_TYPE } from "../entities/storage";
-import { loadNotificationConfig } from "../notifications";
-import { logWarning, logInfo, logError, yellow } from "../logUtils";
-import { getContractByResource, createContract } from "./contracts";
-import { IWorldState } from "./state";
-import { ITruck } from "../entities/truck";
-import { IWorld } from "./world";
+import { IBaseLocation, LOCATION_TYPE } from "../../entities/location";
+import { getResourceStorage, RESOURCE_TYPE } from "../../entities/storage";
+import { loadNotificationConfig } from "../../notifications";
+import { logWarning, logInfo, logError, colors } from "../../utils";
+import { getContractByResource, createContract } from "../contracts";
+import { IWorldState } from "../state";
 
 const notificationConfig = loadNotificationConfig();
 
-// .. GET
+// .. CREATE
+
+// .. READ
 export const getMap = (state: IWorldState) => {
   const locations = [
     ...state.producers,
@@ -69,19 +63,21 @@ export const getMap = (state: IWorldState) => {
 };
 
 export const getLocationString = (location: IBaseLocation) => {
-  const locationString = `Position: ${yellow(location.position + "")}`;
+  const locationString = `Position: ${colors.yellow(location.position + "")}`;
 
   const inputs = Object.entries(location.recipe.inputs ?? []).map(
-    ([res, amt]) => `${yellow(amt + " " + res)}`,
+    ([res, amt]) => `${colors.yellow(amt + " " + res)}`,
   );
-  const inputsString = inputs.length > 0 ? inputs.join(",") : yellow("None");
+  const inputsString =
+    inputs.length > 0 ? inputs.join(",") : colors.yellow("None");
 
   const outputs = Object.entries(location.recipe.outputs ?? []).map(
-    ([res, amt]) => `${yellow(amt + " " + res)}`,
+    ([res, amt]) => `${colors.yellow(amt + " " + res)}`,
   );
-  const outputsString = outputs.length > 0 ? outputs.join(",") : yellow("None");
+  const outputsString =
+    outputs.length > 0 ? outputs.join(",") : colors.yellow("None");
 
-  return `| ${yellow(location.name)} | Inputs: ${inputsString} | Outputs: ${outputsString} | ${locationString}`;
+  return `| ${colors.yellow(location.name)} | Inputs: ${inputsString} | Outputs: ${outputsString} | ${locationString}`;
 };
 
 // .. UPDATE

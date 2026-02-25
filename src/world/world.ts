@@ -2,11 +2,11 @@ import { IContract } from "../entities/contract";
 import { IBaseLocation } from "../entities/location";
 import { IRecipe, RESOURCE_TYPE } from "../entities/storage";
 import { ITruck } from "../entities/truck";
-import { createConsumer, updateConsumers } from "./consumers";
+import { createConsumer, updateConsumers } from "./locations/consumers";
 import { createContract, updateContracts } from "./contracts";
-import { getMap } from "./locations";
-import { createProcessor, updateProcessors } from "./processors";
-import { createProducer, updateProducers } from "./producers";
+import { getMap } from "./locations/locations";
+import { createProcessor, updateProcessors } from "./locations/processors";
+import { createProducer, updateProducers } from "./locations/producers";
 import { IWorldState, createInitialState } from "./state";
 import { createTruck, updateTrucks } from "./trucks";
 

@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import { IProcessor, LOCATION_TYPE } from "../entities/location";
+import { IProcessor, LOCATION_TYPE } from "../../entities/location";
 import {
   createRecipeStorage,
   getInputStorage,
@@ -8,12 +8,12 @@ import {
   IRecipe,
   processRecipe,
   RESOURCE_TYPE,
-} from "../entities/storage";
+} from "../../entities/storage";
 import { replenishInputStorage } from "./locations";
-import { completeContract, getContractByResource } from "./contracts";
-import { IWorldState } from "./state";
-import { loadNotificationConfig } from "../notifications";
-import { logWarning, logSuccess } from "../logUtils";
+import { completeContract, getContractByResource } from "../contracts";
+import { IWorldState } from "../state";
+import { loadNotificationConfig } from "../../notifications";
+import { logWarning, logSuccess } from "../../utils";
 
 const notificationConfig = loadNotificationConfig();
 

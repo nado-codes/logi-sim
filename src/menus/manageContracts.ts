@@ -1,4 +1,4 @@
-import { logError, logSuccess, yellow, red, logWarning } from "../logUtils";
+import { logError, logSuccess, logWarning, colors } from "../utils";
 import { assignContract } from "../world/contracts";
 import { getTruckString } from "../world/trucks";
 import { IWorld } from "../world/world";
@@ -67,10 +67,10 @@ export const createManageContractsPage = (world: IWorld): IMenuPage => {
               supplierOwnerDistance;
 
             console.log(
-              ` - Truck ${yellow(truck.id)} will handle the contract`,
+              ` - Truck ${colors.yellow(truck.id)} will handle the contract`,
             );
             console.log(
-              ` - It will take ${yellow("" + distance / truck.speed)} ticks to complete`,
+              ` - It will take ${colors.yellow("" + distance / truck.speed)} ticks to complete`,
             );
           } else {
             logError(
@@ -95,12 +95,12 @@ export const createManageContractsPage = (world: IWorld): IMenuPage => {
               ? Math.abs(t.position - contract.supplier.position)
               : 0;
             const distance = contractDistance + supplierOwnerDistance;
-            const distanceString = `Total Distance: ${yellow(distance + " units")}`;
+            const distanceString = `Total Distance: ${colors.yellow(distance + " units")}`;
 
             const truckString = `${getTruckString(world, t)} | ${distanceString}`;
 
             console.log(
-              `${t.storage.resourceType === contract.resourceType ? `- [${i}] ${truckString}` : `- ${red(`[${i}] ${truckString}`)}`}`,
+              `${t.storage.resourceType === contract.resourceType ? `- [${i}] ${truckString}` : `- ${colors.red(`[${i}] ${truckString}`)}`}`,
             );
           });
 

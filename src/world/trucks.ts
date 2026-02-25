@@ -8,7 +8,7 @@ import { ITruck } from "../entities/truck";
 import { IWorldState } from "./state";
 import { loadNotificationConfig } from "../notifications";
 import { completeContract } from "./contracts";
-import { logSuccess, logInfo, yellow } from "../logUtils";
+import { logSuccess, logInfo, colors } from "../utils";
 import { IWorld } from "./world";
 
 const notificationConfig = loadNotificationConfig();
@@ -37,11 +37,11 @@ export const getTruckString = (world: IWorld, truck: ITruck) => {
     .find((l) => l.position === truck.position);
 
   const locationString = truckLocation
-    ? `Location: ${yellow(truckLocation.name)}`
-    : `Position: ${yellow(truck.position + "")}`;
-  const contractString = `Contract: ${truck.contract ? yellow(`${truck.contract.supplier.name}-->${truck.contract.owner.name}`) : yellow("None")}`;
+    ? `Location: ${colors.yellow(truckLocation.name)}`
+    : `Position: ${colors.yellow(truck.position + "")}`;
+  const contractString = `Contract: ${truck.contract ? colors.yellow(`${truck.contract.supplier.name}-->${truck.contract.owner.name}`) : colors.yellow("None")}`;
 
-  return `| Carries: ${yellow(truck.storage.resourceType)} | ${locationString} | ${contractString}`;
+  return `| Carries: ${colors.yellow(truck.storage.resourceType)} | ${locationString} | ${contractString}`;
 };
 
 export const updateTrucks = (state: IWorldState) => {

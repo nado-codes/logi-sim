@@ -1,7 +1,7 @@
 import { RESOURCE_TYPE } from "./entities/storage";
 import { createWorld } from "./world/world";
 import { createMenu } from "./menus/menu";
-import { logInfo } from "./logUtils";
+import { logInfo } from "./utils";
 
 logInfo("Logi sim starting...");
 logInfo("LogiSim v0.3.1");

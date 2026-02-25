@@ -1,13 +1,13 @@
 import { randomUUID } from "crypto";
-import { IConsumer, LOCATION_TYPE } from "../entities/location";
+import { IConsumer, LOCATION_TYPE } from "../../entities/location";
 import {
   RESOURCE_TYPE,
   createAndGetStorage,
   processRecipe,
-} from "../entities/storage";
+} from "../../entities/storage";
 import { replenishInputStorage } from "./locations";
-import { IWorldState } from "./state";
-import { loadNotificationConfig } from "../notifications";
+import { IWorldState } from "../state";
+import { loadNotificationConfig } from "../../notifications";
 
 const notifConfig = loadNotificationConfig();
 

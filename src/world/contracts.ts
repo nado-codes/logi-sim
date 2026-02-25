@@ -5,7 +5,7 @@ import { getResourceCount, RESOURCE_TYPE } from "../entities/storage";
 import { IWorldState } from "./state";
 import { loadNotificationConfig } from "../notifications";
 import { ITruck } from "../entities/truck";
-import { logSuccess, logWarning, logInfo, logError, yellow } from "../logUtils";
+import { logSuccess, logWarning, logInfo, logError, colors } from "../utils";
 
 const notificationConfig = loadNotificationConfig();
 
@@ -125,7 +125,7 @@ export const assignContract = (contract: IContract, shipper: ITruck) => {
 
   if (notificationConfig.showContractNotifications) {
     logSuccess(
-      `- SUCCESS: Contract ${yellow(contract.id)} assigned to shipper ${yellow(shipper.id)}`,
+      `- SUCCESS: Contract ${colors.yellow(contract.id)} assigned to shipper ${colors.yellow(shipper.id)}`,
     );
   }
 
