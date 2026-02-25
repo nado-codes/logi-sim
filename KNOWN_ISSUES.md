@@ -1,4 +1,4 @@
-v0.3.1
+v0.3.2
 
 MAJOR:
 
@@ -6,5 +6,4 @@ MAJOR:
 
 MINOR:
 
-- When a truck has completed a contract, it seems to be unavailable for a really long time ... is the truck's availability
-  being overridden by other trucks?
+- Notifications no longer work as intended. "Log(success/error/info/warning)" get cleared whenever the menu refreshes, rendering the system "notifications" inoperable. To fix it, we need to store notifications in a buffer between ticks, and allow the player to view them from the main menu in a dedicated page

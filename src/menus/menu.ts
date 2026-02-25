@@ -1,9 +1,12 @@
 // menu.ts
 import readline from "readline";
 import { createWorld } from "../world/world";
-import { createPage, createTrucksPage } from "./pages";
+import {
+  createPage,
+  createManageLocationsPage,
+  createManageTrucksPage,
+} from "./pages";
 import { createManageContractsPage } from "./manageContracts";
-import { red } from "../logUtils";
 
 export enum MenuItemType {
   Page,
@@ -43,7 +46,8 @@ export const createMenu = (
 
   const mainMenu: IMenuPage = createPage("Main Menu", true, [
     createManageContractsPage(world),
-    createTrucksPage(world),
+    createManageTrucksPage(world),
+    createManageLocationsPage(world),
   ]);
 
   let prevPage: IMenuPage;

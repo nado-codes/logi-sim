@@ -36,7 +36,12 @@ export const getTruckString = (world: IWorld, truck: ITruck) => {
     .getLocations()
     .find((l) => l.position === truck.position);
 
-  return `| Carries: ${truck.storage.resourceType} | ${truckLocation ? `Location: ${truckLocation.name}` : `Position: ${truck.position}`}`;
+  const locationString = truckLocation
+    ? `Location: ${yellow(truckLocation.name)}`
+    : `Position: ${yellow(truck.position + "")}`;
+  const contractString = `Contract: ${truck.contract ? yellow(`${truck.contract.supplier.name}-->${truck.contract.owner.name}`) : yellow("None")}`;
+
+  return `| Carries: ${yellow(truck.storage.resourceType)} | ${locationString} | ${contractString}`;
 };
 
 export const updateTrucks = (state: IWorldState) => {

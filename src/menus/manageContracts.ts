@@ -22,8 +22,8 @@ export const createManageContractsPage = (world: IWorld): IMenuPage => {
         return false;
       }
 
-      const contracts = world.getContracts();
-      const contract = contracts.find((_, i) => i === contractChoice);
+      const availableContracts = world.getContracts().filter((c) => !c.shipper);
+      const contract = availableContracts.find((_, i) => i === contractChoice);
 
       if (!contract) {
         logError(`Contract ${contractChoice} doesn't exist`);
@@ -103,10 +103,6 @@ export const createManageContractsPage = (world: IWorld): IMenuPage => {
               `${t.storage.resourceType === contract.resourceType ? `- [${i}] ${truckString}` : `- ${red(`[${i}] ${truckString}`)}`}`,
             );
           });
-
-          /* const availableTrucks = idleTrucks.filter((t) =>
-            contracts.some((c) => c.resourceType === t.storage.resourceType),
-          );*/
 
           if (availableTrucks.length === 0) {
             logWarning(

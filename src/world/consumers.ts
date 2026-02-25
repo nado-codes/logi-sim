@@ -27,7 +27,11 @@ export const createConsumer = (
     name,
     position,
     storage: [
-      createAndGetStorage(consumes, maxStock, startFull ? maxStock : 0),
+      createAndGetStorage(
+        consumes,
+        maxStock,
+        startFull === true ? maxStock : 0,
+      ),
     ],
     recipe: { inputs: { [consumes]: consumptionRate } },
     minInputThreshold: minStockThreshold,

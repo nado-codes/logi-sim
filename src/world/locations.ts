@@ -7,12 +7,15 @@ import {
 } from "../entities/location";
 import { getResourceStorage, RESOURCE_TYPE } from "../entities/storage";
 import { loadNotificationConfig } from "../notifications";
-import { logWarning, logInfo, logError } from "../logUtils";
+import { logWarning, logInfo, logError, yellow } from "../logUtils";
 import { getContractByResource, createContract } from "./contracts";
 import { IWorldState } from "./state";
+import { ITruck } from "../entities/truck";
+import { IWorld } from "./world";
 
 const notificationConfig = loadNotificationConfig();
 
+// .. GET
 export const getMap = (state: IWorldState) => {
   const locations = [
     ...state.producers,
@@ -64,6 +67,24 @@ export const getMap = (state: IWorldState) => {
 
   return map;
 };
+
+export const getLocationString = (location: IBaseLocation) => {
+  const locationString = `Position: ${yellow(location.position + "")}`;
+
+  const inputs = Object.entries(location.recipe.inputs ?? []).map(
+    ([res, amt]) => `${yellow(amt + " " + res)}`,
+  );
+  const inputsString = inputs.length > 0 ? inputs.join(",") : yellow("None");
+
+  const outputs = Object.entries(location.recipe.outputs ?? []).map(
+    ([res, amt]) => `${yellow(amt + " " + res)}`,
+  );
+  const outputsString = outputs.length > 0 ? outputs.join(",") : yellow("None");
+
+  return `| ${yellow(location.name)} | Inputs: ${inputsString} | Outputs: ${outputsString} | ${locationString}`;
+};
+
+// .. UPDATE
 
 export const replenishInputStorage = (
   state: IWorldState,
