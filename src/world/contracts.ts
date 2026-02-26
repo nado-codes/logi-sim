@@ -1,11 +1,11 @@
 import { randomUUID } from "crypto";
-import { IContract } from "../entities/contract";
-import { IBaseLocation } from "../entities/location";
+import { Contract } from "../entities/contract";
+import { BaseLocation } from "../entities/location";
 import { getResourceCount, RESOURCE_TYPE } from "../entities/storage";
 import { IWorldState } from "./state";
 import { loadNotificationConfig } from "../notifications";
-import { ITruck } from "../entities/truck";
-import { logSuccess, logWarning, logInfo, logError, colors } from "../utils";
+import { Truck } from "../entities/truck";
+import { logSuccess, logWarning, logInfo, logError, highlight } from "../utils";
 
 const notificationConfig = loadNotificationConfig();
 
@@ -13,16 +13,20 @@ const notificationConfig = loadNotificationConfig();
 
 export const createContract = (
   state: IWorldState,
-  owner: IBaseLocation,
-  supplier: IBaseLocation,
+  name: string,
+  companyId: string,
+  destination: BaseLocation,
+  supplier: BaseLocation,
   resourceType: RESOURCE_TYPE,
   amount: number,
   payment: number,
   dueTicks: number,
 ) => {
-  const newContract: IContract = {
+  const newContract: Contract = {
     id: randomUUID(),
-    owner,
+    companyId,
+    name,
+    destination,
     supplier,
     shipper: undefined,
     resourceType,
@@ -31,7 +35,7 @@ export const createContract = (
     dueTicks,
   };
 
-  if (!owner) {
+  if (!destination) {
     throw Error(`[CRITICAL CONTRACT ERROR] Owner cannot be null or undefined`);
   }
   if (!supplier) {
@@ -42,7 +46,7 @@ export const createContract = (
 
   if (notificationConfig.showContractNotifications) {
     logSuccess(
-      `${owner.name} created a contract with ${supplier.name} for ${amount} ${resourceType} - due in ${dueTicks} ticks`,
+      `${destination.name} created a contract with ${supplier.name} for ${amount} ${resourceType} - due in ${dueTicks} ticks`,
     );
   }
 
@@ -57,14 +61,14 @@ export const getContractByResource = (
   resourceType: RESOURCE_TYPE,
 ) => {
   return state.contracts.find(
-    (c) => c.owner.id === ownerId && c.resourceType === resourceType,
+    (c) => c.destination.id === ownerId && c.resourceType === resourceType,
   );
 };
 
 // .. UPDATE
 export const updateContracts = (state: IWorldState) => {
   state.contracts.forEach((contract) => {
-    if (!contract.owner) {
+    if (!contract.destination) {
       throw Error(`[CRITICAL CONTRACT ERROR] A contract must have an owner`);
     }
     if (!contract.supplier) {
@@ -90,7 +94,7 @@ export const updateContracts = (state: IWorldState) => {
   });
 };
 
-export const isValidShipperType = (contract: IContract, shipper: ITruck) => {
+export const isValidShipperType = (contract: Contract, shipper: Truck) => {
   if (shipper.storage.resourceType !== contract.resourceType) {
     if (notificationConfig.showContractNotifications) {
       logWarning(` - WARNING: Incompatible shipper resource type`);
@@ -101,7 +105,7 @@ export const isValidShipperType = (contract: IContract, shipper: ITruck) => {
   return true;
 };
 
-export const assignContract = (contract: IContract, shipper: ITruck) => {
+export const assignContract = (contract: Contract, shipper: Truck) => {
   if (notificationConfig.showContractNotifications) {
     logInfo(`[CONTRACT] Trying to assign ${contract.resourceType} contract...`);
   }
@@ -125,7 +129,7 @@ export const assignContract = (contract: IContract, shipper: ITruck) => {
 
   if (notificationConfig.showContractNotifications) {
     logSuccess(
-      `- SUCCESS: Contract ${colors.yellow(contract.id)} assigned to shipper ${colors.yellow(shipper.id)}`,
+      `- SUCCESS: Contract ${highlight.yellow(contract.id)} assigned to shipper ${highlight.yellow(shipper.id)}`,
     );
   }
 
@@ -133,29 +137,29 @@ export const assignContract = (contract: IContract, shipper: ITruck) => {
 };
 
 // .. DELETE
-export const deleteContract = (state: IWorldState, contract: IContract) => {
+export const deleteContract = (state: IWorldState, contract: Contract) => {
   state.contracts = state.contracts.filter((c) => c.id !== contract.id);
 };
 
-export const completeContract = (state: IWorldState, contract: IContract) => {
+export const completeContract = (state: IWorldState, contract: Contract) => {
   if (notificationConfig.showContractNotifications) {
     logInfo(
       `[CONTRACT] Trying to complete ${contract.resourceType} contract...`,
     );
   }
-  if (!contract.owner) {
+  if (!contract.destination) {
     logError(` - ERROR: No owner found - completion not possible`);
     return false;
   }
 
   const resourceCount = getResourceCount(
     contract.resourceType,
-    contract.owner.storage,
+    contract.destination.storage,
   );
   if (resourceCount < contract.amount) {
     if (notificationConfig.showContractNotifications) {
       logWarning(
-        ` - WARNING: Requirements not satisfied - ${contract.owner.name} needs ${contract.amount} ${contract.resourceType} - only ${resourceCount} available`,
+        ` - WARNING: Requirements not satisfied - ${contract.destination.name} needs ${contract.amount} ${contract.resourceType} - only ${resourceCount} available`,
       );
     }
     return false;
@@ -172,13 +176,13 @@ export const completeContract = (state: IWorldState, contract: IContract) => {
 
 export const removeOwnedContracts = (state: IWorldState, ownerId: string) => {
   const contractsToRemove = state.contracts.filter(
-    (c) => c.owner.id === ownerId,
+    (c) => c.destination.id === ownerId,
   );
 
   if (contractsToRemove.length > 0) {
     if (notificationConfig.showContractNotifications) {
       logSuccess(
-        `[CONTRACTS] Voiding ${contractsToRemove.length} contracts from ${contractsToRemove[0].owner.name}`,
+        `[CONTRACTS] Voiding ${contractsToRemove.length} contracts from ${contractsToRemove[0].destination.name}`,
       );
     }
     state.contracts = state.contracts.filter(

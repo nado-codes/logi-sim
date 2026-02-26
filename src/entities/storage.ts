@@ -3,8 +3,8 @@ import { loadNotificationConfig } from "../notifications";
 import { logInfo, logWarning, logSuccess } from "../utils";
 
 export enum RESOURCE_TYPE {
-  ORE = "Ore",
-  METAL = "Metal",
+  GRAIN = "Grain",
+  FLOUR = "Flour",
 }
 
 // RECIPES
@@ -20,8 +20,8 @@ export const createAndGetStorage = (
   resourceType: RESOURCE_TYPE,
   resourceCapacity: number,
   resourceCount?: number,
-): IStorage => {
-  const newStorage: IStorage = {
+): Storage => {
+  const newStorage: Storage = {
     id: randomUUID(),
     resourceType,
     resourceCapacity,
@@ -49,7 +49,7 @@ export const createRecipeStorage = (
     }
   });
 
-  const inputStorage: IStorage[] = recipeInputs.map(([r, _]) =>
+  const inputStorage: Storage[] = recipeInputs.map(([r, _]) =>
     createAndGetStorage(r as RESOURCE_TYPE, inputCapacity),
   );
 
@@ -59,7 +59,7 @@ export const createRecipeStorage = (
     });
   }
 
-  const outputStorage: IStorage[] = recipeOutputs.map(([r, _]) =>
+  const outputStorage: Storage[] = recipeOutputs.map(([r, _]) =>
     createAndGetStorage(r as RESOURCE_TYPE, outputCapacity),
   );
 
@@ -72,7 +72,7 @@ export const createRecipeStorage = (
   return [...inputStorage, ...outputStorage];
 };
 
-export const processRecipe = (recipe: IRecipe, storage: IStorage[]) => {
+export const processRecipe = (recipe: IRecipe, storage: Storage[]) => {
   let canProcess = true;
 
   if (notificationConfig.showProductionNotifications) {
@@ -167,29 +167,29 @@ export const processRecipe = (recipe: IRecipe, storage: IStorage[]) => {
 
 // STORAGE
 
-export interface IStorage {
+export type Storage = {
   id: string;
   resourceType: RESOURCE_TYPE;
   resourceCapacity: number;
   resourceCount: number;
-}
+};
 
 export const getResourceStorage = (
   resourceType: RESOURCE_TYPE,
-  storage: IStorage[],
+  storage: Storage[],
 ) => {
   return storage.filter((s) => s.resourceType === resourceType);
 };
 
-export const getInputStorage = (recipe: IRecipe, storage: IStorage[]) =>
+export const getInputStorage = (recipe: IRecipe, storage: Storage[]) =>
   storage.filter((s) => s.resourceType in (recipe.inputs ?? {}));
 
-export const getOutputStorage = (recipe: IRecipe, storage: IStorage[]) =>
+export const getOutputStorage = (recipe: IRecipe, storage: Storage[]) =>
   storage.filter((s) => s.resourceType in (recipe.outputs ?? {}));
 
 export const getResourceCapacity = (
   resourceType: RESOURCE_TYPE,
-  storage: IStorage[],
+  storage: Storage[],
 ) => {
   const resourceStorage = storage.filter(
     (s) => s.resourceType === resourceType,
@@ -199,7 +199,7 @@ export const getResourceCapacity = (
 
 export const getResourceCount = (
   resourceType: RESOURCE_TYPE,
-  storage: IStorage[],
+  storage: Storage[],
 ) => {
   const resourceStorage = storage.filter(
     (s) => s.resourceType === resourceType,
@@ -213,8 +213,8 @@ export const getResourceCount = (
 export const transferResources = (
   amount: number,
   resourceType: RESOURCE_TYPE,
-  fromStorage: IStorage[],
-  toStorage: IStorage[],
+  fromStorage: Storage[],
+  toStorage: Storage[],
 ) => {
   if (notificationConfig.showStorageNotifications) {
     logInfo(`[STORAGE] We'll try to transfer ${amount} ${resourceType}...`);
@@ -332,7 +332,7 @@ export const transferResources = (
   }
 };
 
-export const addResources = (amount: number, to: IStorage) => {
+export const addResources = (amount: number, to: Storage) => {
   if (to.resourceCount + amount > to.resourceCapacity) {
     if (notificationConfig.showStorageNotifications) {
       logWarning(
@@ -351,7 +351,7 @@ export const addResources = (amount: number, to: IStorage) => {
   return amountToAdd;
 };
 
-export const removeResources = (amount: number, from: IStorage) => {
+export const removeResources = (amount: number, from: Storage) => {
   if (from.resourceCount < amount) {
     if (notificationConfig.showStorageNotifications) {
       logWarning(

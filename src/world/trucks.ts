@@ -4,25 +4,29 @@ import {
   createAndGetStorage,
   transferResources,
 } from "../entities/storage";
-import { ITruck } from "../entities/truck";
+import { Truck } from "../entities/truck";
 import { IWorldState } from "./state";
 import { loadNotificationConfig } from "../notifications";
 import { completeContract } from "./contracts";
-import { logSuccess, logInfo, colors } from "../utils";
+import { logSuccess, logInfo, highlight } from "../utils";
 import { IWorld } from "./world";
 
 const notificationConfig = loadNotificationConfig();
 
 export const createTruck = (
   state: IWorldState,
+  name: string,
+  companyId: string,
   resourceType: RESOURCE_TYPE,
   resourceCapacity: number,
   position: number,
   speed: number,
   resourceCount?: number,
 ) => {
-  const newTruck: ITruck = {
+  const newTruck: Truck = {
     id: randomUUID(),
+    name,
+    companyId,
     storage: createAndGetStorage(resourceType, resourceCapacity, resourceCount),
     position,
     speed,
@@ -31,17 +35,17 @@ export const createTruck = (
   state.trucks.push(newTruck);
 };
 
-export const getTruckString = (world: IWorld, truck: ITruck) => {
+export const getTruckString = (world: IWorld, truck: Truck) => {
   const truckLocation = world
     .getLocations()
     .find((l) => l.position === truck.position);
 
   const locationString = truckLocation
-    ? `Location: ${colors.yellow(truckLocation.name)}`
-    : `Position: ${colors.yellow(truck.position + "")}`;
-  const contractString = `Contract: ${truck.contract ? colors.yellow(`${truck.contract.supplier.name}-->${truck.contract.owner.name}`) : colors.yellow("None")}`;
+    ? `Location: ${highlight.yellow(truckLocation.name)}`
+    : `Position: ${highlight.yellow(truck.position + "")}`;
+  const contractString = `Contract: ${truck.contract ? highlight.yellow(`${truck.contract.supplier.name}-->${truck.contract.destination.name}`) : highlight.yellow("None")}`;
 
-  return `| Carries: ${colors.yellow(truck.storage.resourceType)} | ${locationString} | ${contractString}`;
+  return `| Carries: ${highlight.yellow(truck.storage.resourceType)} | ${locationString} | ${contractString}`;
 };
 
 export const updateTrucks = (state: IWorldState) => {
@@ -95,10 +99,10 @@ export const updateTrucks = (state: IWorldState) => {
             ) {
               if (notificationConfig.showTruckNotifications) {
                 logSuccess(
-                  `[TRUCK] ${truck.id} finished loading at ${truck.destination.name}. Heading to ${truck.contract.owner.name}`,
+                  `[TRUCK] ${truck.id} finished loading at ${truck.destination.name}. Heading to ${truck.contract.destination.name}`,
                 );
               }
-              truck.destination = truck.contract.owner;
+              truck.destination = truck.contract.destination;
             } else {
               if (notificationConfig.showTruckNotifications) {
                 logInfo(
@@ -106,7 +110,7 @@ export const updateTrucks = (state: IWorldState) => {
                 );
               }
             }
-          } else if (truck.destination === truck.contract.owner) {
+          } else if (truck.destination === truck.contract.destination) {
             if (
               transferResources(
                 truck.contract.amount,

@@ -1,15 +1,17 @@
 // world/state.ts
 
-import { IContract } from "../entities/contract";
+import { Company } from "../entities/company/company";
+import { Contract } from "../entities/contract";
 import { IProducer, IProcessor, IConsumer } from "../entities/location";
-import { ITruck } from "../entities/truck";
+import { Truck } from "../entities/truck";
 
 export interface IWorldState {
   producers: IProducer[];
   processors: IProcessor[];
   consumers: IConsumer[];
-  contracts: IContract[];
-  trucks: ITruck[];
+  contracts: Contract[];
+  trucks: Truck[];
+  companies: Company[];
 }
 
 export const createInitialState = (): IWorldState => ({
@@ -18,4 +20,5 @@ export const createInitialState = (): IWorldState => ({
   consumers: [],
   contracts: [],
   trucks: [],
+  companies: [],
 });

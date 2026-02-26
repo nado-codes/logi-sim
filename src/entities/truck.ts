@@ -1,12 +1,13 @@
-import { IContract } from "./contract";
-import { IBaseLocation } from "./location";
-import { IStorage } from "./storage";
+import { CompanyEntity } from "./company/companyEntity";
+import { Contract } from "./contract";
+import { BaseLocation } from "./location";
+import { Storage } from "./storage";
 
-export interface ITruck {
+export type Truck = {
   id: string;
   position: number;
-  speed: number; //..how many km per tick that the truck will travel
-  destination?: IBaseLocation;
-  contract?: IContract;
-  storage: IStorage;
-}
+  speed: number;
+  destination?: BaseLocation;
+  contract?: Contract;
+  storage: Storage;
+} & CompanyEntity;

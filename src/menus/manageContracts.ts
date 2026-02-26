@@ -1,4 +1,4 @@
-import { logError, logSuccess, logWarning, colors } from "../utils";
+import { logError, logSuccess, logWarning, highlight } from "../utils";
 import { assignContract } from "../world/contracts";
 import { getTruckString } from "../world/trucks";
 import { IWorld } from "../world/world";
@@ -37,7 +37,7 @@ export const createManageContractsPage = (world: IWorld): IMenuPage => {
             !t.contract && t.storage.resourceType === contract.resourceType,
         );
       const supplierOwnerDistance = Math.abs(
-        contract.owner.position - contract.supplier.position,
+        contract.destination.position - contract.supplier.position,
       );
 
       const createSelectTruckAction = (): IMenuAction => ({
@@ -67,10 +67,10 @@ export const createManageContractsPage = (world: IWorld): IMenuPage => {
               supplierOwnerDistance;
 
             console.log(
-              ` - Truck ${colors.yellow(truck.id)} will handle the contract`,
+              ` - Truck ${highlight.yellow(truck.id)} will handle the contract`,
             );
             console.log(
-              ` - It will take ${colors.yellow("" + distance / truck.speed)} ticks to complete`,
+              ` - It will take ${highlight.yellow("" + distance / truck.speed)} ticks to complete`,
             );
           } else {
             logError(
@@ -88,19 +88,21 @@ export const createManageContractsPage = (world: IWorld): IMenuPage => {
           console.log(`\nAvailable trucks: ${availableTrucks.length}`);
           availableTrucks.forEach((t, i) => {
             const supplierOwnerDistance = contract
-              ? Math.abs(contract.owner.position - contract.supplier.position)
+              ? Math.abs(
+                  contract.destination.position - contract.supplier.position,
+                )
               : 0;
 
             const contractDistance = contract
               ? Math.abs(t.position - contract.supplier.position)
               : 0;
             const distance = contractDistance + supplierOwnerDistance;
-            const distanceString = `Total Distance: ${colors.yellow(distance + " units")}`;
+            const distanceString = `Total Distance: ${highlight.yellow(distance + " units")}`;
 
             const truckString = `${getTruckString(world, t)} | ${distanceString}`;
 
             console.log(
-              `${t.storage.resourceType === contract.resourceType ? `- [${i}] ${truckString}` : `- ${colors.red(`[${i}] ${truckString}`)}`}`,
+              `${t.storage.resourceType === contract.resourceType ? `- [${i}] ${truckString}` : `- ${highlight.red(`[${i}] ${truckString}`)}`}`,
             );
           });
 
@@ -129,7 +131,7 @@ export const createManageContractsPage = (world: IWorld): IMenuPage => {
       console.log(`\nAvailable contracts: ${availableContracts.length}`);
       availableContracts.forEach((c, i) => {
         console.log(
-          ` - [${i}] | ${c.amount} ${c.resourceType} | Pickup: ${c.supplier.name} | Drop-off: ${c.owner.name} | Due in: ${c.dueTicks} ticks`,
+          ` - [${i}] | ${c.amount} ${c.resourceType} | Pickup: ${c.supplier.name} | Drop-off: ${c.destination.name} | Due in: ${c.dueTicks} ticks`,
         );
       });
 

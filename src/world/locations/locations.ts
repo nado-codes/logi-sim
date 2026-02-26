@@ -1,7 +1,7 @@
-import { IBaseLocation, LOCATION_TYPE } from "../../entities/location";
+import { BaseLocation, LOCATION_TYPE } from "../../entities/location";
 import { getResourceStorage, RESOURCE_TYPE } from "../../entities/storage";
 import { loadNotificationConfig } from "../../notifications";
-import { logWarning, logInfo, logError, colors } from "../../utils";
+import { logWarning, logInfo, logError, highlight } from "../../utils";
 import { getContractByResource, createContract } from "../contracts";
 import { IWorldState } from "../state";
 
@@ -42,7 +42,7 @@ export const getMap = (state: IWorldState) => {
           break;
       }
 
-      if (state.contracts.find((c) => c.owner === locationAtPos)) {
+      if (state.contracts.find((c) => c.destination === locationAtPos)) {
         map += `\x1b[31m!\x1b[0m`;
       }
       map += "]";
@@ -62,29 +62,29 @@ export const getMap = (state: IWorldState) => {
   return map;
 };
 
-export const getLocationString = (location: IBaseLocation) => {
-  const locationString = `Position: ${colors.yellow(location.position + "")}`;
+export const getLocationString = (location: BaseLocation) => {
+  const locationString = `Position: ${highlight.yellow(location.position + "")}`;
 
   const inputs = Object.entries(location.recipe.inputs ?? []).map(
-    ([res, amt]) => `${colors.yellow(amt + " " + res)}`,
+    ([res, amt]) => `${highlight.yellow(amt + " " + res)}`,
   );
   const inputsString =
-    inputs.length > 0 ? inputs.join(",") : colors.yellow("None");
+    inputs.length > 0 ? inputs.join(",") : highlight.yellow("None");
 
   const outputs = Object.entries(location.recipe.outputs ?? []).map(
-    ([res, amt]) => `${colors.yellow(amt + " " + res)}`,
+    ([res, amt]) => `${highlight.yellow(amt + " " + res)}`,
   );
   const outputsString =
-    outputs.length > 0 ? outputs.join(",") : colors.yellow("None");
+    outputs.length > 0 ? outputs.join(",") : highlight.yellow("None");
 
-  return `| ${colors.yellow(location.name)} | Inputs: ${inputsString} | Outputs: ${outputsString} | ${locationString}`;
+  return `| ${highlight.yellow(location.name)} | Inputs: ${inputsString} | Outputs: ${outputsString} | ${locationString}`;
 };
 
 // .. UPDATE
 
 export const replenishInputStorage = (
   state: IWorldState,
-  location: IBaseLocation,
+  location: BaseLocation,
   minInputThreshold?: number,
 ) => {
   Object.entries(location.recipe.inputs ?? {}).map(
@@ -161,6 +161,8 @@ export const replenishInputStorage = (
             // .. if there's literally NO STOCK left, we need to create an URGENT contract (due sooner, more needs to be transported)
             createContract(
               state,
+              "",
+              location.companyId,
               location,
               closestSupplier,
               inputStorage[0].resourceType,

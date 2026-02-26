@@ -1,7 +1,7 @@
-import { IContract } from "../entities/contract";
-import { IBaseLocation } from "../entities/location";
+import { Contract } from "../entities/contract";
+import { BaseLocation } from "../entities/location";
 import { IRecipe, RESOURCE_TYPE } from "../entities/storage";
-import { ITruck } from "../entities/truck";
+import { Truck } from "../entities/truck";
 import { createConsumer, updateConsumers } from "./locations/consumers";
 import { createContract, updateContracts } from "./contracts";
 import { getMap } from "./locations/locations";
@@ -9,6 +9,10 @@ import { createProcessor, updateProcessors } from "./locations/processors";
 import { createProducer, updateProducers } from "./locations/producers";
 import { IWorldState, createInitialState } from "./state";
 import { createTruck, updateTrucks } from "./trucks";
+import { BaseEntity } from "../entities/entity";
+import { randomUUID } from "node:crypto";
+import { Company } from "../entities/company/company";
+import { CompanyEntity } from "../entities/company/companyEntity";
 
 export interface IWorld {
   updateProcessors: () => void;
@@ -18,12 +22,14 @@ export interface IWorld {
   updateTrucks: () => void;
 
   getMap: () => void;
-  getContracts: () => IContract[];
-  getTrucks: () => ITruck[];
-  getLocations: () => IBaseLocation[];
+  getContracts: () => Contract[];
+  getTrucks: () => Truck[];
+  getLocations: () => BaseLocation[];
+  getCompanies: () => Company[];
 
   createProducer: (
     name: string,
+    companyId: string,
     position: number,
     produces: RESOURCE_TYPE,
     productionRate: number,
@@ -33,6 +39,7 @@ export interface IWorld {
 
   createProcessor: (
     name: string,
+    companyId: string,
     position: number,
     recipe: IRecipe,
     minInputThreshold: number,
@@ -44,6 +51,7 @@ export interface IWorld {
 
   createConsumer: (
     name: string,
+    companyId: string,
     position: number,
     consumes: RESOURCE_TYPE,
     consumptionRate: number,
@@ -53,8 +61,10 @@ export interface IWorld {
   ) => void;
 
   createContract: (
-    owner: IBaseLocation,
-    supplier: IBaseLocation,
+    name: string,
+    companyId: string,
+    destination: BaseLocation,
+    supplier: BaseLocation,
     resourceType: RESOURCE_TYPE,
     amount: number,
     payment: number,
@@ -62,6 +72,8 @@ export interface IWorld {
   ) => void;
 
   createTruck: (
+    name: string,
+    companyId: string,
     resourceType: RESOURCE_TYPE,
     resourceCapacity: number,
     position: number,
@@ -72,6 +84,23 @@ export interface IWorld {
 
 export const createWorld = (): IWorld => {
   const state: IWorldState = createInitialState();
+
+  const createEntity = (name: string): BaseEntity => ({
+    id: randomUUID(),
+    name,
+  });
+
+  const createCompanyEntity = (
+    name: string,
+    companyId: string,
+  ): CompanyEntity => {
+    const baseEntity = createEntity(name);
+
+    return {
+      ...baseEntity,
+      companyId,
+    };
+  };
 
   return {
     updateProcessors: () => updateProcessors(state),
@@ -88,9 +117,11 @@ export const createWorld = (): IWorld => {
       ...state.processors,
       ...state.consumers,
     ],
+    getCompanies: () => state.companies,
 
     createProducer: (
       name: string,
+      companyId: string,
       position: number,
       produces: RESOURCE_TYPE,
       productionRate: number,
@@ -99,6 +130,7 @@ export const createWorld = (): IWorld => {
     ) =>
       createProducer(
         state,
+        companyId,
         name,
         position,
         produces,
@@ -109,6 +141,7 @@ export const createWorld = (): IWorld => {
 
     createProcessor: (
       name: string,
+      companyId: string,
       position: number,
       recipe: IRecipe,
       minInputThreshold: number,
@@ -120,6 +153,7 @@ export const createWorld = (): IWorld => {
       createProcessor(
         state,
         name,
+        companyId,
         position,
         recipe,
         minInputThreshold,
@@ -131,6 +165,7 @@ export const createWorld = (): IWorld => {
 
     createConsumer: (
       name: string,
+      companyId: string,
       position: number,
       consumes: RESOURCE_TYPE,
       consumptionRate: number,
@@ -141,6 +176,7 @@ export const createWorld = (): IWorld => {
       createConsumer(
         state,
         name,
+        companyId,
         position,
         consumes,
         consumptionRate,
@@ -150,8 +186,10 @@ export const createWorld = (): IWorld => {
       ),
 
     createContract: (
-      owner: IBaseLocation,
-      supplier: IBaseLocation,
+      name: string,
+      companyId: string,
+      destination: BaseLocation,
+      supplier: BaseLocation,
       resourceType: RESOURCE_TYPE,
       amount: number,
       payment: number,
@@ -159,7 +197,9 @@ export const createWorld = (): IWorld => {
     ) =>
       createContract(
         state,
-        owner,
+        name,
+        companyId,
+        destination,
         supplier,
         resourceType,
         amount,
@@ -168,6 +208,8 @@ export const createWorld = (): IWorld => {
       ),
 
     createTruck: (
+      name: string,
+      companyId: string,
       resourceType: RESOURCE_TYPE,
       resourceCapacity: number,
       position: number,
@@ -176,6 +218,8 @@ export const createWorld = (): IWorld => {
     ) =>
       createTruck(
         state,
+        name,
+        companyId,
         resourceType,
         resourceCapacity,
         position,

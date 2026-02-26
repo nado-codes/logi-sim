@@ -19,6 +19,7 @@ const notificationConfig = loadNotificationConfig();
 
 export const createProcessor = (
   state: IWorldState,
+  companyId: string,
   name: string,
   position: number,
   recipe: IRecipe,
@@ -49,6 +50,7 @@ export const createProcessor = (
 
   const newProcessor: IProcessor = {
     id: randomUUID(),
+    companyId,
     type: LOCATION_TYPE.PROCESSOR,
     name,
     position,

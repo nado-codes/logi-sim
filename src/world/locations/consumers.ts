@@ -13,6 +13,7 @@ const notifConfig = loadNotificationConfig();
 
 export const createConsumer = (
   state: IWorldState,
+  companyId: string,
   name: string,
   position: number,
   consumes: RESOURCE_TYPE,
@@ -24,6 +25,7 @@ export const createConsumer = (
   const newConsumer: IConsumer = {
     id: randomUUID(),
     type: LOCATION_TYPE.CONSUMER,
+    companyId,
     name,
     position,
     storage: [

@@ -1,4 +1,6 @@
-import { IRecipe, IStorage, RESOURCE_TYPE } from "./storage";
+import { CompanyEntity } from "./company/companyEntity";
+import { BaseEntity } from "./entity";
+import { IRecipe, Storage, RESOURCE_TYPE } from "./storage";
 
 export enum LOCATION_TYPE {
   PRODUCER = "Producer",
@@ -6,26 +8,24 @@ export enum LOCATION_TYPE {
   CONSUMER = "Consumer",
 }
 
-export interface IBaseLocation {
-  id: string;
-  name: string;
+export type BaseLocation = {
   position: number;
-  storage: IStorage[];
+  storage: Storage[];
   recipe: IRecipe;
   type: LOCATION_TYPE;
-}
+} & CompanyEntity;
 
-export interface IProducer extends IBaseLocation {
+export interface IProducer extends BaseLocation {
   productionRate: number; // units per tick
   currentStock: number;
   maxStock: number; // optional storage limit
 }
 
-export interface IProcessor extends IBaseLocation {
+export interface IProcessor extends BaseLocation {
   minInputThreshold: number; // stock level that triggers input contract
 }
 
-export interface IConsumer extends IBaseLocation {
+export interface IConsumer extends BaseLocation {
   minInputThreshold: number; // stock level that triggers delivery contract
 }
 

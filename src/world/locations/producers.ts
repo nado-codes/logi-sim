@@ -16,6 +16,7 @@ const notificationConfig = loadNotificationConfig();
 
 export const createProducer = (
   state: IWorldState,
+  companyId: string,
   name: string,
   position: number,
   produces: RESOURCE_TYPE,
@@ -25,6 +26,7 @@ export const createProducer = (
 ) => {
   const newProducer: IProducer = {
     id: randomUUID(),
+    companyId,
     type: LOCATION_TYPE.PRODUCER,
     name,
     position,
