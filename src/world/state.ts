@@ -2,13 +2,13 @@
 
 import { Company } from "../entities/company/company";
 import { Contract } from "../entities/contract";
-import { IProducer, IProcessor, IConsumer } from "../entities/location";
+import { Producer, Processor, Consumer } from "../entities/location";
 import { Truck } from "../entities/truck";
 
 export interface IWorldState {
-  producers: IProducer[];
-  processors: IProcessor[];
-  consumers: IConsumer[];
+  producers: Producer[];
+  processors: Processor[];
+  consumers: Consumer[];
   contracts: Contract[];
   trucks: Truck[];
   companies: Company[];

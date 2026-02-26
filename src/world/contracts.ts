@@ -6,6 +6,7 @@ import { IWorldState } from "./state";
 import { loadNotificationConfig } from "../notifications";
 import { Truck } from "../entities/truck";
 import { logSuccess, logWarning, logInfo, logError, highlight } from "../utils";
+import { createCompanyEntity } from "../entities/entity";
 
 const notificationConfig = loadNotificationConfig();
 
@@ -22,18 +23,19 @@ export const createContract = (
   payment: number,
   dueTicks: number,
 ) => {
-  const newContract: Contract = {
-    id: randomUUID(),
+  const newContract = createCompanyEntity(
+    {
+      name,
+      destination,
+      supplier,
+      shipper: undefined,
+      resourceType,
+      amount,
+      payment,
+      dueTicks,
+    },
     companyId,
-    name,
-    destination,
-    supplier,
-    shipper: undefined,
-    resourceType,
-    amount,
-    payment,
-    dueTicks,
-  };
+  );
 
   if (!destination) {
     throw Error(`[CRITICAL CONTRACT ERROR] Owner cannot be null or undefined`);
@@ -63,6 +65,10 @@ export const getContractByResource = (
   return state.contracts.find(
     (c) => c.destination.id === ownerId && c.resourceType === resourceType,
   );
+};
+
+export const getContractString = (contract: Contract) => {
+  return `| ${highlight.yellow(contract.amount + " " + contract.resourceType)} | Pickup: ${highlight.yellow(contract.supplier.name)} | Drop-off: ${highlight.yellow(contract.destination.name)} | Due in: ${highlight.yellow(contract.dueTicks + " ticks")}`;
 };
 
 // .. UPDATE

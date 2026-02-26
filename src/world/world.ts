@@ -85,23 +85,6 @@ export interface IWorld {
 export const createWorld = (): IWorld => {
   const state: IWorldState = createInitialState();
 
-  const createEntity = (name: string): BaseEntity => ({
-    id: randomUUID(),
-    name,
-  });
-
-  const createCompanyEntity = (
-    name: string,
-    companyId: string,
-  ): CompanyEntity => {
-    const baseEntity = createEntity(name);
-
-    return {
-      ...baseEntity,
-      companyId,
-    };
-  };
-
   return {
     updateProcessors: () => updateProcessors(state),
     updateConsumers: () => updateConsumers(state),
@@ -130,8 +113,8 @@ export const createWorld = (): IWorld => {
     ) =>
       createProducer(
         state,
-        companyId,
         name,
+        companyId,
         position,
         produces,
         productionRate,

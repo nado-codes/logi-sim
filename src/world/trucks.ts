@@ -10,6 +10,7 @@ import { loadNotificationConfig } from "../notifications";
 import { completeContract } from "./contracts";
 import { logSuccess, logInfo, highlight } from "../utils";
 import { IWorld } from "./world";
+import { createCompanyEntity } from "../entities/entity";
 
 const notificationConfig = loadNotificationConfig();
 
@@ -23,14 +24,19 @@ export const createTruck = (
   speed: number,
   resourceCount?: number,
 ) => {
-  const newTruck: Truck = {
-    id: randomUUID(),
-    name,
+  const newTruck = createCompanyEntity(
+    {
+      name,
+      position,
+      speed,
+      storage: createAndGetStorage(
+        resourceType,
+        resourceCapacity,
+        resourceCount,
+      ),
+    },
     companyId,
-    storage: createAndGetStorage(resourceType, resourceCapacity, resourceCount),
-    position,
-    speed,
-  };
+  );
 
   state.trucks.push(newTruck);
 };

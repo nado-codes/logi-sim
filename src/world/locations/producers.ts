@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import { IProducer, LOCATION_TYPE } from "../../entities/location";
+import { Producer, LOCATION_TYPE } from "../../entities/location";
 import {
   RESOURCE_TYPE,
   createAndGetStorage,
@@ -11,31 +11,33 @@ import {
 import { IWorldState } from "../state";
 import { loadNotificationConfig } from "../../notifications";
 import { logWarning, logSuccess, logError, logInfo } from "../../utils";
+import { createCompanyEntity } from "../../entities/entity";
 
 const notificationConfig = loadNotificationConfig();
 
 export const createProducer = (
   state: IWorldState,
-  companyId: string,
   name: string,
+  companyId: string,
   position: number,
   produces: RESOURCE_TYPE,
   productionRate: number,
   maxStock: number,
   currentStock?: number,
 ) => {
-  const newProducer: IProducer = {
-    id: randomUUID(),
+  const newProducer = createCompanyEntity(
+    {
+      name,
+      type: LOCATION_TYPE.PRODUCER,
+      position,
+      recipe: { outputs: { [produces]: productionRate } },
+      storage: [createAndGetStorage(produces, maxStock, currentStock)],
+      productionRate,
+      currentStock: currentStock ?? 0,
+      maxStock,
+    },
     companyId,
-    type: LOCATION_TYPE.PRODUCER,
-    name,
-    position,
-    recipe: { outputs: { [produces]: productionRate } },
-    storage: [createAndGetStorage(produces, maxStock, currentStock)],
-    productionRate,
-    currentStock: currentStock ?? 0,
-    maxStock,
-  };
+  );
 
   state.producers.push(newProducer);
 };

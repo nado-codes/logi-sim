@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import { IConsumer, LOCATION_TYPE } from "../../entities/location";
+import { Consumer, LOCATION_TYPE } from "../../entities/location";
 import {
   RESOURCE_TYPE,
   createAndGetStorage,
@@ -8,36 +8,36 @@ import {
 import { replenishInputStorage } from "./locations";
 import { IWorldState } from "../state";
 import { loadNotificationConfig } from "../../notifications";
-
-const notifConfig = loadNotificationConfig();
+import { createCompanyEntity } from "../../entities/entity";
 
 export const createConsumer = (
   state: IWorldState,
-  companyId: string,
   name: string,
+  companyId: string,
   position: number,
   consumes: RESOURCE_TYPE,
   consumptionRate: number,
-  minStockThreshold: number,
+  minInputThreshold: number,
   maxStock: number,
   startFull: boolean,
 ) => {
-  const newConsumer: IConsumer = {
-    id: randomUUID(),
-    type: LOCATION_TYPE.CONSUMER,
+  const newConsumer = createCompanyEntity(
+    {
+      name,
+      type: LOCATION_TYPE.CONSUMER,
+      position,
+      storage: [
+        createAndGetStorage(
+          consumes,
+          maxStock,
+          startFull === true ? maxStock : 0,
+        ),
+      ],
+      recipe: { inputs: { [consumes]: consumptionRate } },
+      minInputThreshold,
+    },
     companyId,
-    name,
-    position,
-    storage: [
-      createAndGetStorage(
-        consumes,
-        maxStock,
-        startFull === true ? maxStock : 0,
-      ),
-    ],
-    recipe: { inputs: { [consumes]: consumptionRate } },
-    minInputThreshold: minStockThreshold,
-  };
+  );
 
   state.consumers.push(newConsumer);
 };

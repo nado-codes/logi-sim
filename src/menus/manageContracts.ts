@@ -1,5 +1,5 @@
 import { logError, logSuccess, logWarning, highlight } from "../utils";
-import { assignContract } from "../world/contracts";
+import { assignContract, getContractString } from "../world/contracts";
 import { getTruckString } from "../world/trucks";
 import { IWorld } from "../world/world";
 import { IMenuPage, IMenuAction, MenuItemType } from "./menu";
@@ -130,9 +130,7 @@ export const createManageContractsPage = (world: IWorld): IMenuPage => {
 
       console.log(`\nAvailable contracts: ${availableContracts.length}`);
       availableContracts.forEach((c, i) => {
-        console.log(
-          ` - [${i}] | ${c.amount} ${c.resourceType} | Pickup: ${c.supplier.name} | Drop-off: ${c.destination.name} | Due in: ${c.dueTicks} ticks`,
-        );
+        console.log(` - [${i}] ${getContractString(c)}`);
       });
 
       const availableTrucks = world

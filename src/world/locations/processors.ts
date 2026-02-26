@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import { IProcessor, LOCATION_TYPE } from "../../entities/location";
+import { Processor, LOCATION_TYPE } from "../../entities/location";
 import {
   createRecipeStorage,
   getInputStorage,
@@ -14,13 +14,14 @@ import { completeContract, getContractByResource } from "../contracts";
 import { IWorldState } from "../state";
 import { loadNotificationConfig } from "../../notifications";
 import { logWarning, logSuccess } from "../../utils";
+import { createCompanyEntity } from "../../entities/entity";
 
 const notificationConfig = loadNotificationConfig();
 
 export const createProcessor = (
   state: IWorldState,
-  companyId: string,
   name: string,
+  companyId: string,
   position: number,
   recipe: IRecipe,
   minInputThreshold: number,
@@ -48,16 +49,17 @@ export const createProcessor = (
     startWithFullOutputs,
   );
 
-  const newProcessor: IProcessor = {
-    id: randomUUID(),
+  const newProcessor = createCompanyEntity(
+    {
+      name,
+      type: LOCATION_TYPE.PROCESSOR,
+      position,
+      storage,
+      recipe,
+      minInputThreshold,
+    },
     companyId,
-    type: LOCATION_TYPE.PROCESSOR,
-    name,
-    position,
-    storage,
-    recipe,
-    minInputThreshold,
-  };
+  );
 
   state.processors.push(newProcessor);
 };
