@@ -1,18 +1,22 @@
+import { Color } from "../../utils";
 import { Contract } from "../contract";
-import { BaseEntity } from "../entity";
+import { BaseEntity, IBaseEntity, IWorldEntity } from "../entity";
 import { BaseLocation } from "../location";
-import { Truck } from "../truck";
+import { ITruck, Truck } from "../truck";
 
 export type Company = {
   money: number;
-  color: string;
+  color: Color;
 } & BaseEntity;
 
-export interface ICompany {
-  getName: () => string;
+export interface ICompany extends IBaseEntity {
   getMoney: () => number;
-  getColor: () => string;
-  getTrucks: () => Truck[];
+  getColor: () => Color;
+  getTrucks: () => ITruck[];
   getContracts: () => Contract[];
   getLocations: () => BaseLocation[];
+}
+
+export interface ICompanyAsset extends IWorldEntity {
+  getCompanyId: () => string;
 }

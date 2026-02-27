@@ -31,7 +31,7 @@ export const createManageContractsPage = (world: IWorld): IMenuPage => {
       }
 
       const availableTrucks = world
-        .getTrucks()
+        .getTrucksUnsafe()
         .filter(
           (t) =>
             !t.contract && t.storage.resourceType === contract.resourceType,
@@ -134,7 +134,7 @@ export const createManageContractsPage = (world: IWorld): IMenuPage => {
       });
 
       const availableTrucks = world
-        .getTrucks()
+        .getTrucksUnsafe()
         .filter(
           (t) =>
             !t.contract &&

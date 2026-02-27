@@ -5,7 +5,7 @@ import {
   getInputStorage,
   getOutputStorage,
   getResourceStorage,
-  IRecipe,
+  Recipe,
   processRecipe,
   RESOURCE_TYPE,
 } from "../../entities/storage";
@@ -23,7 +23,7 @@ export const createProcessor = (
   name: string,
   companyId: string,
   position: number,
-  recipe: IRecipe,
+  recipe: Recipe,
   minInputThreshold: number,
   inputCapacity: number,
   outputCapacity: number,

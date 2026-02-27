@@ -6,6 +6,18 @@ export type BaseEntity = {
   name: string;
 };
 
+export interface IBaseEntity {
+  getId: () => string;
+}
+
+export interface INamedEntity extends IBaseEntity {
+  getName: () => string;
+}
+
+export interface IWorldEntity extends INamedEntity {
+  getPosition: () => number;
+}
+
 // Company-owned entities
 export type CompanyEntity = {
   companyId: string;

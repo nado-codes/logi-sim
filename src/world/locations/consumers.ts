@@ -2,7 +2,7 @@ import { randomUUID } from "crypto";
 import { Consumer, LOCATION_TYPE } from "../../entities/location";
 import {
   RESOURCE_TYPE,
-  createAndGetStorage,
+  createAndGetStorageUnsafe,
   processRecipe,
 } from "../../entities/storage";
 import { replenishInputStorage } from "./locations";
@@ -27,7 +27,7 @@ export const createConsumer = (
       type: LOCATION_TYPE.CONSUMER,
       position,
       storage: [
-        createAndGetStorage(
+        createAndGetStorageUnsafe(
           consumes,
           maxStock,
           startFull === true ? maxStock : 0,

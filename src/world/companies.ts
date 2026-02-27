@@ -1,29 +1,53 @@
-import { randomUUID } from "crypto";
-import { Company, ICompany } from "../entities/company/company";
-import { IWorld } from "./world";
+import { ICompany, ICompanyAsset } from "../entities/company/company";
+import { Color } from "../utils";
+import { IWorldState } from "./state";
+import { createNamedEntity, createWorldEntity } from "../entities";
 
 export const createCompany = (
-  world: IWorld,
+  world: IWorldState,
   name: string,
   money: number,
-  color: string,
+  color: Color,
 ): ICompany => {
-  const company: Company = {
-    id: randomUUID(),
-    name,
-    money,
-    color,
+  const worldLocations = [
+    ...world.producers,
+    ...world.processors,
+    ...world.consumers,
+  ];
+  const newCompany: ICompany = {
+    ...createNamedEntity(name),
+    getMoney: () => money,
+    getColor: () => color,
+    getContracts: () =>
+      world.contracts.filter((c) => c.companyId === newCompany.getId()),
+    getLocations: () =>
+      worldLocations.filter((l) => l.companyId === newCompany.getId()),
+    getTrucks: () =>
+      world.trucks.filter((t) => t.getCompanyId() === newCompany.getId()),
   };
 
+  world.companies.push(newCompany);
+
+  return newCompany;
+};
+
+export const createCompanyAsset = (
+  companyId: string,
+  position: number,
+  name: string,
+): ICompanyAsset => {
   return {
-    getName: () => company.name,
-    getMoney: () => company.money,
-    getColor: () => company.color,
-    getContracts: () =>
-      world.getContracts().filter((c) => c.companyId === company.id),
-    getTrucks: () =>
-      world.getTrucks().filter((t) => t.companyId === company.id),
-    getLocations: () =>
-      world.getLocations().filter((l) => l.companyId === company.id),
+    ...createWorldEntity(position, name),
+    getCompanyId: () => companyId,
   };
+};
+
+export const getCompanyById = (world: IWorldState, companyId: string) => {
+  const company = world.companies.find((c) => c.getId() === companyId);
+
+  if (!company) {
+    throw Error(`Company with id ${companyId} doesn't exist`);
+  }
+
+  return company;
 };

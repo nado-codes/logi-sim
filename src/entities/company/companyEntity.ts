@@ -1,4 +1,4 @@
-import { BaseEntity } from "../entity";
+import { BaseEntity, IBaseEntity } from "../entity";
 
 export type CompanyEntity = {
   companyId: string;

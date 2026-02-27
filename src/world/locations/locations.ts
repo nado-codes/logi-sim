@@ -1,25 +1,24 @@
 import { BaseLocation, LOCATION_TYPE } from "../../entities/location";
 import { getResourceStorage, RESOURCE_TYPE } from "../../entities/storage";
+import { ITruck, Truck } from "../../entities/truck";
 import { loadNotificationConfig } from "../../notifications";
 import { logWarning, logInfo, logError, highlight } from "../../utils";
 import { getContractByResource, createContract } from "../contracts";
 import { IWorldState } from "../state";
+import { getTruckIcon } from "../trucks";
+import { IWorld } from "../world";
 
 const notificationConfig = loadNotificationConfig();
 
 // .. CREATE
 
 // .. READ
-export const getMap = (state: IWorldState) => {
-  const locations = [
-    ...state.producers,
-    ...state.processors,
-    ...state.consumers,
-  ];
+export const getMap = (world: IWorld) => {
+  const locations = world.getLocations();
 
   const worldPositions = [
     ...locations.map((l) => l.position),
-    ...state.trucks.map((t) => t.position),
+    ...world.getTrucksUnsafe().map((t) => t.position),
   ];
   const maxPosition = worldPositions.reduce((a, c) => Math.max(a, c));
 
@@ -27,7 +26,9 @@ export const getMap = (state: IWorldState) => {
 
   for (var pos = 0; pos <= maxPosition; pos++) {
     const locationAtPos = locations.find((l) => l.position === pos);
-    const truckAtPos = state.trucks.find((t) => t.position === pos);
+
+    // .. getTruckByPosition
+    let truckAtPos: Truck | undefined; //world.get;
 
     if (locationAtPos) {
       switch (locationAtPos.type) {
@@ -42,11 +43,13 @@ export const getMap = (state: IWorldState) => {
           break;
       }
 
-      if (state.contracts.find((c) => c.destination === locationAtPos)) {
+      // .. getContractByDestinationId
+      if (world.getContracts().find((c) => c.destination === locationAtPos)) {
         map += `\x1b[31m!\x1b[0m`;
       }
       map += "]";
     } else if (truckAtPos) {
+      //map += getTruckIcon(world, truckAtPos);
       map += "[T";
 
       if (truckAtPos.storage.resourceCount > 0) {

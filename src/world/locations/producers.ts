@@ -2,7 +2,8 @@ import { randomUUID } from "crypto";
 import { Producer, LOCATION_TYPE } from "../../entities/location";
 import {
   RESOURCE_TYPE,
-  createAndGetStorage,
+  ResourceMap,
+  createAndGetStorageUnsafe,
   getOutputStorage,
   getResourceCapacity,
   getResourceCount,
@@ -31,7 +32,7 @@ export const createProducer = (
       type: LOCATION_TYPE.PRODUCER,
       position,
       recipe: { outputs: { [produces]: productionRate } },
-      storage: [createAndGetStorage(produces, maxStock, currentStock)],
+      storage: [createAndGetStorageUnsafe(produces, maxStock, currentStock)],
       productionRate,
       currentStock: currentStock ?? 0,
       maxStock,
@@ -45,10 +46,7 @@ export const createProducer = (
 export const updateProducers = (state: IWorldState) => {
   state.producers.forEach((producer) => {
     if (
-      Object.entries(
-        producer.recipe.outputs ??
-          ({} as Partial<Record<RESOURCE_TYPE, number>>),
-      ).length > 1
+      Object.entries(producer.recipe.outputs ?? ({} as ResourceMap)).length > 1
     ) {
       throw Error(
         `[CRITICAL PRODUCER ERROR] Producers currently only support one output`,

@@ -26,7 +26,7 @@ export const createPage = (
 
 export const createManageTrucksPage = (world: IWorld): IMenuPage => {
   return createPage("Manage Trucks", false, [], () => {
-    const availableTrucks = world.getTrucks();
+    const availableTrucks = world.getTrucksUnsafe();
 
     if (availableTrucks.length === 0) {
       logWarning(` - There are no trucks available`);

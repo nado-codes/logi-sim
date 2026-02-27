@@ -1,20 +1,23 @@
 import { randomUUID } from "crypto";
 import {
+  IStorage,
   RESOURCE_TYPE,
-  createAndGetStorage,
+  createAndGetStorageUnsafe,
   transferResources,
 } from "../entities/storage";
-import { Truck } from "../entities/truck";
+import { ITruck, Truck } from "../entities/truck";
 import { IWorldState } from "./state";
 import { loadNotificationConfig } from "../notifications";
 import { completeContract } from "./contracts";
 import { logSuccess, logInfo, highlight } from "../utils";
 import { IWorld } from "./world";
-import { createCompanyEntity } from "../entities/entity";
+import { createCompanyEntity as createCompanyEntityUnsafe } from "../entities/entity";
+import { createCompanyAsset } from "./companies";
 
 const notificationConfig = loadNotificationConfig();
 
-export const createTruck = (
+// .. CREATE
+export const createTruckUnsafe = (
   state: IWorldState,
   name: string,
   companyId: string,
@@ -24,12 +27,12 @@ export const createTruck = (
   speed: number,
   resourceCount?: number,
 ) => {
-  const newTruck = createCompanyEntity(
+  const newTruck = createCompanyEntityUnsafe(
     {
       name,
       position,
       speed,
-      storage: createAndGetStorage(
+      storage: createAndGetStorageUnsafe(
         resourceType,
         resourceCapacity,
         resourceCount,
@@ -38,7 +41,47 @@ export const createTruck = (
     companyId,
   );
 
+  state.trucksUnsafe.push(newTruck);
+};
+
+export const createTruck = (
+  state: IWorldState,
+  companyId: string,
+  position: number,
+  name: string,
+  resourceType: RESOURCE_TYPE,
+  resourceCapacity: number,
+  speed: number,
+  resourceCount?: number,
+): ITruck => {
+  const storage: IStorage = createAndGetStorageUnsafe(
+    resourceType,
+    resourceCapacity,
+    resourceCount,
+  );
+
+  const newTruck: ITruck = {
+    ...createCompanyAsset(companyId, position, name),
+  };
+
   state.trucks.push(newTruck);
+
+  return newTruck;
+};
+
+// .. READ
+export const getTruckByPosition = (world: IWorld, position: number) => {
+  const trucks = world.getTrucksUnsafe();
+  const truck = trucks.find((t) => t.position === position);
+
+  return truck;
+};
+
+export const getTruckIcon = (world: IWorld, truck: ITruck) => {
+  const company = world.getCompanyById(truck.getCompanyId());
+
+  const icon = `[T${truck.getStorage().getResourceCount() > 0 ? "o" : ""}]`;
+  return highlight.custom(icon, company.getColor());
 };
 
 export const getTruckString = (world: IWorld, truck: Truck) => {
@@ -54,8 +97,9 @@ export const getTruckString = (world: IWorld, truck: Truck) => {
   return `| Carries: ${highlight.yellow(truck.storage.resourceType)} | ${locationString} | ${contractString}`;
 };
 
+// .. UPDATE
 export const updateTrucks = (state: IWorldState) => {
-  state.trucks.forEach((truck) => {
+  state.trucksUnsafe.forEach((truck) => {
     if (truck.destination) {
       const distance = truck.position - truck.destination.position;
       const direction = Math.sign(distance);
@@ -178,3 +222,7 @@ export const updateTrucks = (state: IWorldState) => {
     }
   });
 };
+
+// .. DELETE
+
+// .. TODO: sell or delete a truck

@@ -1,18 +1,17 @@
 import { Contract } from "../entities/contract";
 import { BaseLocation } from "../entities/location";
-import { IRecipe, RESOURCE_TYPE } from "../entities/storage";
-import { Truck } from "../entities/truck";
+import { Recipe, RESOURCE_TYPE } from "../entities/storage";
+import { ITruck, Truck } from "../entities/truck";
 import { createConsumer, updateConsumers } from "./locations/consumers";
 import { createContract, updateContracts } from "./contracts";
 import { getMap } from "./locations/locations";
 import { createProcessor, updateProcessors } from "./locations/processors";
 import { createProducer, updateProducers } from "./locations/producers";
 import { IWorldState, createInitialState } from "./state";
-import { createTruck, updateTrucks } from "./trucks";
-import { BaseEntity } from "../entities/entity";
-import { randomUUID } from "node:crypto";
-import { Company } from "../entities/company/company";
-import { CompanyEntity } from "../entities/company/companyEntity";
+import { createTruckUnsafe, getTruckByPosition, updateTrucks } from "./trucks";
+import { Company, ICompany } from "../entities/company/company";
+import { createCompany, getCompanyById } from "./companies";
+import { Color } from "../utils";
 
 export interface IWorld {
   updateProcessors: () => void;
@@ -23,9 +22,16 @@ export interface IWorld {
 
   getMap: () => void;
   getContracts: () => Contract[];
-  getTrucks: () => Truck[];
+
+  getTrucksUnsafe: () => Truck[];
+  getTrucks: () => ITruck[];
+
   getLocations: () => BaseLocation[];
-  getCompanies: () => Company[];
+
+  getCompanies: () => ICompany[];
+  getCompanyById: (id: string) => ICompany;
+
+  createCompany: (name: string, money: number, color: Color) => ICompany;
 
   createProducer: (
     name: string,
@@ -41,7 +47,7 @@ export interface IWorld {
     name: string,
     companyId: string,
     position: number,
-    recipe: IRecipe,
+    recipe: Recipe,
     minInputThreshold: number,
     inputCapacity: number,
     outputCapacity: number,
@@ -92,15 +98,23 @@ export const createWorld = (): IWorld => {
     updateContracts: () => updateContracts(state),
     updateTrucks: () => updateTrucks(state),
 
-    getMap: () => getMap(state),
+    getMap: () => "", //getMap(state),
     getContracts: () => state.contracts,
+
+    getTrucksUnsafe: () => state.trucksUnsafe,
     getTrucks: () => state.trucks,
+
     getLocations: () => [
       ...state.producers,
       ...state.processors,
       ...state.consumers,
     ],
+
     getCompanies: () => state.companies,
+    getCompanyById: (id: string) => getCompanyById(state, id),
+
+    createCompany: (name: string, money: number, color: Color) =>
+      createCompany(state, name, money, color),
 
     createProducer: (
       name: string,
@@ -126,7 +140,7 @@ export const createWorld = (): IWorld => {
       name: string,
       companyId: string,
       position: number,
-      recipe: IRecipe,
+      recipe: Recipe,
       minInputThreshold: number,
       inputCapacity: number,
       outputCapacity: number,
@@ -199,7 +213,7 @@ export const createWorld = (): IWorld => {
       speed: number,
       resourceCount?: number,
     ) =>
-      createTruck(
+      createTruckUnsafe(
         state,
         name,
         companyId,

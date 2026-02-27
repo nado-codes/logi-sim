@@ -1,5 +1,6 @@
 import { CompanyEntity } from "./company/companyEntity";
-import { IRecipe, Storage } from "./storage";
+import { IWorldEntity } from "./entity";
+import { Recipe, IStorage, Storage } from "./storage";
 
 export enum LOCATION_TYPE {
   PRODUCER = "Producer",
@@ -10,7 +11,7 @@ export enum LOCATION_TYPE {
 export type BaseLocation = {
   position: number;
   storage: Storage[];
-  recipe: IRecipe;
+  recipe: Recipe;
   type: LOCATION_TYPE;
 } & CompanyEntity;
 
@@ -29,3 +30,12 @@ export type Consumer = {
 } & BaseLocation;
 
 export type WorldLocation = Producer | Processor | Consumer;
+
+
+export interface IBaseLocation extends IWorldEntity {
+  getType : () => LOCATION_TYPE
+  getStorage: () => IStorage[];
+  getRecipes: () => Recipe[];
+}
+
+export interface 
