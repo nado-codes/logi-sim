@@ -2,7 +2,7 @@ import { MenuItemType, IMenuAction, IMenuPage, IMenuItem } from "./menu";
 
 import { IWorld } from "../world/world";
 import { getTruckString } from "../world/trucks";
-import { logWarning } from "../utils/utils";
+import { logWarning } from "../utils";
 import { getLocationString } from "../world/locations/locations";
 
 export const createPage = (
@@ -26,7 +26,7 @@ export const createPage = (
 
 export const createManageTrucksPage = (world: IWorld): IMenuPage => {
   return createPage("Manage Trucks", false, [], () => {
-    const availableTrucks = world.getTrucksUnsafe();
+    const availableTrucks = world.getTrucks();
 
     if (availableTrucks.length === 0) {
       logWarning(` - There are no trucks available`);

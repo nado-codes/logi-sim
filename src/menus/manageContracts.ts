@@ -1,4 +1,4 @@
-import { logError, logSuccess, logWarning, highlight } from "../utils/utils";
+import { logError, logSuccess, logWarning, highlight } from "../utils";
 import { assignContract, getContractString } from "../world/contracts";
 import { getTruckString } from "../world/trucks";
 import { IWorld } from "../world/world";
@@ -33,7 +33,7 @@ export const createManageContractsPage = (world: IWorld): IMenuPage => {
       }
 
       const availableTrucks = world
-        .getTrucksUnsafe()
+        .getTrucks()
         .filter(
           (t) =>
             !t.contractId && t.storage.resourceType === contract.resourceType,
@@ -141,7 +141,7 @@ export const createManageContractsPage = (world: IWorld): IMenuPage => {
       });
 
       const availableTrucks = world
-        .getTrucksUnsafe()
+        .getTrucks()
         .filter(
           (t) =>
             !t.contractId &&
