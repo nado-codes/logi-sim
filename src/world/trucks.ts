@@ -3,16 +3,19 @@ import {
   IStorage,
   RESOURCE_TYPE,
   createAndGetStorageUnsafe,
+  createStorage,
   transferResources,
 } from "../entities/storage";
 import { ITruck, Truck } from "../entities/truck";
 import { IWorldState } from "./state";
 import { loadNotificationConfig } from "../notifications";
 import { completeContract } from "./contracts";
-import { logSuccess, logInfo, highlight } from "../utils";
+import { logSuccess, logInfo, highlight } from "../utils/utils";
 import { IWorld } from "./world";
 import { createCompanyEntity as createCompanyEntityUnsafe } from "../entities/entity";
 import { createCompanyAsset } from "./companies";
+import { createWorldEntity } from "../entities";
+import { OkResult } from "../utils/result";
 
 const notificationConfig = loadNotificationConfig();
 
@@ -54,14 +57,32 @@ export const createTruck = (
   speed: number,
   resourceCount?: number,
 ): ITruck => {
-  const storage: IStorage = createAndGetStorageUnsafe(
+  let destinationId: string | undefined = undefined;
+  let contractId: string | undefined = undefined;
+
+  const storage: IStorage = createStorage(
     resourceType,
     resourceCapacity,
     resourceCount,
   );
 
   const newTruck: ITruck = {
-    ...createCompanyAsset(companyId, position, name),
+    ...createWorldEntity(position, name),
+    ...createCompanyAsset(companyId, name),
+    getSpeed: () => speed,
+    getDestinationId: () => destinationId,
+    getContractId: () => contractId,
+    getStorage: () => storage,
+
+    move: (direction: number) => move(direction),
+  };
+
+  const move = (direction: number) => {
+    newTruck.setPosition(
+      newTruck.getPosition() + direction * newTruck.getSpeed(),
+    );
+
+    return OkResult();
   };
 
   state.trucks.push(newTruck);
@@ -71,8 +92,8 @@ export const createTruck = (
 
 // .. READ
 export const getTruckByPosition = (world: IWorld, position: number) => {
-  const trucks = world.getTrucksUnsafe();
-  const truck = trucks.find((t) => t.position === position);
+  const trucks = world.getTrucks();
+  const truck = trucks.find((t) => t.getPosition() === position);
 
   return truck;
 };

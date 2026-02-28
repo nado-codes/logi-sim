@@ -2,7 +2,7 @@ import { MenuItemType, IMenuAction, IMenuPage, IMenuItem } from "./menu";
 
 import { IWorld } from "../world/world";
 import { getTruckString } from "../world/trucks";
-import { logWarning } from "../utils";
+import { logWarning } from "../utils/utils";
 import { getLocationString } from "../world/locations/locations";
 
 export const createPage = (

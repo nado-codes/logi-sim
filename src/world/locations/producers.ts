@@ -11,7 +11,7 @@ import {
 } from "../../entities/storage";
 import { IWorldState } from "../state";
 import { loadNotificationConfig } from "../../notifications";
-import { logWarning, logSuccess, logError, logInfo } from "../../utils";
+import { logWarning, logSuccess, logError, logInfo } from "../../utils/utils";
 import { createCompanyEntity } from "../../entities/entity";
 
 const notificationConfig = loadNotificationConfig();

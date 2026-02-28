@@ -2,7 +2,7 @@ import { BaseLocation, LOCATION_TYPE } from "../../entities/location";
 import { getResourceStorage, RESOURCE_TYPE } from "../../entities/storage";
 import { ITruck, Truck } from "../../entities/truck";
 import { loadNotificationConfig } from "../../notifications";
-import { logWarning, logInfo, logError, highlight } from "../../utils";
+import { logWarning, logInfo, logError, highlight } from "../../utils/utils";
 import { getContractByResource, createContract } from "../contracts";
 import { IWorldState } from "../state";
 import { getTruckIcon } from "../trucks";

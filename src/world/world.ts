@@ -11,7 +11,7 @@ import { IWorldState, createInitialState } from "./state";
 import { createTruckUnsafe, getTruckByPosition, updateTrucks } from "./trucks";
 import { Company, ICompany } from "../entities/company/company";
 import { createCompany, getCompanyById } from "./companies";
-import { Color } from "../utils";
+import { Color } from "../utils/utils";
 
 export interface IWorld {
   updateProcessors: () => void;

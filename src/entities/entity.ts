@@ -1,4 +1,5 @@
 import { randomUUID } from "crypto";
+import { Result } from "../utils/result";
 
 // Base entity that everything inherits from
 export type BaseEntity = {
@@ -16,6 +17,7 @@ export interface INamedEntity extends IBaseEntity {
 
 export interface IWorldEntity extends INamedEntity {
   getPosition: () => number;
+  setPosition: (position: number) => Result;
 }
 
 // Company-owned entities

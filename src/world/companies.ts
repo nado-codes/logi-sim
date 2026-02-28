@@ -1,5 +1,5 @@
 import { ICompany, ICompanyAsset } from "../entities/company/company";
-import { Color } from "../utils";
+import { Color } from "../utils/utils";
 import { IWorldState } from "./state";
 import { createNamedEntity, createWorldEntity } from "../entities";
 
@@ -33,11 +33,10 @@ export const createCompany = (
 
 export const createCompanyAsset = (
   companyId: string,
-  position: number,
   name: string,
 ): ICompanyAsset => {
   return {
-    ...createWorldEntity(position, name),
+    ...createNamedEntity(name),
     getCompanyId: () => companyId,
   };
 };

@@ -31,11 +31,8 @@ export type Consumer = {
 
 export type WorldLocation = Producer | Processor | Consumer;
 
-
 export interface IBaseLocation extends IWorldEntity {
-  getType : () => LOCATION_TYPE
+  getType: () => LOCATION_TYPE;
   getStorage: () => IStorage[];
   getRecipes: () => Recipe[];
 }
-
-export interface 

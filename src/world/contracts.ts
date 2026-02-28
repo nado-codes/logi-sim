@@ -5,7 +5,13 @@ import { getResourceCount, RESOURCE_TYPE } from "../entities/storage";
 import { IWorldState } from "./state";
 import { loadNotificationConfig } from "../notifications";
 import { Truck } from "../entities/truck";
-import { logSuccess, logWarning, logInfo, logError, highlight } from "../utils";
+import {
+  logSuccess,
+  logWarning,
+  logInfo,
+  logError,
+  highlight,
+} from "../utils/utils";
 import { createCompanyEntity } from "../entities/entity";
 
 const notificationConfig = loadNotificationConfig();

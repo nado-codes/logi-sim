@@ -1,7 +1,8 @@
 import { randomUUID } from "crypto";
 import { loadNotificationConfig } from "../notifications";
-import { logInfo, logWarning, logSuccess } from "../utils";
+import { logInfo, logWarning, logSuccess } from "../utils/utils";
 import { BaseEntity, IBaseEntity } from "./entity";
+import { OkResult, ResultWithValue } from "../utils/result";
 
 export enum RESOURCE_TYPE {
   GRAIN = "Grain",
@@ -24,50 +25,6 @@ export interface IRecipe {
 }
 
 const notificationConfig = loadNotificationConfig();
-
-export const createAndGetStorageUnsafe = (
-  resourceType: RESOURCE_TYPE,
-  resourceCapacity: number,
-  resourceCount: number = 0,
-): Storage => {
-  const newStorage: Storage = {
-    resourceType,
-    resourceCapacity,
-    resourceCount,
-  };
-
-  return newStorage;
-};
-
-export const createStorage = (
-  resourceType: RESOURCE_TYPE,
-  resourceCapacity: number,
-  resourceCount: number = 0,
-): IStorage => {
-  const newStorage = {
-    resourceCount,
-  };
-
-  return {
-    getResourceType: () => resourceType,
-    getResourceCapacity: () => resourceCapacity,
-    getResourceCount: () => newStorage.resourceCount,
-
-    addResources: (amount: number) => {
-      newStorage.resourceCount += amount;
-      return true;
-    },
-    removeResources: (amount: number) => {
-      newStorage.resourceCount -= amount;
-      return true;
-    },
-    transferResourcesTo: (amount: number, storage: IStorage) => {
-      storage.addResources(amount);
-      newStorage.resourceCount -= amount;
-      return true;
-    },
-  };
-};
 
 export const createRecipeStorage = (
   recipe: Recipe,
@@ -216,10 +173,59 @@ export interface IStorage {
   getResourceCapacity: () => number;
   getResourceCount: () => number;
 
-  addResources: (amount: number) => boolean;
-  removeResources: (amount: number) => boolean;
-  transferResourcesTo: (amount: number, storage: IStorage) => boolean;
+  addResources: (amount: number) => ResultWithValue<number>;
+  removeResources: (amount: number) => ResultWithValue<number>;
+  transferResourcesTo: (
+    amount: number,
+    storage: IStorage,
+  ) => ResultWithValue<number>;
 }
+
+// Storage - CREATE
+
+export const createAndGetStorageUnsafe = (
+  resourceType: RESOURCE_TYPE,
+  resourceCapacity: number,
+  resourceCount: number = 0,
+): Storage => {
+  const newStorage: Storage = {
+    resourceType,
+    resourceCapacity,
+    resourceCount,
+  };
+
+  return newStorage;
+};
+
+export const createStorage = (
+  resourceType: RESOURCE_TYPE,
+  resourceCapacity: number,
+  resourceCount: number = 0,
+): IStorage => {
+  let _resourceCount: number = resourceCount;
+
+  return {
+    getResourceType: () => resourceType,
+    getResourceCapacity: () => resourceCapacity,
+    getResourceCount: () => _resourceCount,
+
+    addResources: (amount: number) => {
+      _resourceCount += amount;
+      return OkResult(amount);
+    },
+    removeResources: (amount: number) => {
+      _resourceCount -= amount;
+      return OkResult(amount);
+    },
+    transferResourcesTo: (amount: number, storage: IStorage) => {
+      storage.addResources(amount);
+      _resourceCount -= amount;
+      return OkResult(amount);
+    },
+  };
+};
+
+// STORAGE - Read
 
 export const getResourceStorage = (
   resourceType: RESOURCE_TYPE,
@@ -253,6 +259,8 @@ export const getResourceCount = (
   );
   return resourceStorage.map((s) => s.resourceCount).reduce((a, c) => a + c);
 };
+
+// STORAGE - UPDATE
 
 // .. eventually, this method will allow the transfer of many different types of cargo in one call
 // .. (e.g. trains with different cargo types) but this is (very) complicated to do
@@ -416,3 +424,7 @@ export const removeResources = (amount: number, from: Storage) => {
 
   return amountToRemove;
 };
+
+// STORAGE - DELETE
+
+// .. TODO?
