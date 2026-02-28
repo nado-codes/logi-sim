@@ -1,29 +1,27 @@
-import { randomUUID } from "crypto";
-import { Company, ICompany } from "../entities/company/company";
-import { IWorld } from "./world";
+import { ICompany, ICompanyEntity } from "../entities/company";
+import { createBaseEntity, createNamedEntity } from "../entities";
+import { IWorldState } from "./state";
 
 export const createCompany = (
-  world: IWorld,
+  state: IWorldState,
   name: string,
   money: number,
   color: string,
 ): ICompany => {
-  const company: Company = {
-    id: randomUUID(),
-    name,
+  const newCompany: ICompany = {
+    ...createNamedEntity(name),
     money,
     color,
   };
 
+  state.companies.push(newCompany);
+
+  return newCompany;
+};
+
+export const createCompanyEntity = (companyId: string): ICompanyEntity => {
   return {
-    getName: () => company.name,
-    getMoney: () => company.money,
-    getColor: () => company.color,
-    getContracts: () =>
-      world.getContracts().filter((c) => c.companyId === company.id),
-    getTrucks: () =>
-      world.getTrucks().filter((t) => t.companyId === company.id),
-    getLocations: () =>
-      world.getLocations().filter((l) => l.companyId === company.id),
+    ...createBaseEntity(),
+    companyId,
   };
 };

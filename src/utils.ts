@@ -5,20 +5,20 @@ export const logInfo = (text: string) => console.log(`\x1b[36m${text}\x1b[0m`); 
 export const logSuccess = (text: string) =>
   console.log(`\x1b[32m${text}\x1b[0m`); // green
 
-export const color = {
-  Red: "31m",
-  Yellow: "33m",
-  Cyan: "36m",
-  Green: "32m",
-  Blue: "34m",
-  Magenta: "35m",
-  White: "37m",
-  Gray: "90m",
-  BrightRed: "91m",
-  BrightYellow: "93m",
-  BrightCyan: "96m",
-  BrightGreen: "92m",
-};
+export enum Color {
+  Red = "31m",
+  Yellow = "33m",
+  Cyan = "36m",
+  Green = "32m",
+  Blue = "34m",
+  Magenta = "35m",
+  White = "37m",
+  Gray = "90m",
+  BrightRed = "91m",
+  BrightYellow = "93m",
+  BrightCyan = "96m",
+  BrightGreen = "92m",
+}
 
 export const highlight = {
   red: (text: string) => `\x1b[31m${text}\x1b[0m`,
@@ -34,4 +34,6 @@ export const highlight = {
   brightYellow: (text: string) => `\x1b[93m${text}\x1b[0m`,
   brightCyan: (text: string) => `\x1b[96m${text}\x1b[0m`,
   brightGreen: (text: string) => `\x1b[92m${text}\x1b[0m`,
+
+  custom: (text: string, color: Color) => `\x1b[${color}${text}\x1b[0m`,
 } as const;

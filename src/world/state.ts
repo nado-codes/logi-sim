@@ -1,24 +1,41 @@
 // world/state.ts
 
-import { Company } from "../entities/company/company";
-import { Contract } from "../entities/contract";
-import { Producer, Processor, Consumer } from "../entities/location";
-import { Truck } from "../entities/truck";
+import { ICompany } from "../entities/company";
+import { IContract } from "../entities/contract";
+import {
+  IProducer,
+  IProcessor,
+  IConsumer,
+  IBaseLocation,
+} from "../entities/location";
+import { ITruck } from "../entities/truck";
 
 export interface IWorldState {
-  producers: Producer[];
-  processors: Processor[];
-  consumers: Consumer[];
-  contracts: Contract[];
-  trucks: Truck[];
-  companies: Company[];
+  producers: IProducer[];
+  processors: IProcessor[];
+  consumers: IConsumer[];
+  contracts: IContract[];
+  trucks: ITruck[];
+  companies: ICompany[];
+  getLocations: () => IBaseLocation[];
 }
 
-export const createInitialState = (): IWorldState => ({
-  producers: [],
-  processors: [],
-  consumers: [],
-  contracts: [],
-  trucks: [],
-  companies: [],
-});
+export const createInitialState = (): IWorldState => {
+  const state = {
+    producers: [],
+    processors: [],
+    consumers: [],
+    contracts: [],
+    trucks: [],
+    companies: [],
+  };
+
+  return {
+    ...state,
+    getLocations: () => [
+      ...state.producers,
+      ...state.processors,
+      ...state.consumers,
+    ],
+  };
+};

@@ -1,13 +1,11 @@
-import { CompanyEntity } from "./company/companyEntity";
-import { Contract } from "./contract";
-import { BaseLocation } from "./location";
-import { Storage } from "./storage";
+import { ICompanyEntity } from "./company";
+import { IWorldEntity } from "./entity";
+import { IBaseLocation } from "./location";
+import { IStorage } from "./storage";
 
-export type Truck = {
-  id: string;
-  position: number;
+export interface ITruck extends IWorldEntity, ICompanyEntity {
   speed: number;
-  destination?: BaseLocation;
-  contract?: Contract;
-  storage: Storage;
-} & CompanyEntity;
+  destinationId?: string | undefined;
+  contractId?: string | undefined;
+  storage: IStorage;
+}

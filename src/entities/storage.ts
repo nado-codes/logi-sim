@@ -20,9 +20,8 @@ export const createAndGetStorage = (
   resourceType: RESOURCE_TYPE,
   resourceCapacity: number,
   resourceCount?: number,
-): Storage => {
-  const newStorage: Storage = {
-    id: randomUUID(),
+): IStorage => {
+  const newStorage: IStorage = {
     resourceType,
     resourceCapacity,
     resourceCount: resourceCount ?? 0,
@@ -49,7 +48,7 @@ export const createRecipeStorage = (
     }
   });
 
-  const inputStorage: Storage[] = recipeInputs.map(([r, _]) =>
+  const inputStorage: IStorage[] = recipeInputs.map(([r, _]) =>
     createAndGetStorage(r as RESOURCE_TYPE, inputCapacity),
   );
 
@@ -59,7 +58,7 @@ export const createRecipeStorage = (
     });
   }
 
-  const outputStorage: Storage[] = recipeOutputs.map(([r, _]) =>
+  const outputStorage: IStorage[] = recipeOutputs.map(([r, _]) =>
     createAndGetStorage(r as RESOURCE_TYPE, outputCapacity),
   );
 
@@ -72,7 +71,7 @@ export const createRecipeStorage = (
   return [...inputStorage, ...outputStorage];
 };
 
-export const processRecipe = (recipe: IRecipe, storage: Storage[]) => {
+export const processRecipe = (recipe: IRecipe, storage: IStorage[]) => {
   let canProcess = true;
 
   if (notificationConfig.showProductionNotifications) {
@@ -167,29 +166,28 @@ export const processRecipe = (recipe: IRecipe, storage: Storage[]) => {
 
 // STORAGE
 
-export type Storage = {
-  id: string;
+export interface IStorage {
   resourceType: RESOURCE_TYPE;
   resourceCapacity: number;
   resourceCount: number;
-};
+}
 
 export const getResourceStorage = (
   resourceType: RESOURCE_TYPE,
-  storage: Storage[],
+  storage: IStorage[],
 ) => {
   return storage.filter((s) => s.resourceType === resourceType);
 };
 
-export const getInputStorage = (recipe: IRecipe, storage: Storage[]) =>
+export const getInputStorage = (recipe: IRecipe, storage: IStorage[]) =>
   storage.filter((s) => s.resourceType in (recipe.inputs ?? {}));
 
-export const getOutputStorage = (recipe: IRecipe, storage: Storage[]) =>
+export const getOutputStorage = (recipe: IRecipe, storage: IStorage[]) =>
   storage.filter((s) => s.resourceType in (recipe.outputs ?? {}));
 
 export const getResourceCapacity = (
   resourceType: RESOURCE_TYPE,
-  storage: Storage[],
+  storage: IStorage[],
 ) => {
   const resourceStorage = storage.filter(
     (s) => s.resourceType === resourceType,
@@ -199,7 +197,7 @@ export const getResourceCapacity = (
 
 export const getResourceCount = (
   resourceType: RESOURCE_TYPE,
-  storage: Storage[],
+  storage: IStorage[],
 ) => {
   const resourceStorage = storage.filter(
     (s) => s.resourceType === resourceType,
@@ -213,8 +211,8 @@ export const getResourceCount = (
 export const transferResources = (
   amount: number,
   resourceType: RESOURCE_TYPE,
-  fromStorage: Storage[],
-  toStorage: Storage[],
+  fromStorage: IStorage[],
+  toStorage: IStorage[],
 ) => {
   if (notificationConfig.showStorageNotifications) {
     logInfo(`[STORAGE] We'll try to transfer ${amount} ${resourceType}...`);
@@ -332,11 +330,11 @@ export const transferResources = (
   }
 };
 
-export const addResources = (amount: number, to: Storage) => {
+export const addResources = (amount: number, to: IStorage) => {
   if (to.resourceCount + amount > to.resourceCapacity) {
     if (notificationConfig.showStorageNotifications) {
       logWarning(
-        `[STORAGE WARNING] ${to.id} is too full of ${to.resourceType} to add ${amount}`,
+        `[STORAGE WARNING] Too full of ${to.resourceType} to add ${amount}`,
       );
     }
   }
@@ -345,17 +343,17 @@ export const addResources = (amount: number, to: Storage) => {
   to.resourceCount += amountToAdd;
 
   if (notificationConfig.showStorageNotifications) {
-    logSuccess(`[STORAGE] Added ${amountToAdd} ${to.resourceType} to ${to.id}`);
+    logSuccess(`[STORAGE] Added ${amountToAdd} ${to.resourceType}`);
   }
 
   return amountToAdd;
 };
 
-export const removeResources = (amount: number, from: Storage) => {
+export const removeResources = (amount: number, from: IStorage) => {
   if (from.resourceCount < amount) {
     if (notificationConfig.showStorageNotifications) {
       logWarning(
-        `[STORAGE WARNING] ${from.id} doesn't have enough ${from.resourceType} to remove ${amount}`,
+        `[STORAGE WARNING] Not enough ${from.resourceType} to remove ${amount}`,
       );
     }
   }
@@ -364,9 +362,7 @@ export const removeResources = (amount: number, from: Storage) => {
   from.resourceCount -= amountToRemove;
 
   if (notificationConfig.showStorageNotifications) {
-    logSuccess(
-      `[STORAGE] Removed ${amountToRemove} ${from.resourceType} from ${from.id}`,
-    );
+    logSuccess(`[STORAGE] Removed ${amountToRemove} ${from.resourceType}`);
   }
 
   return amountToRemove;

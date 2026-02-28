@@ -1,7 +1,7 @@
 import { RESOURCE_TYPE } from "./entities/storage";
 import { createWorld } from "./world/world";
 import { createMenu } from "./menus/menu";
-import { logInfo } from "./utils";
+import { Color, logInfo } from "./utils";
 
 logInfo("Logi sim starting...");
 logInfo("LogiSim v0.3.1");
@@ -11,11 +11,11 @@ logInfo("LogiSim v0.3.1");
 // .. BUILD THE WORLD
 const world = createWorld();
 
-const companyId = "";
-world.createProducer("Farm", companyId, 10, RESOURCE_TYPE.GRAIN, 5, 25);
+const company = world.createCompany("NadoCo Logistics", 100000, Color.Cyan);
+world.createProducer("Farm", company.id, 10, RESOURCE_TYPE.GRAIN, 5, 25);
 world.createProcessor(
   "Flour Mill",
-  companyId,
+  company.id,
   30, // .. position
   {
     inputs: {
@@ -29,9 +29,9 @@ world.createProcessor(
   50,
   25,
 );
-world.createConsumer("Town A", companyId, 50, RESOURCE_TYPE.FLOUR, 3, 5, 25);
-world.createTruck("Truck 1", companyId, RESOURCE_TYPE.GRAIN, 30, 10, 2);
-world.createTruck("Truck 2", companyId, RESOURCE_TYPE.FLOUR, 30, 30, 2);
+world.createConsumer("Town A", company.id, 50, RESOURCE_TYPE.FLOUR, 3, 5, 25);
+world.createTruck("Truck 1", company.id, RESOURCE_TYPE.GRAIN, 30, 10, 2);
+world.createTruck("Truck 2", company.id, RESOURCE_TYPE.FLOUR, 30, 30, 2);
 
 const update = () => {
   world.updateProducers();

@@ -1,14 +1,24 @@
-import { CompanyEntity } from "./company/companyEntity";
-import { BaseLocation } from "./location";
+import { ICompanyEntity } from "./company";
+import { IBaseLocation } from "./location";
 import { RESOURCE_TYPE } from "./storage";
-import { Truck } from "./truck";
+import { ITruck } from "./truck";
 
-export type Contract = {
-  destination: BaseLocation;
-  supplier: BaseLocation;
-  shipper: Truck | undefined;
+export interface IContractUnsafe extends ICompanyEntity {
+  destination: IBaseLocation;
+  supplier: IBaseLocation;
+  shipper: ITruck | undefined;
   resourceType: RESOURCE_TYPE;
   amount: number;
   payment: number;
   dueTicks: number;
-} & CompanyEntity;
+}
+
+export interface IContract extends ICompanyEntity {
+  destinationId: string;
+  supplierId: string;
+  shipperId?: string | undefined;
+  resourceType: RESOURCE_TYPE;
+  amount: number;
+  payment: number;
+  dueTicks: number;
+}
