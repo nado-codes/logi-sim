@@ -1,25 +1,11 @@
-import { Result } from "../utils/result";
-import { ICompanyAsset } from "./company/company";
-import { CompanyEntity } from "./company/companyEntity";
-import { Contract } from "./contract";
+import { ICompanyEntity } from "./company";
 import { IWorldEntity } from "./entity";
-import { BaseLocation } from "./location";
-import { IStorage, Storage } from "./storage";
+import { IBaseLocation } from "./location";
+import { IStorage } from "./storage";
 
-export type Truck = {
-  id: string;
-  position: number;
+export interface ITruck extends IWorldEntity, ICompanyEntity {
   speed: number;
-  destination?: BaseLocation;
-  contract?: Contract;
-  storage: Storage;
-} & CompanyEntity;
-
-export interface ITruck extends IWorldEntity, ICompanyAsset {
-  getSpeed: () => number;
-  getDestinationId: () => string | undefined;
-  getContractId: () => string | undefined;
-  getStorage: () => IStorage;
-
-  move: (direction: number) => Result;
+  destinationId?: string | undefined;
+  contractId?: string | undefined;
+  storage: IStorage;
 }

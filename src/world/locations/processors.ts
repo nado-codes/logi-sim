@@ -1,11 +1,11 @@
 import { randomUUID } from "crypto";
-import { Processor, LOCATION_TYPE } from "../../entities/location";
+import { IProcessor, LOCATION_TYPE } from "../../entities/location";
 import {
   createRecipeStorage,
   getInputStorage,
   getOutputStorage,
   getResourceStorage,
-  Recipe,
+  IRecipe,
   processRecipe,
   RESOURCE_TYPE,
 } from "../../entities/storage";
@@ -13,8 +13,8 @@ import { replenishInputStorage } from "./locations";
 import { completeContract, getContractByResource } from "../contracts";
 import { IWorldState } from "../state";
 import { loadNotificationConfig } from "../../notifications";
-import { logWarning, logSuccess } from "../../utils/utils";
-import { createCompanyEntity } from "../../entities/entity";
+import { logWarning, logSuccess } from "../../utils";
+import { generateId } from "../../entities/entity";
 
 const notificationConfig = loadNotificationConfig();
 
@@ -23,7 +23,7 @@ export const createProcessor = (
   name: string,
   companyId: string,
   position: number,
-  recipe: Recipe,
+  recipe: IRecipe,
   minInputThreshold: number,
   inputCapacity: number,
   outputCapacity: number,
@@ -49,17 +49,16 @@ export const createProcessor = (
     startWithFullOutputs,
   );
 
-  const newProcessor = createCompanyEntity(
-    {
-      name,
-      type: LOCATION_TYPE.PROCESSOR,
-      position,
-      storage,
-      recipe,
-      minInputThreshold,
-    },
+  const newProcessor: IProcessor = {
+    id: generateId(),
+    name,
     companyId,
-  );
+    type: LOCATION_TYPE.PROCESSOR,
+    position,
+    storage,
+    recipe,
+    minInputThreshold,
+  };
 
   state.processors.push(newProcessor);
 };

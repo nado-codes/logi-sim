@@ -1,18 +1,13 @@
 import { randomUUID } from "crypto";
-import { Contract } from "../entities/contract";
-import { BaseLocation } from "../entities/location";
+import { IContract, IContractUnsafe } from "../entities/contract";
+import { IBaseLocation } from "../entities/location";
 import { getResourceCount, RESOURCE_TYPE } from "../entities/storage";
 import { IWorldState } from "./state";
 import { loadNotificationConfig } from "../notifications";
-import { Truck } from "../entities/truck";
-import {
-  logSuccess,
-  logWarning,
-  logInfo,
-  logError,
-  highlight,
-} from "../utils/utils";
-import { createCompanyEntity } from "../entities/entity";
+import { ITruck } from "../entities/truck";
+import { logSuccess, logWarning, logInfo, logError, highlight } from "../utils";
+import { createCompanyEntity } from "./companies";
+import { IWorld } from "./world";
 
 const notificationConfig = loadNotificationConfig();
 
@@ -20,43 +15,23 @@ const notificationConfig = loadNotificationConfig();
 
 export const createContract = (
   state: IWorldState,
-  name: string,
   companyId: string,
-  destination: BaseLocation,
-  supplier: BaseLocation,
+  destinationId: string,
+  supplierId: string,
   resourceType: RESOURCE_TYPE,
   amount: number,
   payment: number,
   dueTicks: number,
 ) => {
-  const newContract = createCompanyEntity(
-    {
-      name,
-      destination,
-      supplier,
-      shipper: undefined,
-      resourceType,
-      amount,
-      payment,
-      dueTicks,
-    },
-    companyId,
-  );
-
-  if (!destination) {
-    throw Error(`[CRITICAL CONTRACT ERROR] Owner cannot be null or undefined`);
-  }
-  if (!supplier) {
-    throw Error(
-      `[CRITICAL CONTRACT ERROR] Supplier cannot be null or undefined`,
-    );
-  }
-
-  if (notificationConfig.showContractNotifications) {
-    logSuccess(
-      `${destination.name} created a contract with ${supplier.name} for ${amount} ${resourceType} - due in ${dueTicks} ticks`,
-    );
-  }
+  const newContract: IContract = {
+    ...createCompanyEntity(companyId),
+    destinationId,
+    supplierId,
+    resourceType,
+    amount,
+    payment,
+    dueTicks,
+  };
 
   state.contracts.push(newContract);
 };
@@ -65,25 +40,35 @@ export const createContract = (
 
 export const getContractByResource = (
   state: IWorldState,
-  ownerId: string,
+  destinationId: string,
   resourceType: RESOURCE_TYPE,
 ) => {
   return state.contracts.find(
-    (c) => c.destination.id === ownerId && c.resourceType === resourceType,
+    (c) => c.destinationId === destinationId && c.resourceType === resourceType,
   );
 };
 
-export const getContractString = (contract: Contract) => {
-  return `| ${highlight.yellow(contract.amount + " " + contract.resourceType)} | Pickup: ${highlight.yellow(contract.supplier.name)} | Drop-off: ${highlight.yellow(contract.destination.name)} | Due in: ${highlight.yellow(contract.dueTicks + " ticks")}`;
+export const getContractString = (world: IWorld, contract: IContract) => {
+  const contractSupplier = world.getLocationById(contract.supplierId);
+  const contractDestination = world.getLocationById(contract.destinationId);
+
+  return `| ${highlight.yellow(contract.amount + " " + contract.resourceType)} | Pickup: ${highlight.yellow(contractSupplier.name)} | Drop-off: ${highlight.yellow(contractDestination.name)} | Due in: ${highlight.yellow(contract.dueTicks + " ticks")}`;
 };
 
 // .. UPDATE
 export const updateContracts = (state: IWorldState) => {
   state.contracts.forEach((contract) => {
-    if (!contract.destination) {
+    const destination = state
+      .getLocations()
+      .find((l) => l.id === contract.destinationId);
+    const supplier = state
+      .getLocations()
+      .find((l) => l.id === contract.supplierId);
+
+    if (!destination) {
       throw Error(`[CRITICAL CONTRACT ERROR] A contract must have an owner`);
     }
-    if (!contract.supplier) {
+    if (!supplier) {
       throw Error(`[CRITICAL CONTRACT ERROR] A contract must have a supplier`);
     }
 
@@ -106,38 +91,27 @@ export const updateContracts = (state: IWorldState) => {
   });
 };
 
-export const isValidShipperType = (contract: Contract, shipper: Truck) => {
-  if (shipper.storage.resourceType !== contract.resourceType) {
-    if (notificationConfig.showContractNotifications) {
-      logWarning(` - WARNING: Incompatible shipper resource type`);
-    }
-    return false;
-  }
-
-  return true;
-};
-
-export const assignContract = (contract: Contract, shipper: Truck) => {
+export const assignContract = (contract: IContract, shipper: ITruck) => {
   if (notificationConfig.showContractNotifications) {
     logInfo(`[CONTRACT] Trying to assign ${contract.resourceType} contract...`);
   }
 
-  if (contract.shipper) {
+  if (contract.shipperId) {
     logError(
       ` - ERROR: Contract already being shipped - assignment not possible`,
     );
     return false;
   }
 
-  if (!isValidShipperType(contract, shipper)) {
+  if (shipper.storage.resourceType !== contract.resourceType) {
     logError(
       ` - ERROR: Incompatible shipper resource type - assignment not possible`,
     );
     return false;
   }
 
-  shipper.contract = contract;
-  contract.shipper = shipper;
+  shipper.contractId = contract.id;
+  contract.shipperId = shipper.id;
 
   if (notificationConfig.showContractNotifications) {
     logSuccess(
@@ -149,29 +123,34 @@ export const assignContract = (contract: Contract, shipper: Truck) => {
 };
 
 // .. DELETE
-export const deleteContract = (state: IWorldState, contract: Contract) => {
+export const deleteContract = (state: IWorldState, contract: IContract) => {
   state.contracts = state.contracts.filter((c) => c.id !== contract.id);
 };
 
-export const completeContract = (state: IWorldState, contract: Contract) => {
+export const completeContract = (state: IWorldState, contract: IContract) => {
   if (notificationConfig.showContractNotifications) {
     logInfo(
       `[CONTRACT] Trying to complete ${contract.resourceType} contract...`,
     );
   }
-  if (!contract.destination) {
+
+  const destination = state
+    .getLocations()
+    .find((l) => l.id === contract.destinationId);
+
+  if (!destination) {
     logError(` - ERROR: No owner found - completion not possible`);
     return false;
   }
 
   const resourceCount = getResourceCount(
     contract.resourceType,
-    contract.destination.storage,
+    destination.storage,
   );
   if (resourceCount < contract.amount) {
     if (notificationConfig.showContractNotifications) {
       logWarning(
-        ` - WARNING: Requirements not satisfied - ${contract.destination.name} needs ${contract.amount} ${contract.resourceType} - only ${resourceCount} available`,
+        ` - WARNING: Requirements not satisfied - ${destination.name} needs ${contract.amount} ${contract.resourceType} - only ${resourceCount} available`,
       );
     }
     return false;
@@ -186,15 +165,28 @@ export const completeContract = (state: IWorldState, contract: Contract) => {
   return true;
 };
 
-export const removeOwnedContracts = (state: IWorldState, ownerId: string) => {
+export const removeOwnedContracts = (
+  state: IWorldState,
+  destinationId: string,
+) => {
   const contractsToRemove = state.contracts.filter(
-    (c) => c.destination.id === ownerId,
+    (c) => c.destinationId === destinationId,
   );
 
   if (contractsToRemove.length > 0) {
     if (notificationConfig.showContractNotifications) {
+      const destination = state
+        .getLocations()
+        .find((l) => l.id === contractsToRemove[0].destinationId);
+
+      if (!destination) {
+        throw Error(
+          `[CRITICAL SYSTEM ERROR] Location with id ${contractsToRemove[0].destinationId} doesn't exist - removal not possible`,
+        );
+      }
+
       logSuccess(
-        `[CONTRACTS] Voiding ${contractsToRemove.length} contracts from ${contractsToRemove[0].destination.name}`,
+        `[CONTRACTS] Voiding ${contractsToRemove.length} contracts from ${destination.name}`,
       );
     }
     state.contracts = state.contracts.filter(

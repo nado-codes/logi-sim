@@ -1,9 +1,9 @@
 import { randomUUID } from "crypto";
-import { Producer, LOCATION_TYPE } from "../../entities/location";
+import { IProducer, LOCATION_TYPE } from "../../entities/location";
 import {
+  IRecipe,
   RESOURCE_TYPE,
-  ResourceMap,
-  createAndGetStorageUnsafe,
+  createAndGetStorage,
   getOutputStorage,
   getResourceCapacity,
   getResourceCount,
@@ -11,8 +11,9 @@ import {
 } from "../../entities/storage";
 import { IWorldState } from "../state";
 import { loadNotificationConfig } from "../../notifications";
-import { logWarning, logSuccess, logError, logInfo } from "../../utils/utils";
-import { createCompanyEntity } from "../../entities/entity";
+import { logWarning, logSuccess, logError, logInfo } from "../../utils";
+import { generateId } from "../../entities/entity";
+import { createBaseLocation } from "./locations";
 
 const notificationConfig = loadNotificationConfig();
 
@@ -26,19 +27,23 @@ export const createProducer = (
   maxStock: number,
   currentStock?: number,
 ) => {
-  const newProducer = createCompanyEntity(
-    {
+  const recipe: IRecipe = { outputs: { [produces]: productionRate } };
+  const storage = [createAndGetStorage(produces, maxStock, currentStock)];
+
+  const newProducer: IProducer = {
+    ...createBaseLocation(
       name,
-      type: LOCATION_TYPE.PRODUCER,
+      companyId,
       position,
-      recipe: { outputs: { [produces]: productionRate } },
-      storage: [createAndGetStorageUnsafe(produces, maxStock, currentStock)],
-      productionRate,
-      currentStock: currentStock ?? 0,
-      maxStock,
-    },
-    companyId,
-  );
+      storage,
+      recipe,
+      LOCATION_TYPE.PRODUCER,
+    ),
+    position,
+    productionRate,
+    currentStock: currentStock ?? 0,
+    maxStock,
+  };
 
   state.producers.push(newProducer);
 };
@@ -46,7 +51,10 @@ export const createProducer = (
 export const updateProducers = (state: IWorldState) => {
   state.producers.forEach((producer) => {
     if (
-      Object.entries(producer.recipe.outputs ?? ({} as ResourceMap)).length > 1
+      Object.entries(
+        producer.recipe.outputs ??
+          ({} as Partial<Record<RESOURCE_TYPE, number>>),
+      ).length > 1
     ) {
       throw Error(
         `[CRITICAL PRODUCER ERROR] Producers currently only support one output`,

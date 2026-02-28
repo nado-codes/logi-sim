@@ -1,14 +1,14 @@
 import { randomUUID } from "crypto";
-import { Consumer, LOCATION_TYPE } from "../../entities/location";
+import { IConsumer, LOCATION_TYPE } from "../../entities/location";
 import {
   RESOURCE_TYPE,
-  createAndGetStorageUnsafe,
+  createAndGetStorage,
   processRecipe,
 } from "../../entities/storage";
 import { replenishInputStorage } from "./locations";
 import { IWorldState } from "../state";
 import { loadNotificationConfig } from "../../notifications";
-import { createCompanyEntity } from "../../entities/entity";
+import { generateId } from "../../entities/entity";
 
 export const createConsumer = (
   state: IWorldState,
@@ -21,23 +21,22 @@ export const createConsumer = (
   maxStock: number,
   startFull: boolean,
 ) => {
-  const newConsumer = createCompanyEntity(
-    {
-      name,
-      type: LOCATION_TYPE.CONSUMER,
-      position,
-      storage: [
-        createAndGetStorageUnsafe(
-          consumes,
-          maxStock,
-          startFull === true ? maxStock : 0,
-        ),
-      ],
-      recipe: { inputs: { [consumes]: consumptionRate } },
-      minInputThreshold,
-    },
+  const newConsumer = {
     companyId,
-  );
+    id: generateId(),
+    name,
+    type: LOCATION_TYPE.CONSUMER,
+    position,
+    storage: [
+      createAndGetStorage(
+        consumes,
+        maxStock,
+        startFull === true ? maxStock : 0,
+      ),
+    ],
+    recipe: { inputs: { [consumes]: consumptionRate } },
+    minInputThreshold,
+  };
 
   state.consumers.push(newConsumer);
 };

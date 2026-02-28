@@ -1,52 +1,27 @@
-import { ICompany, ICompanyAsset } from "../entities/company/company";
-import { Color } from "../utils/utils";
+import { ICompany, ICompanyEntity } from "../entities/company";
+import { createBaseEntity, createNamedEntity } from "../entities";
 import { IWorldState } from "./state";
-import { createNamedEntity, createWorldEntity } from "../entities";
 
 export const createCompany = (
-  world: IWorldState,
+  state: IWorldState,
   name: string,
   money: number,
-  color: Color,
+  color: string,
 ): ICompany => {
-  const worldLocations = [
-    ...world.producers,
-    ...world.processors,
-    ...world.consumers,
-  ];
   const newCompany: ICompany = {
     ...createNamedEntity(name),
-    getMoney: () => money,
-    getColor: () => color,
-    getContracts: () =>
-      world.contracts.filter((c) => c.companyId === newCompany.getId()),
-    getLocations: () =>
-      worldLocations.filter((l) => l.companyId === newCompany.getId()),
-    getTrucks: () =>
-      world.trucks.filter((t) => t.getCompanyId() === newCompany.getId()),
+    money,
+    color,
   };
 
-  world.companies.push(newCompany);
+  state.companies.push(newCompany);
 
   return newCompany;
 };
 
-export const createCompanyAsset = (
-  companyId: string,
-  name: string,
-): ICompanyAsset => {
+export const createCompanyEntity = (companyId: string): ICompanyEntity => {
   return {
-    ...createNamedEntity(name),
-    getCompanyId: () => companyId,
+    ...createBaseEntity(),
+    companyId,
   };
-};
-
-export const getCompanyById = (world: IWorldState, companyId: string) => {
-  const company = world.companies.find((c) => c.getId() === companyId);
-
-  if (!company) {
-    throw Error(`Company with id ${companyId} doesn't exist`);
-  }
-
-  return company;
 };

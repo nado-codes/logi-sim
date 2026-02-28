@@ -22,7 +22,9 @@ export const createManageContractsPage = (world: IWorld): IMenuPage => {
         return false;
       }
 
-      const availableContracts = world.getContracts().filter((c) => !c.shipper);
+      const availableContracts = world
+        .getContracts()
+        .filter((c) => !c.shipperId);
       const contract = availableContracts.find((_, i) => i === contractChoice);
 
       if (!contract) {
@@ -34,10 +36,13 @@ export const createManageContractsPage = (world: IWorld): IMenuPage => {
         .getTrucksUnsafe()
         .filter(
           (t) =>
-            !t.contract && t.storage.resourceType === contract.resourceType,
+            !t.contractId && t.storage.resourceType === contract.resourceType,
         );
+      const contractDestination = world.getLocationById(contract.destinationId);
+      const contractSupplier = world.getLocationById(contract.supplierId);
+
       const supplierOwnerDistance = Math.abs(
-        contract.destination.position - contract.supplier.position,
+        contractDestination.position - contractSupplier.position,
       );
 
       const createSelectTruckAction = (): IMenuAction => ({
@@ -63,7 +68,7 @@ export const createManageContractsPage = (world: IWorld): IMenuPage => {
             console.log();
 
             const distance =
-              Math.abs(truck.position - contract.supplier.position) +
+              Math.abs(truck.position - contractSupplier.position) +
               supplierOwnerDistance;
 
             console.log(
@@ -89,12 +94,12 @@ export const createManageContractsPage = (world: IWorld): IMenuPage => {
           availableTrucks.forEach((t, i) => {
             const supplierOwnerDistance = contract
               ? Math.abs(
-                  contract.destination.position - contract.supplier.position,
+                  contractDestination.position - contractSupplier.position,
                 )
               : 0;
 
             const contractDistance = contract
-              ? Math.abs(t.position - contract.supplier.position)
+              ? Math.abs(t.position - contractSupplier.position)
               : 0;
             const distance = contractDistance + supplierOwnerDistance;
             const distanceString = `Total Distance: ${highlight.yellow(distance + " units")}`;
@@ -121,7 +126,9 @@ export const createManageContractsPage = (world: IWorld): IMenuPage => {
     false,
     [createAcceptContractAction()],
     () => {
-      const availableContracts = world.getContracts().filter((c) => !c.shipper);
+      const availableContracts = world
+        .getContracts()
+        .filter((c) => !c.shipperId);
 
       if (availableContracts.length === 0) {
         logWarning(` - There are no contracts available`);
@@ -130,14 +137,14 @@ export const createManageContractsPage = (world: IWorld): IMenuPage => {
 
       console.log(`\nAvailable contracts: ${availableContracts.length}`);
       availableContracts.forEach((c, i) => {
-        console.log(` - [${i}] ${getContractString(c)}`);
+        console.log(` - [${i}] ${getContractString(world, c)}`);
       });
 
       const availableTrucks = world
         .getTrucksUnsafe()
         .filter(
           (t) =>
-            !t.contract &&
+            !t.contractId &&
             availableContracts.some(
               (c) => c.resourceType === t.storage.resourceType,
             ),

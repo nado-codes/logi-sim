@@ -1,143 +1,95 @@
-import { randomUUID } from "crypto";
 import {
-  IStorage,
   RESOURCE_TYPE,
-  createAndGetStorageUnsafe,
-  createStorage,
+  createAndGetStorage,
   transferResources,
 } from "../entities/storage";
-import { ITruck, Truck } from "../entities/truck";
+import { ITruck } from "../entities/truck";
 import { IWorldState } from "./state";
 import { loadNotificationConfig } from "../notifications";
 import { completeContract } from "./contracts";
-import { logSuccess, logInfo, highlight } from "../utils/utils";
+import { logSuccess, logInfo, highlight } from "../utils";
 import { IWorld } from "./world";
-import { createCompanyEntity as createCompanyEntityUnsafe } from "../entities/entity";
-import { createCompanyAsset } from "./companies";
-import { createWorldEntity } from "../entities";
-import { OkResult } from "../utils/result";
+import { createCompanyEntity } from "./companies";
+import { IContract } from "../entities/contract";
 
 const notificationConfig = loadNotificationConfig();
 
-// .. CREATE
-export const createTruckUnsafe = (
-  state: IWorldState,
-  name: string,
-  companyId: string,
-  resourceType: RESOURCE_TYPE,
-  resourceCapacity: number,
-  position: number,
-  speed: number,
-  resourceCount?: number,
-) => {
-  const newTruck = createCompanyEntityUnsafe(
-    {
-      name,
-      position,
-      speed,
-      storage: createAndGetStorageUnsafe(
-        resourceType,
-        resourceCapacity,
-        resourceCount,
-      ),
-    },
-    companyId,
-  );
-
-  state.trucksUnsafe.push(newTruck);
-};
-
 export const createTruck = (
   state: IWorldState,
-  companyId: string,
-  position: number,
   name: string,
+  companyId: string,
   resourceType: RESOURCE_TYPE,
   resourceCapacity: number,
+  position: number,
   speed: number,
-  resourceCount?: number,
-): ITruck => {
-  let destinationId: string | undefined = undefined;
-  let contractId: string | undefined = undefined;
-
-  const storage: IStorage = createStorage(
+  resourceCount: number = 0,
+) => {
+  const storage = createAndGetStorage(
     resourceType,
     resourceCapacity,
     resourceCount,
   );
 
   const newTruck: ITruck = {
-    ...createWorldEntity(position, name),
-    ...createCompanyAsset(companyId, name),
-    getSpeed: () => speed,
-    getDestinationId: () => destinationId,
-    getContractId: () => contractId,
-    getStorage: () => storage,
-
-    move: (direction: number) => move(direction),
-  };
-
-  const move = (direction: number) => {
-    newTruck.setPosition(
-      newTruck.getPosition() + direction * newTruck.getSpeed(),
-    );
-
-    return OkResult();
+    ...createCompanyEntity(companyId),
+    name,
+    speed,
+    storage,
+    position,
   };
 
   state.trucks.push(newTruck);
-
-  return newTruck;
 };
 
-// .. READ
-export const getTruckByPosition = (world: IWorld, position: number) => {
-  const trucks = world.getTrucks();
-  const truck = trucks.find((t) => t.getPosition() === position);
-
-  return truck;
-};
-
-export const getTruckIcon = (world: IWorld, truck: ITruck) => {
-  const company = world.getCompanyById(truck.getCompanyId());
-
-  const icon = `[T${truck.getStorage().getResourceCount() > 0 ? "o" : ""}]`;
-  return highlight.custom(icon, company.getColor());
-};
-
-export const getTruckString = (world: IWorld, truck: Truck) => {
+export const getTruckString = (world: IWorld, truck: ITruck) => {
   const truckLocation = world
     .getLocations()
     .find((l) => l.position === truck.position);
+  const truckContract = world
+    .getContracts()
+    .find((c) => c.id === truck.contractId);
+
+  const contractSupplier = world
+    .getLocations()
+    .find((l) => l.id === truckContract?.supplierId);
+  const contractDestination = world
+    .getLocations()
+    .find((l) => l.id === truckContract?.destinationId);
 
   const locationString = truckLocation
     ? `Location: ${highlight.yellow(truckLocation.name)}`
     : `Position: ${highlight.yellow(truck.position + "")}`;
-  const contractString = `Contract: ${truck.contract ? highlight.yellow(`${truck.contract.supplier.name}-->${truck.contract.destination.name}`) : highlight.yellow("None")}`;
+  const contractString = `Contract: ${truckContract ? highlight.yellow(`${contractSupplier?.name}-->${contractDestination?.name}`) : highlight.yellow("None")}`;
 
   return `| Carries: ${highlight.yellow(truck.storage.resourceType)} | ${locationString} | ${contractString}`;
 };
 
-// .. UPDATE
 export const updateTrucks = (state: IWorldState) => {
-  state.trucksUnsafe.forEach((truck) => {
-    if (truck.destination) {
-      const distance = truck.position - truck.destination.position;
+  state.trucks.forEach((truck) => {
+    const truckDestination = state
+      .getLocations()
+      .find((l) => l.id === truck.destinationId);
+    const truckContract = state.contracts.find(
+      (c) => c.id === truck.contractId,
+    );
+
+    if (truckDestination) {
+      const distance = truck.position - truckDestination.position;
       const direction = Math.sign(distance);
 
-      if (truck.position != truck.destination.position) {
+      if (truck.position != truckDestination.position) {
         truck.position -= direction * truck.speed;
 
         if (
-          Math.abs(truck.position - truck.destination.position) < truck.speed
+          Math.abs(truck.position - truckDestination.position) < truck.speed
         ) {
-          truck.position = truck.destination.position; // Snap to destination
+          truck.position = truckDestination.position; // Snap to destination
         }
 
-        if (truck.position === truck.destination.position) {
+        if (truck.position === truckDestination.position) {
           if (notificationConfig.showTruckNotifications) {
             logSuccess(
-              `[TRUCK] ${truck.id} has arrived at ${truck.destination.name}`,
+              `[TRUCK] ${truck.id} has arrived at ${truckDestination.name}`,
             );
           }
         } else {
@@ -148,70 +100,73 @@ export const updateTrucks = (state: IWorldState) => {
           }
         }
       } else {
-        if (truck.contract) {
-          if (truck.destination === truck.contract.supplier) {
+        if (truckContract) {
+          if (truck.destinationId === truckContract.supplierId) {
             const amountLeftToLoad =
-              truck.contract.amount - truck.storage.resourceCount;
+              truckContract.amount - truck.storage.resourceCount;
 
             if (notificationConfig.showTruckNotifications) {
               logInfo(
-                `[TRUCK] ${truck.id} requested ${amountLeftToLoad} ${truck.contract.resourceType} from ${truck.destination.name}`,
+                `[TRUCK] ${truck.id} requested ${amountLeftToLoad} ${truckContract.resourceType} from ${truckDestination.name}`,
               );
             }
 
             if (
               transferResources(
                 amountLeftToLoad,
-                truck.contract.resourceType,
-                truck.destination.storage,
+                truckContract.resourceType,
+                truckDestination.storage,
                 [truck.storage],
               ) ||
               amountLeftToLoad <= 0
             ) {
               if (notificationConfig.showTruckNotifications) {
+                const contractDestination = state
+                  .getLocations()
+                  .find((l) => l.id === truckContract.destinationId);
                 logSuccess(
-                  `[TRUCK] ${truck.id} finished loading at ${truck.destination.name}. Heading to ${truck.contract.destination.name}`,
+                  `[TRUCK] ${truck.id} finished loading at ${truckDestination.name}. Heading to ${contractDestination!.name}`,
                 );
               }
-              truck.destination = truck.contract.destination;
+              truck.destinationId = truckContract.destinationId;
             } else {
               if (notificationConfig.showTruckNotifications) {
                 logInfo(
-                  `[TRUCK] ${truck.id} will wait for the rest of the ${truck.contract.resourceType} (${truck.contract.amount - truck.storage.resourceCount} left)`,
+                  `[TRUCK] ${truck.id} will wait for the rest of the ${truckContract.resourceType} (${truckContract.amount - truck.storage.resourceCount} left)`,
                 );
               }
             }
-          } else if (truck.destination === truck.contract.destination) {
+          } else if (truck.destinationId === truckContract.destinationId) {
             if (
               transferResources(
-                truck.contract.amount,
-                truck.contract.resourceType,
+                truckContract.amount,
+                truckContract.resourceType,
                 [truck.storage],
-                truck.destination.storage,
+                truckDestination.storage,
               )
             ) {
               if (notificationConfig.showTruckNotifications) {
                 logSuccess(
-                  `[TRUCK] ${truck.id} finished unloading at ${truck.destination.name}. Contract completed`,
+                  `[TRUCK] ${truck.id} finished unloading at ${truckDestination.name}. Contract completed`,
                 );
               }
 
-              if (completeContract(state, truck.contract)) {
-                truck.destination = undefined;
-                truck.contract = undefined;
+              if (completeContract(state, truckContract)) {
+                truck.destinationId = undefined;
+                truck.contractId = undefined;
               }
             } else {
               if (notificationConfig.showTruckNotifications) {
                 logInfo(
-                  `[TRUCK] ${truck.id} will wait to unload the rest of the ${truck.contract.resourceType} (${truck.storage.resourceCount} left)`,
+                  `[TRUCK] ${truck.id} will wait to unload the rest of the ${truckContract.resourceType} (${truck.storage.resourceCount} left)`,
                 );
               }
             }
           }
         }
       }
-    } else if (truck.contract) {
-      truck.destination = truck.contract.supplier;
+    } else if (truckContract) {
+      truck.destinationId = truckContract.supplierId;
     } else if (state.contracts.length > 0) {
       // TEST: disable the auto-acceptance for contracts so that the player has to manually do it
       // test if the core contract acceptance loop is fun
@@ -233,8 +188,8 @@ export const updateTrucks = (state: IWorldState) => {
         }
       } else {
         contract.shipper = truck;
-        truck.contract = contract;
-        truck.destination = contract.supplier;
+        truckContract = contract;
+        truckDestination = contract.supplier;
 
         if (notificationConfig.showTruckNotifications) {
           logSuccess(` - Accepted contract ${contract.id}`);
@@ -243,7 +198,3 @@ export const updateTrucks = (state: IWorldState) => {
     }
   });
 };
-
-// .. DELETE
-
-// .. TODO: sell or delete a truck

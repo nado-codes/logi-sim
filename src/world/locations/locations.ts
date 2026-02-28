@@ -1,24 +1,66 @@
-import { BaseLocation, LOCATION_TYPE } from "../../entities/location";
-import { getResourceStorage, RESOURCE_TYPE } from "../../entities/storage";
-import { ITruck, Truck } from "../../entities/truck";
+import { createWorldEntity } from "../../entities";
+import { IBaseLocation, LOCATION_TYPE } from "../../entities/location";
+import {
+  getResourceStorage,
+  IRecipe,
+  IStorage,
+  RESOURCE_TYPE,
+} from "../../entities/storage";
 import { loadNotificationConfig } from "../../notifications";
-import { logWarning, logInfo, logError, highlight } from "../../utils/utils";
+import { logWarning, logInfo, logError, highlight } from "../../utils";
 import { getContractByResource, createContract } from "../contracts";
 import { IWorldState } from "../state";
-import { getTruckIcon } from "../trucks";
-import { IWorld } from "../world";
 
 const notificationConfig = loadNotificationConfig();
 
 // .. CREATE
 
+export const createBaseLocation = (
+  name: string,
+  companyId: string,
+  position: number,
+  storage: IStorage[] = [],
+  recipe: IRecipe,
+  type: LOCATION_TYPE,
+): IBaseLocation => {
+  return {
+    ...createWorldEntity(position, name),
+    storage,
+    recipe,
+    type,
+    companyId,
+  };
+};
+
+export const getLocationById = (
+  state: IWorldState,
+  id: string,
+): IBaseLocation => {
+  const locations = [
+    ...state.producers,
+    ...state.processors,
+    ...state.consumers,
+  ];
+  const location = locations.find((l) => l.id === id);
+
+  if (!location) {
+    throw Error(`[CRITICAL SYSTEM ERROR] Location with id ${id} doesn't exist`);
+  }
+
+  return location;
+};
+
 // .. READ
-export const getMap = (world: IWorld) => {
-  const locations = world.getLocations();
+export const getMap = (state: IWorldState) => {
+  const locations = [
+    ...state.producers,
+    ...state.processors,
+    ...state.consumers,
+  ];
 
   const worldPositions = [
     ...locations.map((l) => l.position),
-    ...world.getTrucksUnsafe().map((t) => t.position),
+    ...state.trucks.map((t) => t.position),
   ];
   const maxPosition = worldPositions.reduce((a, c) => Math.max(a, c));
 
@@ -26,9 +68,7 @@ export const getMap = (world: IWorld) => {
 
   for (var pos = 0; pos <= maxPosition; pos++) {
     const locationAtPos = locations.find((l) => l.position === pos);
-
-    // .. getTruckByPosition
-    let truckAtPos: Truck | undefined; //world.get;
+    const truckAtPos = state.trucks.find((t) => t.position === pos);
 
     if (locationAtPos) {
       switch (locationAtPos.type) {
@@ -43,13 +83,11 @@ export const getMap = (world: IWorld) => {
           break;
       }
 
-      // .. getContractByDestinationId
-      if (world.getContracts().find((c) => c.destination === locationAtPos)) {
+      if (state.contracts.find((c) => c.destinationId === locationAtPos.id)) {
         map += `\x1b[31m!\x1b[0m`;
       }
       map += "]";
     } else if (truckAtPos) {
-      //map += getTruckIcon(world, truckAtPos);
       map += "[T";
 
       if (truckAtPos.storage.resourceCount > 0) {
@@ -65,7 +103,7 @@ export const getMap = (world: IWorld) => {
   return map;
 };
 
-export const getLocationString = (location: BaseLocation) => {
+export const getLocationString = (location: IBaseLocation) => {
   const locationString = `Position: ${highlight.yellow(location.position + "")}`;
 
   const inputs = Object.entries(location.recipe.inputs ?? []).map(
@@ -87,7 +125,7 @@ export const getLocationString = (location: BaseLocation) => {
 
 export const replenishInputStorage = (
   state: IWorldState,
-  location: BaseLocation,
+  location: IBaseLocation,
   minInputThreshold?: number,
 ) => {
   Object.entries(location.recipe.inputs ?? {}).map(
@@ -164,17 +202,16 @@ export const replenishInputStorage = (
             // .. if there's literally NO STOCK left, we need to create an URGENT contract (due sooner, more needs to be transported)
             createContract(
               state,
-              "",
               location.companyId,
-              location,
-              closestSupplier,
+              location.id,
+              closestSupplier.id,
               inputStorage[0].resourceType,
               Math.ceil((minInputThreshold ?? requiredAmount) * 1.5),
               100,
               10,
             );
           }
-        } else if (!contract.shipper) {
+        } else if (!contract.shipperId) {
           logError(
             `- ${location.name} was unable to create a contract because one already exists and is NOT being shipped`,
           );

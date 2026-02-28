@@ -1,17 +1,17 @@
-import { Contract } from "../entities/contract";
-import { BaseLocation } from "../entities/location";
-import { Recipe, RESOURCE_TYPE } from "../entities/storage";
-import { ITruck, Truck } from "../entities/truck";
+import { IContract, IContractUnsafe } from "../entities/contract";
+import { IBaseLocation } from "../entities/location";
+import { IRecipe, RESOURCE_TYPE } from "../entities/storage";
+import { ITruck } from "../entities/truck";
 import { createConsumer, updateConsumers } from "./locations/consumers";
 import { createContract, updateContracts } from "./contracts";
-import { getMap } from "./locations/locations";
+import { getLocationById, getMap } from "./locations/locations";
 import { createProcessor, updateProcessors } from "./locations/processors";
 import { createProducer, updateProducers } from "./locations/producers";
 import { IWorldState, createInitialState } from "./state";
-import { createTruckUnsafe, getTruckByPosition, updateTrucks } from "./trucks";
-import { Company, ICompany } from "../entities/company/company";
-import { createCompany, getCompanyById } from "./companies";
-import { Color } from "../utils/utils";
+import { createTruck, updateTrucks } from "./trucks";
+import { ICompany } from "../entities/company";
+import { createCompany } from "./companies";
+import { Color } from "../utils";
 
 export interface IWorld {
   updateProcessors: () => void;
@@ -21,15 +21,14 @@ export interface IWorld {
   updateTrucks: () => void;
 
   getMap: () => void;
-  getContracts: () => Contract[];
 
-  getTrucksUnsafe: () => Truck[];
+  getContracts: () => IContract[];
   getTrucks: () => ITruck[];
 
-  getLocations: () => BaseLocation[];
+  getLocations: () => IBaseLocation[];
+  getLocationById: (id: string) => IBaseLocation;
 
   getCompanies: () => ICompany[];
-  getCompanyById: (id: string) => ICompany;
 
   createCompany: (name: string, money: number, color: Color) => ICompany;
 
@@ -47,7 +46,7 @@ export interface IWorld {
     name: string,
     companyId: string,
     position: number,
-    recipe: Recipe,
+    recipe: IRecipe,
     minInputThreshold: number,
     inputCapacity: number,
     outputCapacity: number,
@@ -67,10 +66,9 @@ export interface IWorld {
   ) => void;
 
   createContract: (
-    name: string,
     companyId: string,
-    destination: BaseLocation,
-    supplier: BaseLocation,
+    destinationId: string,
+    supplierId: string,
     resourceType: RESOURCE_TYPE,
     amount: number,
     payment: number,
@@ -98,10 +96,8 @@ export const createWorld = (): IWorld => {
     updateContracts: () => updateContracts(state),
     updateTrucks: () => updateTrucks(state),
 
-    getMap: () => "", //getMap(state),
+    getMap: () => getMap(state),
     getContracts: () => state.contracts,
-
-    getTrucksUnsafe: () => state.trucksUnsafe,
     getTrucks: () => state.trucks,
 
     getLocations: () => [
@@ -109,9 +105,9 @@ export const createWorld = (): IWorld => {
       ...state.processors,
       ...state.consumers,
     ],
+    getLocationById: (id: string) => getLocationById(state, id),
 
     getCompanies: () => state.companies,
-    getCompanyById: (id: string) => getCompanyById(state, id),
 
     createCompany: (name: string, money: number, color: Color) =>
       createCompany(state, name, money, color),
@@ -140,7 +136,7 @@ export const createWorld = (): IWorld => {
       name: string,
       companyId: string,
       position: number,
-      recipe: Recipe,
+      recipe: IRecipe,
       minInputThreshold: number,
       inputCapacity: number,
       outputCapacity: number,
@@ -183,10 +179,9 @@ export const createWorld = (): IWorld => {
       ),
 
     createContract: (
-      name: string,
       companyId: string,
-      destination: BaseLocation,
-      supplier: BaseLocation,
+      destinationId: string,
+      supplierId: string,
       resourceType: RESOURCE_TYPE,
       amount: number,
       payment: number,
@@ -194,10 +189,9 @@ export const createWorld = (): IWorld => {
     ) =>
       createContract(
         state,
-        name,
         companyId,
-        destination,
-        supplier,
+        destinationId,
+        supplierId,
         resourceType,
         amount,
         payment,
@@ -213,7 +207,7 @@ export const createWorld = (): IWorld => {
       speed: number,
       resourceCount?: number,
     ) =>
-      createTruckUnsafe(
+      createTruck(
         state,
         name,
         companyId,
