@@ -13,7 +13,7 @@ import { replenishInputStorage } from "./locations";
 import { completeContract, getContractByResource } from "../contracts";
 import { IWorldState } from "../state";
 import { loadNotificationConfig } from "../../notifications";
-import { logWarning, logSuccess } from "../../utils";
+import { logWarning, logSuccess } from "../../logUtils";
 import { generateId } from "../../entities/entity";
 
 const notificationConfig = loadNotificationConfig();

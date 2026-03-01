@@ -1,4 +1,4 @@
-import { logError, logSuccess, logWarning, highlight } from "../utils";
+import { logError, logSuccess, logWarning, highlight } from "../logUtils";
 import { assignContract, getContractString } from "../world/contracts";
 import { getTruckString } from "../world/trucks";
 import { IWorld } from "../world/world";

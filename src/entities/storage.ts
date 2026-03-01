@@ -1,6 +1,6 @@
 import { randomUUID } from "crypto";
 import { loadNotificationConfig } from "../notifications";
-import { logInfo, logWarning, logSuccess } from "../utils";
+import { logInfo, logWarning, logSuccess } from "../logUtils";
 
 export enum RESOURCE_TYPE {
   GRAIN = "Grain",

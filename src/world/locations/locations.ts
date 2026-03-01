@@ -1,4 +1,5 @@
 import { createWorldEntity } from "../../entities";
+import { Nullable } from "../../entities/entity";
 import { IBaseLocation, LOCATION_TYPE } from "../../entities/location";
 import {
   getResourceStorage,
@@ -7,9 +8,10 @@ import {
   RESOURCE_TYPE,
 } from "../../entities/storage";
 import { loadNotificationConfig } from "../../notifications";
-import { logWarning, logInfo, logError, highlight } from "../../utils";
+import { logWarning, logInfo, logError, highlight } from "../../logUtils";
 import { getContractByResource, createContract } from "../contracts";
 import { IWorldState } from "../state";
+import { IWorld } from "../world";
 
 const notificationConfig = loadNotificationConfig();
 
@@ -50,57 +52,39 @@ export const getLocationById = (
   return location;
 };
 
+export const getLocationByIdOrNull = (
+  state: IWorldState,
+  id: Nullable<string>,
+): Nullable<IBaseLocation> => {
+  const locations = [
+    ...state.producers,
+    ...state.processors,
+    ...state.consumers,
+  ];
+  const location = locations.find((l) => l.id === id);
+
+  return location;
+};
+
 // .. READ
-export const getMap = (state: IWorldState) => {
+
+export const getLocations = (state: IWorldState) => {
   const locations = [
     ...state.producers,
     ...state.processors,
     ...state.consumers,
   ];
 
-  const worldPositions = [
-    ...locations.map((l) => l.position),
-    ...state.trucks.map((t) => t.position),
-  ];
-  const maxPosition = worldPositions.reduce((a, c) => Math.max(a, c));
+  return locations;
+};
 
-  let map = "";
+export const getLocationByPositionOrNull = (
+  state: IWorldState,
+  position: number,
+) => {
+  const location = getLocations(state).find((l) => l.position === position);
 
-  for (var pos = 0; pos <= maxPosition; pos++) {
-    const locationAtPos = locations.find((l) => l.position === pos);
-    const truckAtPos = state.trucks.find((t) => t.position === pos);
-
-    if (locationAtPos) {
-      switch (locationAtPos.type) {
-        case LOCATION_TYPE.PRODUCER:
-          map += "[PRD";
-          break;
-        case LOCATION_TYPE.PROCESSOR:
-          map += "[PRC";
-          break;
-        case LOCATION_TYPE.CONSUMER:
-          map += "[CNS";
-          break;
-      }
-
-      if (state.contracts.find((c) => c.destinationId === locationAtPos.id)) {
-        map += `\x1b[31m!\x1b[0m`;
-      }
-      map += "]";
-    } else if (truckAtPos) {
-      map += "[T";
-
-      if (truckAtPos.storage.resourceCount > 0) {
-        map += `\x1b[32mo\x1b[0m`;
-      }
-
-      map += "]";
-    } else {
-      map += "_";
-    }
-  }
-
-  return map;
+  return location;
 };
 
 export const getLocationString = (location: IBaseLocation) => {

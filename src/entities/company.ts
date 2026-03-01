@@ -1,8 +1,9 @@
-import { IBaseEntity } from "./entity";
+import { Color } from "../logUtils";
+import { IBaseEntity, INamedEntity } from "./entity";
 
-export interface ICompany extends IBaseEntity {
+export interface ICompany extends INamedEntity {
   money: number;
-  color: string;
+  color: Color;
 }
 
 export interface ICompanyEntity extends IBaseEntity {

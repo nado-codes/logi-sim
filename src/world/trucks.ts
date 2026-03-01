@@ -7,13 +7,13 @@ import { ITruck } from "../entities/truck";
 import { IWorldState } from "./state";
 import { loadNotificationConfig } from "../notifications";
 import { completeContract } from "./contracts";
-import { logSuccess, logInfo, highlight } from "../utils";
+import { logSuccess, logInfo, highlight } from "../logUtils";
 import { IWorld } from "./world";
 import { createCompanyEntity } from "./companies";
-import { IContract } from "../entities/contract";
 
 const notificationConfig = loadNotificationConfig();
 
+// .. CREATE
 export const createTruck = (
   state: IWorldState,
   name: string,
@@ -41,20 +41,32 @@ export const createTruck = (
   state.trucks.push(newTruck);
 };
 
+// .. READ
+export const getTrucks = (state: IWorldState) => {
+  return state.trucks;
+};
+
+export const getTruckByPositionOrNull = (
+  state: IWorldState,
+  position: number,
+) => {
+  const truck = state.trucks.find((t) => t.position === position);
+
+  return truck;
+};
+
 export const getTruckString = (world: IWorld, truck: ITruck) => {
   const truckLocation = world
     .getLocations()
     .find((l) => l.position === truck.position);
-  const truckContract = world
-    .getContracts()
-    .find((c) => c.id === truck.contractId);
+  const truckContract = world.getContractByIdOrNull(truck.contractId);
 
-  const contractSupplier = world
-    .getLocations()
-    .find((l) => l.id === truckContract?.supplierId);
-  const contractDestination = world
-    .getLocations()
-    .find((l) => l.id === truckContract?.destinationId);
+  const contractSupplier = world.getLocationByIdOrNull(
+    truckContract?.supplierId,
+  );
+  const contractDestination = world.getLocationByIdOrNull(
+    truckContract?.destinationId,
+  );
 
   const locationString = truckLocation
     ? `Location: ${highlight.yellow(truckLocation.name)}`
@@ -64,6 +76,7 @@ export const getTruckString = (world: IWorld, truck: ITruck) => {
   return `| Carries: ${highlight.yellow(truck.storage.resourceType)} | ${locationString} | ${contractString}`;
 };
 
+// .. UPDATE
 export const updateTrucks = (state: IWorldState) => {
   state.trucks.forEach((truck) => {
     const truckDestination = state
@@ -198,3 +211,7 @@ export const updateTrucks = (state: IWorldState) => {
     }
   });
 };
+
+// .. DELETE
+
+// .. TODO? Deleting/selling trucks?

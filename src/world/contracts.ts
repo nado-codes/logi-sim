@@ -5,9 +5,16 @@ import { getResourceCount, RESOURCE_TYPE } from "../entities/storage";
 import { IWorldState } from "./state";
 import { loadNotificationConfig } from "../notifications";
 import { ITruck } from "../entities/truck";
-import { logSuccess, logWarning, logInfo, logError, highlight } from "../utils";
+import {
+  logSuccess,
+  logWarning,
+  logInfo,
+  logError,
+  highlight,
+} from "../logUtils";
 import { createCompanyEntity } from "./companies";
 import { IWorld } from "./world";
+import { Nullable } from "../entities/entity";
 
 const notificationConfig = loadNotificationConfig();
 
@@ -38,6 +45,26 @@ export const createContract = (
 
 // .. READ
 
+export const getContractByIdOrNull = (
+  state: IWorldState,
+  id: string | undefined,
+) => {
+  const contract = state.contracts.find((c) => c.id === id);
+
+  return contract;
+};
+
+export const getContractByLocationIdOrNull = (
+  state: IWorldState,
+  locationId: Nullable<string>,
+) => {
+  const contract = state.contracts.find(
+    (c) => c.destinationId === locationId || c.supplierId === locationId,
+  );
+
+  return contract;
+};
+
 export const getContractByResource = (
   state: IWorldState,
   destinationId: string,
@@ -49,10 +76,18 @@ export const getContractByResource = (
 };
 
 export const getContractString = (world: IWorld, contract: IContract) => {
+  const contractCompany = world.getCompanyById(contract.companyId);
   const contractSupplier = world.getLocationById(contract.supplierId);
   const contractDestination = world.getLocationById(contract.destinationId);
 
-  return `| ${highlight.yellow(contract.amount + " " + contract.resourceType)} | Pickup: ${highlight.yellow(contractSupplier.name)} | Drop-off: ${highlight.yellow(contractDestination.name)} | Due in: ${highlight.yellow(contract.dueTicks + " ticks")}`;
+  const amountResource = highlight.yellow(
+    contract.amount + " " + contract.resourceType,
+  );
+  const pickupDropoff = `Pickup: ${highlight.yellow(contractSupplier.name)} | Drop-off: ${highlight.yellow(contractDestination.name)}`;
+  const owner = `Owner: ${highlight.yellow(contractCompany.name)}`;
+  const dueIn = `Due in: ${highlight.yellow(contract.dueTicks + " ticks")}`;
+
+  return `| ${amountResource} | ${pickupDropoff} | ${owner} | ${dueIn}`;
 };
 
 // .. UPDATE

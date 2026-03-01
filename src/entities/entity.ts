@@ -1,5 +1,7 @@
 import { randomUUID } from "crypto";
 
+export type Nullable<T> = T | undefined;
+
 export interface IBaseEntity {
   id: string;
 }
