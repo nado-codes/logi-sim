@@ -6,10 +6,11 @@ import {
 import { ITruck } from "../entities/truck";
 import { IWorldState } from "./state";
 import { loadNotificationConfig } from "../notifications";
-import { completeContract } from "./contracts";
+import { completeContract, getContractByIdOrNull } from "./contracts";
 import { logSuccess, logInfo, highlight } from "../logUtils";
 import { IWorld } from "./world";
 import { createCompanyEntity } from "./companies";
+import { getLocationByIdOrNull } from "./locations/locations";
 
 const notificationConfig = loadNotificationConfig();
 
@@ -46,6 +47,16 @@ export const getTrucks = (state: IWorldState) => {
   return state.trucks;
 };
 
+export const getTruckById = (state: IWorldState, id: string) => {
+  const truck = state.trucks.find((t) => t.id === id);
+
+  if (!truck) {
+    throw Error(`Truck with id ${id} doesn't exist`);
+  }
+
+  return truck;
+};
+
 export const getTruckByPositionOrNull = (
   state: IWorldState,
   position: number,
@@ -79,12 +90,8 @@ export const getTruckString = (world: IWorld, truck: ITruck) => {
 // .. UPDATE
 export const updateTrucks = (state: IWorldState) => {
   state.trucks.forEach((truck) => {
-    const truckDestination = state
-      .getLocations()
-      .find((l) => l.id === truck.destinationId);
-    const truckContract = state.contracts.find(
-      (c) => c.id === truck.contractId,
-    );
+    const truckDestination = getLocationByIdOrNull(state, truck.destinationId);
+    const truckContract = getContractByIdOrNull(state, truck.contractId);
 
     if (truckDestination) {
       const distance = truck.position - truckDestination.position;
@@ -180,34 +187,6 @@ export const updateTrucks = (state: IWorldState) => {
       }
     } else if (truckContract) {
       truck.destinationId = truckContract.supplierId;
-    } else if (state.contracts.length > 0) {
-      // TEST: disable the auto-acceptance for contracts so that the player has to manually do it
-      // test if the core contract acceptance loop is fun
-      /*
-      if (notificationConfig.showTruckNotifications) {
-        logInfo(`[TRUCK] ${truck.id} is looking for a contract...`);
-      }
-
-      // .. if there's a contract available and the truck is doing nothing, accept the contract
-      const contract = state.contracts.filter(
-        (c) => !c.shipper && c.resourceType === truck.storage.resourceType,
-      )[0];
-
-      // .. TODO: if a particular truck can't complete the contract on its own, it will subcontract it to someone who can
-
-      if (!contract) {
-        if (notificationConfig.showTruckNotifications) {
-          logInfo(` - No contracts available`);
-        }
-      } else {
-        contract.shipper = truck;
-        truckContract = contract;
-        truckDestination = contract.supplier;
-
-        if (notificationConfig.showTruckNotifications) {
-          logSuccess(` - Accepted contract ${contract.id}`);
-        }
-      } */
     }
   });
 };

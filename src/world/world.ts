@@ -20,6 +20,7 @@ import { createProducer, updateProducers } from "./locations/producers";
 import { IWorldState, createInitialState } from "./state";
 import {
   createTruck,
+  getTruckById,
   getTruckByPositionOrNull,
   getTrucks,
   updateTrucks,
@@ -45,6 +46,7 @@ export interface IWorld {
   ) => Nullable<IContract>;
 
   getTrucks: () => ITruck[];
+  getTruckById: (id: string) => ITruck;
   getTruckByPositionOrNull: (position: number) => Nullable<ITruck>;
 
   getLocations: () => IBaseLocation[];
@@ -171,6 +173,7 @@ export const createWorld = (): IWorld => {
       getContractByLocationIdOrNull(state, locationId),
 
     getTrucks: () => state.trucks,
+    getTruckById: (id: string) => getTruckById(state, id),
     getTruckByPositionOrNull: (position: number) =>
       getTruckByPositionOrNull(state, position),
 

@@ -12,7 +12,9 @@ import {
   logError,
   highlight,
 } from "../logUtils";
-import { createCompanyEntity } from "./companies";
+import { createCompanyEntity, getCompanyById } from "./companies";
+import { getLocationById } from "./locations/locations";
+import { getTruckById } from "./trucks";
 import { IWorld } from "./world";
 import { Nullable } from "../entities/entity";
 
@@ -169,12 +171,15 @@ export const completeContract = (state: IWorldState, contract: IContract) => {
     );
   }
 
-  const destination = state
-    .getLocations()
-    .find((l) => l.id === contract.destinationId);
+  const destination = getLocationById(state, contract.destinationId);
 
   if (!destination) {
-    logError(` - ERROR: No owner found - completion not possible`);
+    logError(` - ERROR: No destination found - completion not possible`);
+    return false;
+  }
+
+  if (!contract.shipperId) {
+    logError(` - ERROR: No shipper found - completion not possible`);
     return false;
   }
 
@@ -194,6 +199,10 @@ export const completeContract = (state: IWorldState, contract: IContract) => {
   if (notificationConfig.showContractNotifications) {
     logSuccess(` - SUCCESS: All requirements met. Contract will be voided.`);
   }
+
+  const shipper = getTruckById(state, contract.shipperId);
+  const shipperCompany = getCompanyById(state, shipper.companyId);
+  shipperCompany.money += contract.payment;
 
   deleteContract(state, contract);
 
