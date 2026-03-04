@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import { IContract, IContractUnsafe } from "../entities/contract";
+import { IContract } from "../entities/contract";
 import { IBaseLocation } from "../entities/location";
 import { getResourceCount, RESOURCE_TYPE } from "../entities/storage";
 import { IWorldState } from "./state";
@@ -89,7 +89,7 @@ export const getContractString = (world: IWorld, contract: IContract) => {
   const owner = `Owner: ${highlight.yellow(contractCompany.name)}`;
   const dueIn = `Due in: ${highlight.yellow(contract.dueTicks + " ticks")}`;
 
-  return `| ${amountResource} | ${pickupDropoff} | ${owner} | ${dueIn}`;
+  return `| ${highlight.custom("███", contractCompany.color)} | ${amountResource} | ${pickupDropoff} | ${owner} | ${dueIn}`;
 };
 
 // .. UPDATE

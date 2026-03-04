@@ -1,4 +1,4 @@
-import { IContract, IContractUnsafe } from "../entities/contract";
+import { IContract } from "../entities/contract";
 import { IBaseLocation } from "../entities/location";
 import { IRecipe, RESOURCE_TYPE } from "../entities/storage";
 import { ITruck } from "../entities/truck";

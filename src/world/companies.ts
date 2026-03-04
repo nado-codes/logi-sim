@@ -1,7 +1,7 @@
 import { ICompany, ICompanyEntity } from "../entities/company";
 import { createBaseEntity, createNamedEntity } from "../entities";
 import { IWorldState } from "./state";
-import { Color } from "../logUtils";
+import { Color, highlight } from "../logUtils";
 
 // .. CREATE
 export const createCompany = (
@@ -38,4 +38,8 @@ export const getCompanyById = (state: IWorldState, id: string) => {
   }
 
   return company;
+};
+
+export const getCompanyString = (company: ICompany) => {
+  return `Name: ${highlight.yellow(company.name)} | Money: ${highlight.yellow(company.money + "")} | Color: ${highlight.custom("███", company.color)}`;
 };

@@ -4,6 +4,7 @@ import { IWorld } from "../world/world";
 import { getTruckString } from "../world/trucks";
 import { logWarning } from "../logUtils";
 import { getLocationString } from "../world/locations/locations";
+import { getCompanyString } from "../world/companies";
 
 export const createPage = (
   title: string,
@@ -40,18 +41,18 @@ export const createManageTrucksPage = (world: IWorld): IMenuPage => {
   });
 };
 
-export const createManageLocationsPage = (world: IWorld): IMenuPage => {
-  return createPage("Manage Locations", false, [], () => {
-    const availableLocations = world.getLocations();
+export const createManageCompaniesPage = (world: IWorld): IMenuPage => {
+  return createPage("Manage Companies", false, [], () => {
+    const companies = world.getCompanies();
 
-    if (availableLocations.length === 0) {
-      logWarning(` - There are no locations available`);
+    if (companies.length === 0) {
+      logWarning(` - There are no companies available`);
       return;
     }
 
-    console.log(`\nAvailable locations: ${availableLocations.length}`);
-    availableLocations.forEach((l, i) => {
-      console.log(` - [${i}] ${getLocationString(l)}`);
+    console.log(`\nAvailable companies: ${companies.length}`);
+    companies.forEach((c, i) => {
+      console.log(` - [${i}] ${getCompanyString(c)}`);
     });
   });
 };

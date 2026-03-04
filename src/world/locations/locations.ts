@@ -87,7 +87,7 @@ export const getLocationByPositionOrNull = (
   return location;
 };
 
-export const getLocationString = (location: IBaseLocation) => {
+export const getLocationString = (world: IWorld, location: IBaseLocation) => {
   const locationString = `Position: ${highlight.yellow(location.position + "")}`;
 
   const inputs = Object.entries(location.recipe.inputs ?? []).map(
@@ -102,7 +102,9 @@ export const getLocationString = (location: IBaseLocation) => {
   const outputsString =
     outputs.length > 0 ? outputs.join(",") : highlight.yellow("None");
 
-  return `| ${highlight.yellow(location.name)} | Inputs: ${inputsString} | Outputs: ${outputsString} | ${locationString}`;
+  const locationCompany = world.getCompanyById(location.companyId);
+
+  return `| ${highlight.custom("███", locationCompany.color)} | ${highlight.yellow(location.name)} | Inputs: ${inputsString} | Outputs: ${outputsString} | ${locationString}`;
 };
 
 // .. UPDATE

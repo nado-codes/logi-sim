@@ -11,11 +11,16 @@ logInfo("LogiSim v0.3.1");
 // .. BUILD THE WORLD
 const world = createWorld();
 
-const company = world.createCompany("NadoCo Logistics", 100000, Color.Cyan);
-world.createProducer("Farm", company.id, 10, RESOURCE_TYPE.GRAIN, 5, 25);
+const stateCompany = world.createCompany("State", 1000000000, Color.Magenta);
+const playerCompany = world.createCompany(
+  "NadoCo Logistics",
+  100000,
+  Color.Cyan,
+);
+world.createProducer("Farm", stateCompany.id, 10, RESOURCE_TYPE.GRAIN, 5, 25);
 world.createProcessor(
   "Flour Mill",
-  company.id,
+  stateCompany.id,
   30, // .. position
   {
     inputs: {
@@ -29,9 +34,17 @@ world.createProcessor(
   50,
   25,
 );
-world.createConsumer("Town A", company.id, 50, RESOURCE_TYPE.FLOUR, 3, 5, 25);
-world.createTruck("Truck 1", company.id, RESOURCE_TYPE.GRAIN, 30, 10, 2);
-world.createTruck("Truck 2", company.id, RESOURCE_TYPE.FLOUR, 30, 30, 2);
+world.createConsumer(
+  "Town A",
+  stateCompany.id,
+  50,
+  RESOURCE_TYPE.FLOUR,
+  3,
+  5,
+  25,
+);
+world.createTruck("Truck 1", playerCompany.id, RESOURCE_TYPE.GRAIN, 30, 10, 2);
+world.createTruck("Truck 2", playerCompany.id, RESOURCE_TYPE.FLOUR, 30, 30, 2);
 
 const update = () => {
   world.updateProducers();
@@ -43,6 +56,6 @@ const update = () => {
   menu.show();
 };
 
-const menu = createMenu(update, world);
+const menu = createMenu(update, world, playerCompany);
 
 update();

@@ -84,7 +84,9 @@ export const getTruckString = (world: IWorld, truck: ITruck) => {
     : `Position: ${highlight.yellow(truck.position + "")}`;
   const contractString = `Contract: ${truckContract ? highlight.yellow(`${contractSupplier?.name}-->${contractDestination?.name}`) : highlight.yellow("None")}`;
 
-  return `| Carries: ${highlight.yellow(truck.storage.resourceType)} | ${locationString} | ${contractString}`;
+  const truckCompany = world.getCompanyById(truck.companyId);
+
+  return `| ${highlight.custom("███", truckCompany.color)} |Carries: ${highlight.yellow(truck.storage.resourceType)} | ${locationString} | ${contractString}`;
 };
 
 // .. UPDATE

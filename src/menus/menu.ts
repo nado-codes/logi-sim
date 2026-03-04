@@ -3,10 +3,13 @@ import readline from "readline";
 import { createWorld } from "../world/world";
 import {
   createPage,
-  createManageLocationsPage,
   createManageTrucksPage,
+  createManageCompaniesPage,
 } from "./pages";
 import { createManageContractsPage } from "./manageContracts";
+import { ICompany } from "../entities/company";
+import { getCompanyString } from "../world/companies";
+import { createManageLocationsPage } from "./manageLocations";
 
 export enum MenuItemType {
   Page,
@@ -38,6 +41,7 @@ export const logError = (errorMessage: string) => {
 export const createMenu = (
   callback: () => void,
   world: ReturnType<typeof createWorld>,
+  playerCompany: ICompany,
 ) => {
   const rl = readline.createInterface({
     input: process.stdin,
@@ -48,6 +52,7 @@ export const createMenu = (
     createManageContractsPage(world),
     createManageTrucksPage(world),
     createManageLocationsPage(world),
+    createManageCompaniesPage(world),
   ]);
 
   let prevPage: IMenuPage;
@@ -73,6 +78,9 @@ export const createMenu = (
     console.clear();
     console.log(`WORLD MAP:`);
     console.log(world.getMap());
+    console.log();
+    console.log(`COMPANY:`);
+    console.log(getCompanyString(playerCompany));
     console.log();
     console.log(`===${page.title.toUpperCase()}===`);
 
