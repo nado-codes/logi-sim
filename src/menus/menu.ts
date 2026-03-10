@@ -79,7 +79,7 @@ export const createMenu = (
     console.log(`WORLD MAP:`);
     console.log(world.getMap());
     console.log();
-    console.log(`COMPANY:`);
+    console.log(`YOUR COMPANY:`);
     console.log(getCompanyString(playerCompany));
     console.log();
     console.log(`===${page.title.toUpperCase()}===`);

@@ -9,9 +9,11 @@ export enum RESOURCE_TYPE {
 
 // RECIPES
 
+export type ResourceMap = Partial<Record<RESOURCE_TYPE, number>>;
+
 export interface IRecipe {
-  inputs?: Partial<Record<RESOURCE_TYPE, number>>;
-  outputs?: Partial<Record<RESOURCE_TYPE, number>>;
+  inputs?: ResourceMap;
+  outputs?: ResourceMap;
 }
 
 const notificationConfig = loadNotificationConfig();

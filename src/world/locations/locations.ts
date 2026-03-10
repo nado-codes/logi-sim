@@ -1,6 +1,9 @@
 import { createWorldEntity } from "../../entities";
 import { Nullable } from "../../entities/entity";
-import { IBaseLocation, LOCATION_TYPE } from "../../entities/location";
+import {
+  IBaseLocation,
+  LOCATION_TYPE,
+} from "../../entities/locations/location";
 import {
   getResourceStorage,
   IRecipe,
@@ -10,8 +13,8 @@ import {
 import { loadNotificationConfig } from "../../notifications";
 import { logWarning, logInfo, logError, highlight } from "../../logUtils";
 import { getContractByResource, createContract } from "../contracts";
-import { IWorldState } from "../state";
 import { IWorld } from "../world";
+import { IWorldState } from "../../entities/world";
 
 const notificationConfig = loadNotificationConfig();
 
@@ -21,7 +24,7 @@ export const createBaseLocation = (
   name: string,
   companyId: string,
   position: number,
-  storage: IStorage[] = [],
+  storage: IStorage[],
   recipe: IRecipe,
   type: LOCATION_TYPE,
 ): IBaseLocation => {
@@ -38,12 +41,7 @@ export const getLocationById = (
   state: IWorldState,
   id: string,
 ): IBaseLocation => {
-  const locations = [
-    ...state.producers,
-    ...state.processors,
-    ...state.consumers,
-  ];
-  const location = locations.find((l) => l.id === id);
+  const location = state.getLocations().find((l) => l.id === id);
 
   if (!location) {
     throw Error(`[CRITICAL SYSTEM ERROR] Location with id ${id} doesn't exist`);
@@ -56,33 +54,18 @@ export const getLocationByIdOrNull = (
   state: IWorldState,
   id: Nullable<string>,
 ): Nullable<IBaseLocation> => {
-  const locations = [
-    ...state.producers,
-    ...state.processors,
-    ...state.consumers,
-  ];
-  const location = locations.find((l) => l.id === id);
+  const location = state.getLocations().find((l) => l.id === id);
 
   return location;
 };
 
 // .. READ
 
-export const getLocations = (state: IWorldState) => {
-  const locations = [
-    ...state.producers,
-    ...state.processors,
-    ...state.consumers,
-  ];
-
-  return locations;
-};
-
 export const getLocationByPositionOrNull = (
   state: IWorldState,
   position: number,
 ) => {
-  const location = getLocations(state).find((l) => l.position === position);
+  const location = state.getLocations().find((l) => l.position === position);
 
   return location;
 };
@@ -143,11 +126,7 @@ export const replenishInputStorage = (
               `[LOCATION INFO] ${location.name} is searching for a supplier...`,
             );
           }
-          const suppliers = [
-            ...state.consumers,
-            ...state.processors,
-            ...state.producers,
-          ].filter((s) => {
+          const suppliers = state.getLocations().filter((s) => {
             const hasResources = s.storage.some(
               (st) => st.resourceType === resourceType && st.resourceCount > 0,
             );

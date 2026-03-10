@@ -1,7 +1,7 @@
 import { ICompany, ICompanyEntity } from "../entities/company";
 import { createBaseEntity, createNamedEntity } from "../entities";
-import { IWorldState } from "./state";
 import { Color, highlight } from "../logUtils";
+import { IWorldState } from "../entities/world";
 
 // .. CREATE
 export const createCompany = (

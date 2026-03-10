@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import { IProcessor, LOCATION_TYPE } from "../../entities/location";
+import { IProcessor, LOCATION_TYPE } from "../../entities/locations/location";
 import {
   createRecipeStorage,
   getInputStorage,
@@ -9,12 +9,12 @@ import {
   processRecipe,
   RESOURCE_TYPE,
 } from "../../entities/storage";
-import { replenishInputStorage } from "./locations";
+import { createBaseLocation, replenishInputStorage } from "./locations";
 import { completeContract, getContractByResource } from "../contracts";
-import { IWorldState } from "../state";
 import { loadNotificationConfig } from "../../notifications";
 import { logWarning, logSuccess } from "../../logUtils";
 import { generateId } from "../../entities/entity";
+import { IWorldState } from "../../entities/world";
 
 const notificationConfig = loadNotificationConfig();
 
@@ -50,13 +50,14 @@ export const createProcessor = (
   );
 
   const newProcessor: IProcessor = {
-    id: generateId(),
-    name,
-    companyId,
-    type: LOCATION_TYPE.PROCESSOR,
-    position,
-    storage,
-    recipe,
+    ...createBaseLocation(
+      name,
+      companyId,
+      position,
+      storage,
+      recipe,
+      LOCATION_TYPE.PROCESSOR,
+    ),
     minInputThreshold,
   };
 

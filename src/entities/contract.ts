@@ -8,5 +8,6 @@ export interface IContract extends ICompanyEntity {
   resourceType: RESOURCE_TYPE;
   amount: number;
   payment: number;
-  dueTicks: number;
+  expectedTick: number;
+  deliveredTick?: number;
 }

@@ -4,13 +4,13 @@ import {
   transferResources,
 } from "../entities/storage";
 import { ITruck } from "../entities/truck";
-import { IWorldState } from "./state";
 import { loadNotificationConfig } from "../notifications";
 import { completeContract, getContractByIdOrNull } from "./contracts";
 import { logSuccess, logInfo, highlight } from "../logUtils";
 import { IWorld } from "./world";
 import { createCompanyEntity } from "./companies";
 import { getLocationByIdOrNull } from "./locations/locations";
+import { IWorldState } from "../entities/world";
 
 const notificationConfig = loadNotificationConfig();
 

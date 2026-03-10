@@ -1,11 +1,13 @@
-import { ICompanyEntity } from "./company";
-import { IWorldEntity } from "./entity";
-import { IRecipe, IStorage } from "./storage";
+import { ICompanyEntity } from "../company";
+import { IWorldEntity } from "../entity";
+import { IRecipe, IStorage } from "../storage";
+import { IBaseConsumer } from "./consumer";
 
 export enum LOCATION_TYPE {
   PRODUCER = "Producer",
   PROCESSOR = "Processor",
   CONSUMER = "Consumer",
+  TOWN = "Town",
 }
 
 export interface IBaseLocation extends ICompanyEntity, IWorldEntity {
@@ -24,8 +26,4 @@ export interface IProcessor extends IBaseLocation {
   minInputThreshold: number; // stock level that triggers input contract
 }
 
-export interface IConsumer extends IBaseLocation {
-  minInputThreshold: number; // stock level that triggers delivery contract
-}
-
-export type WorldLocation = IProducer | IProcessor | IConsumer;
+export type WorldLocation = IProducer | IProcessor | IBaseConsumer;

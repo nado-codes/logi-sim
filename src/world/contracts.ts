@@ -1,8 +1,5 @@
-import { randomUUID } from "crypto";
 import { IContract } from "../entities/contract";
-import { IBaseLocation } from "../entities/location";
 import { getResourceCount, RESOURCE_TYPE } from "../entities/storage";
-import { IWorldState } from "./state";
 import { loadNotificationConfig } from "../notifications";
 import { ITruck } from "../entities/truck";
 import {
@@ -17,6 +14,7 @@ import { getLocationById } from "./locations/locations";
 import { getTruckById } from "./trucks";
 import { IWorld } from "./world";
 import { Nullable } from "../entities/entity";
+import { IWorldState } from "../entities/world";
 
 const notificationConfig = loadNotificationConfig();
 
@@ -39,7 +37,7 @@ export const createContract = (
     resourceType,
     amount,
     payment,
-    dueTicks,
+    expectedTick: state.currentTick + dueTicks,
   };
 
   state.contracts.push(newContract);
@@ -60,9 +58,7 @@ export const getContractByLocationIdOrNull = (
   state: IWorldState,
   locationId: Nullable<string>,
 ) => {
-  const contract = state.contracts.find(
-    (c) => c.destinationId === locationId || c.supplierId === locationId,
-  );
+  const contract = state.contracts.find((c) => c.destinationId === locationId);
 
   return contract;
 };
@@ -87,7 +83,7 @@ export const getContractString = (world: IWorld, contract: IContract) => {
   );
   const pickupDropoff = `Pickup: ${highlight.yellow(contractSupplier.name)} | Drop-off: ${highlight.yellow(contractDestination.name)}`;
   const owner = `Owner: ${highlight.yellow(contractCompany.name)}`;
-  const dueIn = `Due in: ${highlight.yellow(contract.dueTicks + " ticks")}`;
+  const dueIn = `Due in: ${highlight.yellow(contract.expectedTick - world.getCurrentTick() + " ticks")}`;
 
   return `| ${highlight.custom("███", contractCompany.color)} | ${amountResource} | ${pickupDropoff} | ${owner} | ${dueIn}`;
 };
@@ -109,18 +105,18 @@ export const updateContracts = (state: IWorldState) => {
       throw Error(`[CRITICAL CONTRACT ERROR] A contract must have a supplier`);
     }
 
-    if (contract.dueTicks > 0) {
-      if (contract.dueTicks - 1 <= 0) {
+    const contractDueTicks = contract.expectedTick - state.currentTick;
+
+    if (contractDueTicks > 0) {
+      if (contractDueTicks - 1 <= 0) {
         if (notificationConfig.showContractNotifications) {
           logWarning(`Contract ${contract.id} has expired`);
         }
         // .. impose some sort of penalty on the shipper if they fail to deliver?
       } else {
-        contract.dueTicks--;
-
         if (notificationConfig.showContractNotifications) {
           logInfo(
-            `Contract ${contract.id} is due in ${contract.dueTicks} ticks`,
+            `Contract ${contract.id} is due in ${contractDueTicks} ticks`,
           );
         }
       }

@@ -1,3 +1,5 @@
+import { ITown } from "../entities/locations/consumer";
+import { LOCATION_TYPE } from "../entities/locations/location";
 import { logWarning, logError, highlight } from "../logUtils";
 import { getLocationString } from "../world/locations/locations";
 import { getTruckString } from "../world/trucks";
@@ -84,6 +86,16 @@ export const createManageLocationsPage = (world: IWorld): IMenuPage => {
               }
             }
           });
+        }
+
+        if (location.type === LOCATION_TYPE.TOWN) {
+          const town = location as ITown;
+          console.log(
+            ` - Population: ${highlight.yellow(town.population + "")}`,
+          );
+          console.log(
+            ` - Confidence: ${highlight.yellow(town.confidence + "")}`,
+          );
         }
 
         // .. show info about the location

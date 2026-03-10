@@ -2,6 +2,7 @@ import { RESOURCE_TYPE } from "./entities/storage";
 import { createWorld } from "./world/world";
 import { createMenu } from "./menus/menu";
 import { Color, logInfo } from "./logUtils";
+import { TownTier } from "./entities/locations/consumer";
 
 logInfo("Logi sim starting...");
 logInfo("LogiSim v0.3.1");
@@ -17,11 +18,11 @@ const playerCompany = world.createCompany(
   100000,
   Color.Cyan,
 );
-world.createProducer("Farm", stateCompany.id, 10, RESOURCE_TYPE.GRAIN, 5, 25);
+world.createProducer("Farm", stateCompany.id, 0, RESOURCE_TYPE.GRAIN, 5, 25);
 world.createProcessor(
   "Flour Mill",
   stateCompany.id,
-  30, // .. position
+  15, // .. position
   {
     inputs: {
       [RESOURCE_TYPE.GRAIN]: 6,
@@ -34,22 +35,16 @@ world.createProcessor(
   50,
   25,
 );
-world.createConsumer(
-  "Town A",
-  stateCompany.id,
-  50,
-  RESOURCE_TYPE.FLOUR,
-  3,
-  5,
-  25,
-);
-world.createTruck("Truck 1", playerCompany.id, RESOURCE_TYPE.GRAIN, 30, 10, 2);
-world.createTruck("Truck 2", playerCompany.id, RESOURCE_TYPE.FLOUR, 30, 30, 2);
+world.createTown("Town A", stateCompany.id, 45, TownTier.TierOne);
+world.createTruck("Truck 1", playerCompany.id, RESOURCE_TYPE.GRAIN, 30, 0, 2);
+world.createTruck("Truck 2", playerCompany.id, RESOURCE_TYPE.FLOUR, 30, 15, 2);
 
 const update = () => {
+  world.advanceTick();
+
   world.updateProducers();
   world.updateProcessors();
-  world.updateConsumers();
+  world.updateTowns();
   world.updateContracts();
   world.updateTrucks();
 

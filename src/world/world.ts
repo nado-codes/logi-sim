@@ -1,8 +1,7 @@
 import { IContract } from "../entities/contract";
-import { IBaseLocation } from "../entities/location";
+import { IBaseLocation, LOCATION_TYPE } from "../entities/locations/location";
 import { IRecipe, RESOURCE_TYPE } from "../entities/storage";
 import { ITruck } from "../entities/truck";
-import { createConsumer, updateConsumers } from "./locations/consumers";
 import {
   createContract,
   getContractByIdOrNull,
@@ -13,11 +12,9 @@ import {
   getLocationById,
   getLocationByIdOrNull,
   getLocationByPositionOrNull,
-  getLocations,
 } from "./locations/locations";
 import { createProcessor, updateProcessors } from "./locations/processors";
 import { createProducer, updateProducers } from "./locations/producers";
-import { IWorldState, createInitialState } from "./state";
 import {
   createTruck,
   getTruckById,
@@ -29,15 +26,20 @@ import { ICompany } from "../entities/company";
 import { createCompany, getCompanyById } from "./companies";
 import { Color, highlight } from "../logUtils";
 import { Nullable } from "../entities/entity";
+import { createTown, updateTowns } from "./locations/consumers/towns";
+import { TownTier } from "../entities/locations/consumer";
+import { IWorldState } from "../entities/world";
 
 export interface IWorld {
+  advanceTick: () => void;
   updateProcessors: () => void;
-  updateConsumers: () => void;
+  updateTowns: () => void;
   updateProducers: () => void;
   updateContracts: () => void;
   updateTrucks: () => void;
 
   getMap: () => void;
+  getCurrentTick: () => number;
 
   getContracts: () => IContract[];
   getContractByIdOrNull: (id: Nullable<string>) => Nullable<IContract>;
@@ -80,14 +82,11 @@ export interface IWorld {
     startWithFullOutputs?: boolean,
   ) => void;
 
-  createConsumer: (
+  createTown: (
     name: string,
     companyId: string,
     position: number,
-    consumes: RESOURCE_TYPE,
-    consumptionRate: number,
-    minStockThreshold: number,
-    maxStock: number,
+    tier: TownTier,
     startFull?: boolean,
   ) => void;
 
@@ -112,11 +111,32 @@ export interface IWorld {
   ) => void;
 }
 
+const createInitialState = (): IWorldState => {
+  const state = {
+    currentTick: 0,
+    producers: [],
+    processors: [],
+    towns: [],
+    contracts: [],
+    trucks: [],
+    companies: [],
+  };
+
+  return {
+    ...state,
+    getLocations: () => [
+      ...state.producers,
+      ...state.processors,
+      ...state.towns,
+    ],
+  };
+};
+
 export const createWorld = (): IWorld => {
   const state: IWorldState = createInitialState();
 
   const getMap = () => {
-    const locations = getLocations(state);
+    const locations = state.getLocations();
 
     const worldPositions = [
       ...locations.map((l) => l.position),
@@ -135,15 +155,15 @@ export const createWorld = (): IWorld => {
           Producer: "PRD",
           Processor: "PRC",
           Consumer: "CNS",
+          Town: "TWN",
         };
         const tag = tagMap[locationAtPos.type];
-        const hasContract =
-          getContractByLocationIdOrNull(state, locationAtPos.id) !== undefined;
-        const notificationTag = hasContract ? highlight.red("!") : "";
+        const contract = getContractByLocationIdOrNull(state, locationAtPos.id);
+        const notificationTag = contract ? highlight.red(`[!]`) : "";
 
         const locationCompany = getCompanyById(state, locationAtPos.companyId);
 
-        map += `${highlight.custom(`[${tag}${notificationTag}]`, locationCompany.color)}`;
+        map += `${notificationTag ? `${notificationTag}` : ""}${highlight.custom(`[${tag}]`, locationCompany.color)}`;
       } else if (truckAtPos) {
         const hasResources = truckAtPos.storage.resourceCount > 0;
         const truckCompany = getCompanyById(state, truckAtPos.companyId);
@@ -158,13 +178,15 @@ export const createWorld = (): IWorld => {
   };
 
   return {
+    advanceTick: () => state.currentTick++,
     updateProcessors: () => updateProcessors(state),
-    updateConsumers: () => updateConsumers(state),
+    updateTowns: () => updateTowns(state),
     updateProducers: () => updateProducers(state),
     updateContracts: () => updateContracts(state),
     updateTrucks: () => updateTrucks(state),
 
     getMap: () => getMap(),
+    getCurrentTick: () => state.currentTick,
 
     getContracts: () => state.contracts,
     getContractByIdOrNull: (id: string | undefined) =>
@@ -177,7 +199,7 @@ export const createWorld = (): IWorld => {
     getTruckByPositionOrNull: (position: number) =>
       getTruckByPositionOrNull(state, position),
 
-    getLocations: () => getLocations(state),
+    getLocations: () => state.getLocations(),
     getLocationById: (id: string) => getLocationById(state, id),
     getLocationByIdOrNull: (id: Nullable<string>) =>
       getLocationByIdOrNull(state, id),
@@ -232,27 +254,13 @@ export const createWorld = (): IWorld => {
         startWithFullOutputs,
       ),
 
-    createConsumer: (
+    createTown: (
       name: string,
       companyId: string,
       position: number,
-      consumes: RESOURCE_TYPE,
-      consumptionRate: number,
-      minStockThreshold: number,
-      maxStock: number,
+      tier: TownTier,
       startFull: boolean = false,
-    ) =>
-      createConsumer(
-        state,
-        name,
-        companyId,
-        position,
-        consumes,
-        consumptionRate,
-        minStockThreshold,
-        maxStock,
-        startFull,
-      ),
+    ) => createTown(state, name, companyId, position, tier, startFull),
 
     createContract: (
       companyId: string,

@@ -1,6 +1,6 @@
 import { ICompanyEntity } from "./company";
 import { IWorldEntity } from "./entity";
-import { IBaseLocation } from "./location";
+import { IBaseLocation } from "./locations/location";
 import { IStorage } from "./storage";
 
 export interface ITruck extends IWorldEntity, ICompanyEntity {
