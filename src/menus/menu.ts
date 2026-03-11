@@ -10,6 +10,7 @@ import { createManageContractsPage } from "./manageContracts";
 import { ICompany } from "../entities/company";
 import { getCompanyString } from "../world/companies";
 import { createManageLocationsPage } from "./manageLocations";
+import { highlight } from "../logUtils";
 
 export enum MenuItemType {
   Page,
@@ -24,6 +25,7 @@ interface IMenuItemBase {
 export interface IMenuPage extends IMenuItemBase {
   title: string;
   items: IMenuItem[];
+  isRoot: boolean;
   customRender?: () => void;
 }
 
@@ -76,7 +78,9 @@ export const createMenu = (
 
   const renderPage = (page: IMenuPage, errorMessage?: string) => {
     console.clear();
-    console.log(`WORLD MAP:`);
+    console.log(
+      `WORLD MAP (Tick: ${highlight.yellow(world.getCurrentTick() + "")}):`,
+    );
     console.log(world.getMap());
     console.log();
     console.log(`YOUR COMPANY:`);
@@ -98,7 +102,14 @@ export const createMenu = (
     if (errorMessage) {
       logError(errorMessage);
     }
-    console.log("Enter a number corresponding to one of the above options");
+
+    if (!activePage.isRoot) {
+      console.log("Enter a number corresponding to one of the above options");
+    } else {
+      console.log(
+        "Enter a number corresponding to one of the above options or press enter to advance tick",
+      );
+    }
   };
 
   const executeAction = (action: IMenuAction, args: any) => {
@@ -156,9 +167,11 @@ export const createMenu = (
           renderPage(activePage, `"${command}" is not a valid option`);
           waitForInput();
         }
-      } else {
+      } else if (!activePage.isRoot) {
         renderPage(activePage, `Please choose an option`);
         waitForInput();
+      } else {
+        finish();
       }
     });
   };

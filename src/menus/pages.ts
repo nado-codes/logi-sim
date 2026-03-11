@@ -11,19 +11,25 @@ export const createPage = (
   isRoot: boolean,
   items: IMenuItem[],
   customRender?: () => void,
-): IMenuPage => ({
-  title,
-  type: MenuItemType.Page,
-  items: [
-    ...items,
-    {
-      title: isRoot === true ? "Skip" : "Back",
+): IMenuPage => {
+  let _items = items;
+
+  if (!isRoot) {
+    _items.push({
+      title: "Back",
       type: MenuItemType.Action,
       action: () => true,
-    },
-  ],
-  customRender,
-});
+    });
+  }
+
+  return {
+    title,
+    type: MenuItemType.Page,
+    items: _items,
+    isRoot,
+    customRender,
+  };
+};
 
 export const createManageTrucksPage = (world: IWorld): IMenuPage => {
   return createPage("Manage Trucks", false, [], () => {

@@ -2,7 +2,6 @@ import { ITown } from "../entities/locations/consumer";
 import { LOCATION_TYPE } from "../entities/locations/location";
 import { logWarning, logError, highlight } from "../logUtils";
 import { getLocationString } from "../world/locations/locations";
-import { getTruckString } from "../world/trucks";
 import { IWorld } from "../world/world";
 import { IMenuPage, IMenuAction, MenuItemType } from "./menu";
 import { createPage } from "./pages";
@@ -33,6 +32,17 @@ export const createManageLocationsPage = (world: IWorld): IMenuPage => {
       }
 
       return createPage(`${location.name}`, false, [], () => {
+        if (location.type === LOCATION_TYPE.TOWN) {
+          const town = location as ITown;
+          console.log(
+            ` - Population: ${highlight.yellow(town.population + "")}`,
+          );
+
+          console.log(
+            ` - Confidence: ${highlight.yellow(town.confidence + "")}`,
+          );
+        }
+
         console.log(" - Storage: ");
 
         location.storage.forEach((s) => {
@@ -41,19 +51,19 @@ export const createManageLocationsPage = (world: IWorld): IMenuPage => {
           );
         });
 
-        const contracts = world
+        const activeContracts = world
           .getContracts()
           .filter(
             (c) =>
               c.supplierId === location.id || c.destinationId === location.id,
           );
 
-        console.log(" - Contracts: ");
+        console.log(" - Active Contracts: ");
 
-        if (contracts.length <= 0) {
+        if (activeContracts.length <= 0) {
           console.log(`  - ${highlight.yellow("None")}`);
         } else {
-          contracts.forEach((c) => {
+          activeContracts.forEach((c) => {
             if (c.supplierId === location.id) {
               const contractDestination = world.getLocationById(
                 c.destinationId,
@@ -86,16 +96,6 @@ export const createManageLocationsPage = (world: IWorld): IMenuPage => {
               }
             }
           });
-        }
-
-        if (location.type === LOCATION_TYPE.TOWN) {
-          const town = location as ITown;
-          console.log(
-            ` - Population: ${highlight.yellow(town.population + "")}`,
-          );
-          console.log(
-            ` - Confidence: ${highlight.yellow(town.confidence + "")}`,
-          );
         }
 
         // .. show info about the location

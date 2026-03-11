@@ -165,6 +165,9 @@ export const replenishInputStorage = (
             }
           } else {
             // .. if there's literally NO STOCK left, we need to create an URGENT contract (due sooner, more needs to be transported)
+            const truckSpeed = 2;
+            const dueTicks = closestDistance / truckSpeed;
+
             createContract(
               state,
               location.companyId,
@@ -173,7 +176,7 @@ export const replenishInputStorage = (
               inputStorage[0].resourceType,
               Math.ceil((minInputThreshold ?? requiredAmount) * 1.5),
               100,
-              10,
+              dueTicks,
             );
           }
         } else if (!contract.shipperId) {

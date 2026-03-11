@@ -27,7 +27,7 @@ import { createCompany, getCompanyById } from "./companies";
 import { Color, highlight } from "../logUtils";
 import { Nullable } from "../entities/entity";
 import { createTown, updateTowns } from "./locations/consumers/towns";
-import { TownTier } from "../entities/locations/consumer";
+import { ITown, TownTier } from "../entities/locations/consumer";
 import { IWorldState } from "../entities/world";
 
 export interface IWorld {
@@ -118,6 +118,7 @@ const createInitialState = (): IWorldState => {
     processors: [],
     towns: [],
     contracts: [],
+    contractHistory: [],
     trucks: [],
     companies: [],
   };
@@ -145,6 +146,7 @@ export const createWorld = (): IWorld => {
     const maxPosition = worldPositions.reduce((a, c) => Math.max(a, c));
 
     let map = "";
+    let spaces = 0;
 
     for (var pos = 0; pos <= maxPosition; pos++) {
       const locationAtPos = getLocationByPositionOrNull(state, pos);
@@ -163,14 +165,27 @@ export const createWorld = (): IWorld => {
 
         const locationCompany = getCompanyById(state, locationAtPos.companyId);
 
-        map += `${notificationTag ? `${notificationTag}` : ""}${highlight.custom(`[${tag}]`, locationCompany.color)}`;
+        const locationTag = `${notificationTag ? `${notificationTag}` : ""}${highlight.custom(`[${tag}]`, locationCompany.color)}`;
+        const locationDebug = `${locationAtPos.debugMessage ? highlight.yellow("[" + locationAtPos.debugMessage + "]") : ""}`;
+
+        map += locationTag + locationDebug;
+        spaces +=
+          5 + (locationAtPos.debugMessage?.length ?? 0) + (contract ? 3 : 0);
       } else if (truckAtPos) {
         const hasResources = truckAtPos.storage.resourceCount > 0;
         const truckCompany = getCompanyById(state, truckAtPos.companyId);
+        const truckTag = `${highlight.custom(`[T${hasResources ? highlight.green("o") : ""}]`, truckCompany.color)}`;
+        const truckDebug = `${truckAtPos.debugMessage ? highlight.yellow("[" + truckAtPos.debugMessage + "]") : ""}`;
 
-        map += `${highlight.custom(`[T${hasResources ? highlight.green("o") : ""}]`, truckCompany.color)}`;
-      } else {
+        map += truckTag + truckDebug;
+        spaces +=
+          3 + (hasResources ? 1 : 0) + (truckAtPos.debugMessage?.length ?? 0);
+      } else if (spaces <= 0) {
         map += "_";
+      }
+
+      if (spaces > 0) {
+        spaces--;
       }
     }
 

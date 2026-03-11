@@ -10,6 +10,7 @@ export interface IWorldState {
   processors: IProcessor[];
   towns: ITown[];
   contracts: IContract[];
+  contractHistory: IContract[];
   trucks: ITruck[];
   companies: ICompany[];
   getLocations: () => IBaseLocation[];

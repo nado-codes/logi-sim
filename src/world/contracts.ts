@@ -155,8 +155,8 @@ export const assignContract = (contract: IContract, shipper: ITruck) => {
   return true;
 };
 
-// .. DELETE
-export const deleteContract = (state: IWorldState, contract: IContract) => {
+export const archiveContract = (state: IWorldState, contract: IContract) => {
+  state.contractHistory.push(contract);
   state.contracts = state.contracts.filter((c) => c.id !== contract.id);
 };
 
@@ -200,7 +200,8 @@ export const completeContract = (state: IWorldState, contract: IContract) => {
   const shipperCompany = getCompanyById(state, shipper.companyId);
   shipperCompany.money += contract.payment;
 
-  deleteContract(state, contract);
+  contract.deliveredTick = state.currentTick;
+  archiveContract(state, contract);
 
   return true;
 };
