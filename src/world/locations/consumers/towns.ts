@@ -1,10 +1,48 @@
-import { IContract } from "../../../entities/contract";
 import { ITown, TownTier } from "../../../entities/locations/consumer";
 import { LOCATION_TYPE } from "../../../entities/locations/location";
-import { ResourceMap } from "../../../entities/storage";
+import { RESOURCE_TYPE, ResourceMap } from "../../../entities/storage";
 import { IWorldState } from "../../../entities/world";
-import { getContractByLocationIdOrNull } from "../../contracts";
+import {
+  getContractByIdOrNull,
+  getContractByLocationIdOrNull,
+  getContractByResource,
+  getContractString,
+} from "../../contracts";
 import { createBaseConsumer, updateBaseConsumer } from "./consumers";
+import { loadConfig } from "../../../utils/configUtils";
+
+interface TownConfig {
+  populationGrowthThreshold: number;
+  confidenceWarningThreshold: number;
+  confidenceCriticalThreshold: number;
+  baselinePopulation: number;
+  baselineConfidence: number;
+  populationScalingExponent: number;
+  basePopulationGrowthRate: number;
+  criticalDeclineRate: number;
+  warningDeclineRate: number;
+  minorConfidenceChange: number;
+  majorConfidenceChange: number;
+  catastrophicConfidenceChange: number;
+}
+
+const CONFIG_PATH = "./town-config.json";
+const defaultConfig: TownConfig = {
+  populationGrowthThreshold: 70,
+  confidenceWarningThreshold: 50,
+  confidenceCriticalThreshold: 20,
+  baselinePopulation: 100,
+  baselineConfidence: 50,
+  populationScalingExponent: 0.5, // .. 0.5 = square-root scaling
+  basePopulationGrowthRate: 0.005,
+  criticalDeclineRate: 0.05,
+  warningDeclineRate: 0.01,
+  minorConfidenceChange: 1,
+  majorConfidenceChange: 3,
+  catastrophicConfidenceChange: 5,
+};
+
+const townConfig = loadConfig(CONFIG_PATH, defaultConfig);
 
 export const createTown = (
   state: IWorldState,
@@ -28,7 +66,6 @@ export const createTown = (
   };
   const minInputThreshold = 12;
   const maxStock = 50;
-  const population = 100;
 
   const newTown = {
     ...createBaseConsumer(
@@ -43,69 +80,11 @@ export const createTown = (
     ),
     type: LOCATION_TYPE.TOWN,
     minInputThreshold,
-    confidence: 50,
-    population,
+    confidence: townConfig.baselineConfidence,
+    population: townConfig.baselinePopulation,
   };
 
   state.towns.push(newTown);
-};
-
-const updateTownPopulation = (town: ITown) => {
-  // THRESHOLDS (Predictable structure)
-  const populationGrowthThreshold = 70; // Confidence needed for growth
-  const confidenceWarningThreshold = 50; // Below this: warning decline
-  const confidenceCriticalThreshold = 20; // Below this: critical decline
-
-  // SCALING (Controlled tension)
-  const baselinePopulation = 1000; // Population where multiplier = 1.0
-  const populationScalingExponent = 0.5; // Square root scaling
-  const scaleGrowth = true; // Apply scaling to growth
-  const scaleDecline = false; // DON'T scale decline (asymmetric)
-
-  // RATES (as decimals representing percentages)
-  const basePopulationGrowthRate = 0.005; // 0.5% per tick
-  const criticalDeclineRate = 0.05; // 5% per tick
-  const warningDeclineRate = 0.01; // 1% per tick
-
-  if (town.confidence >= populationGrowthThreshold) {
-    // GROWTH (scaled by √population)
-    const multiplier = scaleGrowth
-      ? Math.pow(
-          town.population / baselinePopulation,
-          populationScalingExponent,
-        )
-      : 1.0;
-
-    const growthRate = basePopulationGrowthRate * multiplier;
-    const gain = Math.max(town.population, 1) * growthRate;
-    town.population += gain;
-  } else if (town.confidence < confidenceCriticalThreshold) {
-    // CRITICAL DECLINE (optionally scaled)
-    const multiplier = scaleDecline
-      ? Math.pow(
-          town.population / baselinePopulation,
-          populationScalingExponent,
-        )
-      : 1.0;
-
-    const declineRate = criticalDeclineRate * multiplier;
-    const loss = town.population * declineRate;
-    town.population -= loss;
-  } else if (town.confidence < confidenceWarningThreshold) {
-    // WARNING DECLINE (optionally scaled)
-    const multiplier = scaleDecline
-      ? Math.pow(
-          town.population / baselinePopulation,
-          populationScalingExponent,
-        )
-      : 1.0;
-
-    const declineRate = warningDeclineRate * multiplier;
-    const loss = town.population * declineRate;
-    town.population -= loss;
-  }
-
-  town.population = Math.floor(town.population);
 };
 
 const updateTownConfidence = (state: IWorldState, town: ITown) => {
@@ -126,13 +105,13 @@ const updateTownConfidence = (state: IWorldState, town: ITown) => {
 
     if (lateTicks > 9) {
       // extremely late
-      confidenceChange -= 5; // Catastrophic damage
+      confidenceChange -= townConfig.catastrophicConfidenceChange; // Catastrophic damage
     } else if (lateTicks > 2) {
       // Very late
-      confidenceChange -= 3; // Major damage
+      confidenceChange -= townConfig.majorConfidenceChange; // Major damage
     } else if (lateTicks > 0) {
       // Slightly late
-      confidenceChange -= 1; // Minor damage
+      confidenceChange -= townConfig.minorConfidenceChange; // Minor damage
     }
   }
 
@@ -145,19 +124,19 @@ const updateTownConfidence = (state: IWorldState, town: ITown) => {
 
     if (lateTicks <= -2) {
       // Early delivery
-      confidenceChange += 2; // Positive reputation
+      confidenceChange += townConfig.majorConfidenceChange; // Positive reputation
     } else if (lateTicks <= 0) {
       // On-time delivery
-      confidenceChange += 1; // Good reputation
+      confidenceChange += townConfig.minorConfidenceChange; // Good reputation
     } else if (lateTicks <= 3) {
       // Slightly late
-      confidenceChange -= 1; // Minor damage
+      confidenceChange -= townConfig.minorConfidenceChange; // Minor damage
     } else if (lateTicks <= 10) {
       // Very late
-      confidenceChange -= 3; // Major damage
+      confidenceChange -= townConfig.majorConfidenceChange; // Major damage
     } else {
       // Expired/never delivered
-      confidenceChange -= 5; // Catastrophic damage
+      confidenceChange -= townConfig.catastrophicConfidenceChange; // Catastrophic damage
     }
   });
 
@@ -165,6 +144,10 @@ const updateTownConfidence = (state: IWorldState, town: ITown) => {
   const totalContractCount = recentContracts.length + (activeContract ? 1 : 0);
   const avgChange =
     confidenceChange / (totalContractCount > 0 ? totalContractCount : 1);
+
+  // Apply to confidence
+  town.confidence += avgChange;
+  town.confidence = Math.min(Math.max(0, town.confidence), 100);
 
   town.debugMessage =
     "AvgChg: " +
@@ -174,16 +157,52 @@ const updateTownConfidence = (state: IWorldState, town: ITown) => {
     ", C: " +
     town.confidence +
     "%";
+};
 
-  // Apply to confidence
-  town.confidence += avgChange;
-  town.confidence = Math.min(Math.max(0, town.confidence), 100);
+const updateTownPopulation = (state: IWorldState, town: ITown) => {
+  const multiplier = Math.pow(
+    town.population / townConfig.baselinePopulation,
+    townConfig.populationScalingExponent,
+  );
+
+  if (town.confidence >= townConfig.populationGrowthThreshold) {
+    const growthRate = townConfig.basePopulationGrowthRate * multiplier;
+    const gain = Math.max(town.population, 1) * growthRate;
+    town.population += gain;
+  } else if (town.confidence < townConfig.confidenceCriticalThreshold) {
+    const declineRate = townConfig.criticalDeclineRate * multiplier;
+    const loss = town.population * declineRate;
+    town.population -= loss;
+  } else if (town.confidence < townConfig.confidenceWarningThreshold) {
+    const declineRate = townConfig.warningDeclineRate * multiplier;
+    const loss = town.population * declineRate;
+    town.population -= loss;
+  }
+
+  town.population = Math.round(town.population);
+
+  // e.g. 1 flour serves 10 (population-to-resource (PTR) ratio 1:10)
+  const townInputs: ResourceMap = town.recipe.inputs ?? {};
+  (Object.keys(townInputs ?? {}) as RESOURCE_TYPE[]).forEach((resourceType) => {
+    townInputs[resourceType] = Math.floor(town.population / 10);
+
+    const activeContract = getContractByResource(state, town.id, resourceType);
+
+    if (activeContract) {
+      activeContract.amount = townInputs[resourceType];
+    }
+  });
 };
 
 export const updateTowns = (state: IWorldState) => {
   state.towns.forEach((town) => {
     updateBaseConsumer(state, town);
     updateTownConfidence(state, town);
-    updateTownPopulation(town);
+    updateTownPopulation(state, town);
+
+    const activeContract = getContractByLocationIdOrNull(state, town.id);
+    if (activeContract) {
+      //town.debugMessage = getContractString(state, activeContract);
+    }
   });
 };

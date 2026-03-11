@@ -10,7 +10,12 @@ import {
   processRecipe,
 } from "../../entities/storage";
 import { loadNotificationConfig } from "../../notifications";
-import { logWarning, logSuccess, logError, logInfo } from "../../logUtils";
+import {
+  logWarning,
+  logSuccess,
+  logError,
+  logInfo,
+} from "../../utils/logUtils";
 import { generateId } from "../../entities/entity";
 import { createBaseLocation } from "./locations";
 import { IWorldState } from "../../entities/world";

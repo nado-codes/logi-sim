@@ -12,7 +12,7 @@ import {
 import { createBaseLocation, replenishInputStorage } from "./locations";
 import { completeContract, getContractByResource } from "../contracts";
 import { loadNotificationConfig } from "../../notifications";
-import { logWarning, logSuccess } from "../../logUtils";
+import { logWarning, logSuccess } from "../../utils/logUtils";
 import { generateId } from "../../entities/entity";
 import { IWorldState } from "../../entities/world";
 
@@ -128,7 +128,7 @@ export const updateProcessors = (state: IWorldState) => {
           );
         }
       } else {
-        replenishInputStorage(state, processor, processor.minInputThreshold);
+        replenishInputStorage(state, processor);
       }
     }
   });

@@ -1,5 +1,4 @@
-import * as fs from "fs";
-import path from "path";
+import { loadConfig } from "./utils/configUtils";
 
 export interface NotificationConfig {
   showStorageNotifications: boolean;
@@ -12,7 +11,7 @@ export interface NotificationConfig {
   showLocationNotifications: boolean;
 }
 
-const CONFIG_PATH = path.resolve("./notif-config.json");
+const CONFIG_PATH = "./notif-config.json";
 const defaultConfig: NotificationConfig = {
   showStorageNotifications: false,
   showProcessorNotifications: false,
@@ -24,15 +23,5 @@ const defaultConfig: NotificationConfig = {
   showLocationNotifications: false,
 };
 
-export const loadNotificationConfig = () => {
-  if (!fs.existsSync(CONFIG_PATH)) {
-    fs.writeFileSync(
-      CONFIG_PATH,
-      JSON.stringify(defaultConfig, null, 2),
-      "utf-8",
-    );
-  }
-
-  const config = fs.readFileSync(CONFIG_PATH, "utf-8");
-  return { ...defaultConfig, ...(JSON.parse(config) as NotificationConfig) };
-};
+export const loadNotificationConfig = () =>
+  loadConfig(CONFIG_PATH, defaultConfig);

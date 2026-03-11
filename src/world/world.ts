@@ -6,6 +6,7 @@ import {
   createContract,
   getContractByIdOrNull,
   getContractByLocationIdOrNull,
+  getContractString,
   updateContracts,
 } from "./contracts";
 import {
@@ -24,7 +25,7 @@ import {
 } from "./trucks";
 import { ICompany } from "../entities/company";
 import { createCompany, getCompanyById } from "./companies";
-import { Color, highlight } from "../logUtils";
+import { Color, highlight } from "../utils/logUtils";
 import { Nullable } from "../entities/entity";
 import { createTown, updateTowns } from "./locations/consumers/towns";
 import { ITown, TownTier } from "../entities/locations/consumer";
@@ -46,6 +47,7 @@ export interface IWorld {
   getContractByLocationIdOrNull: (
     locationId: Nullable<string>,
   ) => Nullable<IContract>;
+  getContractString: (contract: IContract) => string;
 
   getTrucks: () => ITruck[];
   getTruckById: (id: string) => ITruck;
@@ -208,6 +210,8 @@ export const createWorld = (): IWorld => {
       getContractByIdOrNull(state, id),
     getContractByLocationIdOrNull: (locationId: Nullable<string>) =>
       getContractByLocationIdOrNull(state, locationId),
+    getContractString: (contract: IContract) =>
+      getContractString(state, contract),
 
     getTrucks: () => state.trucks,
     getTruckById: (id: string) => getTruckById(state, id),

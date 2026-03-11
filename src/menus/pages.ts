@@ -2,7 +2,7 @@ import { MenuItemType, IMenuAction, IMenuPage, IMenuItem } from "./menu";
 
 import { IWorld } from "../world/world";
 import { getTruckString } from "../world/trucks";
-import { logWarning } from "../logUtils";
+import { logWarning } from "../utils/logUtils";
 import { getLocationString } from "../world/locations/locations";
 import { getCompanyString } from "../world/companies";
 

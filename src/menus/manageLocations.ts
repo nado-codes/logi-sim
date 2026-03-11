@@ -1,6 +1,6 @@
 import { ITown } from "../entities/locations/consumer";
 import { LOCATION_TYPE } from "../entities/locations/location";
-import { logWarning, logError, highlight } from "../logUtils";
+import { logWarning, logError, highlight } from "../utils/logUtils";
 import { getLocationString } from "../world/locations/locations";
 import { IWorld } from "../world/world";
 import { IMenuPage, IMenuAction, MenuItemType } from "./menu";

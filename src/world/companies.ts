@@ -1,6 +1,6 @@
 import { ICompany, ICompanyEntity } from "../entities/company";
 import { createBaseEntity, createNamedEntity } from "../entities";
-import { Color, highlight } from "../logUtils";
+import { Color, highlight } from "../utils/logUtils";
 import { IWorldState } from "../entities/world";
 
 // .. CREATE

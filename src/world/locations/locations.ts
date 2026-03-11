@@ -11,7 +11,7 @@ import {
   RESOURCE_TYPE,
 } from "../../entities/storage";
 import { loadNotificationConfig } from "../../notifications";
-import { logWarning, logInfo, logError, highlight } from "../../logUtils";
+import { logWarning, logInfo, logError, highlight } from "../../utils/logUtils";
 import { getContractByResource, createContract } from "../contracts";
 import { IWorld } from "../world";
 import { IWorldState } from "../../entities/world";
@@ -95,7 +95,6 @@ export const getLocationString = (world: IWorld, location: IBaseLocation) => {
 export const replenishInputStorage = (
   state: IWorldState,
   location: IBaseLocation,
-  minInputThreshold?: number,
 ) => {
   Object.entries(location.recipe.inputs ?? {}).map(
     ([resourceType, requiredAmount]) => {
@@ -113,7 +112,7 @@ export const replenishInputStorage = (
         resourceType as RESOURCE_TYPE,
       );
 
-      if (inputStorageCount < (minInputThreshold ?? requiredAmount)) {
+      if (inputStorageCount < requiredAmount) {
         if (!contract) {
           if (notificationConfig.showLocationNotifications) {
             logWarning(
@@ -174,7 +173,7 @@ export const replenishInputStorage = (
               location.id,
               closestSupplier.id,
               inputStorage[0].resourceType,
-              Math.ceil((minInputThreshold ?? requiredAmount) * 1.5),
+              Math.ceil(requiredAmount * 1.5),
               100,
               dueTicks,
             );

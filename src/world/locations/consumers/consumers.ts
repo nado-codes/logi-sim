@@ -46,8 +46,7 @@ export const updateBaseConsumer = (
   state: IWorldState,
   consumer: IBaseConsumer,
 ) => {
-  if (processRecipe(consumer.recipe, consumer.storage)) {
-  } else {
-    replenishInputStorage(state, consumer, consumer.minInputThreshold);
+  if (!processRecipe(consumer.recipe, consumer.storage)) {
+    replenishInputStorage(state, consumer);
   }
 };

@@ -1,0 +1,14 @@
+{
+  "populationGrowthThreshold": 70,
+  "confidenceWarningThreshold": 50,
+  "confidenceCriticalThreshold": 20,
+  "baselinePopulation": 100,
+  "baselineConfidence": 50,
+  "populationScalingExponent": 0.5,
+  "basePopulationGrowthRate": 0.005,
+  "criticalDeclineRate": 0.05,
+  "warningDeclineRate": 0.01,
+  "minorConfidenceChange": 1,
+  "majorConfidenceChange": 3,
+  "catastrophicConfidenceChange": 5
+}

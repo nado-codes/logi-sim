@@ -1,4 +1,4 @@
-import { logError, logSuccess, logWarning, highlight } from "../logUtils";
+import { logError, logSuccess, logWarning, highlight } from "../utils/logUtils";
 import { assignContract, getContractString } from "../world/contracts";
 import { getTruckString } from "../world/trucks";
 import { IWorld } from "../world/world";
@@ -137,7 +137,7 @@ export const createManageContractsPage = (world: IWorld): IMenuPage => {
 
       console.log(`\nAvailable contracts: ${availableContracts.length}`);
       availableContracts.forEach((c, i) => {
-        console.log(` - [${i}] ${getContractString(world, c)}`);
+        console.log(` - [${i}] ${world.getContractString(c)}`);
       });
 
       const availableTrucks = world

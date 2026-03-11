@@ -8,7 +8,7 @@ import {
   logInfo,
   logError,
   highlight,
-} from "../logUtils";
+} from "../utils/logUtils";
 import { createCompanyEntity, getCompanyById } from "./companies";
 import { getLocationById } from "./locations/locations";
 import { getTruckById } from "./trucks";
@@ -73,17 +73,17 @@ export const getContractByResource = (
   );
 };
 
-export const getContractString = (world: IWorld, contract: IContract) => {
-  const contractCompany = world.getCompanyById(contract.companyId);
-  const contractSupplier = world.getLocationById(contract.supplierId);
-  const contractDestination = world.getLocationById(contract.destinationId);
+export const getContractString = (state: IWorldState, contract: IContract) => {
+  const contractCompany = getCompanyById(state, contract.companyId);
+  const contractSupplier = getLocationById(state, contract.supplierId);
+  const contractDestination = getLocationById(state, contract.destinationId);
 
   const amountResource = highlight.yellow(
     contract.amount + " " + contract.resourceType,
   );
   const pickupDropoff = `Pickup: ${highlight.yellow(contractSupplier.name)} | Drop-off: ${highlight.yellow(contractDestination.name)}`;
   const owner = `Owner: ${highlight.yellow(contractCompany.name)}`;
-  const dueIn = `Due in: ${highlight.yellow(contract.expectedTick - world.getCurrentTick() + " ticks")}`;
+  const dueIn = `Due in: ${highlight.yellow(contract.expectedTick - state.currentTick + " ticks")}`;
 
   return `| ${highlight.custom("███", contractCompany.color)} | ${amountResource} | ${pickupDropoff} | ${owner} | ${dueIn}`;
 };

@@ -10,7 +10,7 @@ import { createManageContractsPage } from "./manageContracts";
 import { ICompany } from "../entities/company";
 import { getCompanyString } from "../world/companies";
 import { createManageLocationsPage } from "./manageLocations";
-import { highlight } from "../logUtils";
+import { highlight } from "../utils/logUtils";
 
 export enum MenuItemType {
   Page,

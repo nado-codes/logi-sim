@@ -1,4 +1,4 @@
-import { Color } from "../logUtils";
+import { Color } from "../utils/logUtils";
 import { IBaseEntity, INamedEntity } from "./entity";
 
 export interface ICompany extends INamedEntity {
