@@ -149,14 +149,14 @@ const updateTownConfidence = (state: IWorldState, town: ITown) => {
   town.confidence += avgChange;
   town.confidence = Math.min(Math.max(0, town.confidence), 100);
 
-  town.debugMessage =
+  /* town.debugMessage =
     "AvgChg: " +
     Math.floor(avgChange) +
     ", P: " +
     town.population +
     ", C: " +
     town.confidence +
-    "%";
+    "%";*/
 };
 
 const updateTownPopulation = (state: IWorldState, town: ITown) => {
@@ -185,13 +185,7 @@ const updateTownPopulation = (state: IWorldState, town: ITown) => {
   const townInputs: ResourceMap = town.recipe.inputs ?? {};
   (Object.keys(townInputs ?? {}) as RESOURCE_TYPE[]).forEach((resourceType) => {
     townInputs[resourceType] = Math.floor(town.population / 10);
-
-    const activeContract = getContractByResource(state, town.id, resourceType);
-
-    if (activeContract) {
-      activeContract.amount = townInputs[resourceType];
-    }
-  });
+  }); //
 };
 
 export const updateTowns = (state: IWorldState) => {

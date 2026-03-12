@@ -1,16 +1,16 @@
 import { RESOURCE_TYPE } from "./entities/storage";
 import { createWorld } from "./world/world";
 import { createMenu } from "./menus/menu";
-import { Color, logInfo } from "./logUtils";
+import { Color, logInfo } from "./utils/logUtils";
 import { TownTier } from "./entities/locations/consumer";
-
-logInfo("Logi sim starting...");
-logInfo("LogiSim v0.3.1");
 
 // .. CREATE
 
 // .. BUILD THE WORLD
-const world = createWorld();
+export const world = createWorld();
+
+logInfo("Logi sim starting...");
+logInfo("LogiSim v0.3.5");
 
 const stateCompany = world.createCompany("State", 1000000000, Color.Magenta);
 const playerCompany = world.createCompany(
@@ -28,16 +28,18 @@ world.createProcessor(
       [RESOURCE_TYPE.GRAIN]: 6,
     },
     outputs: {
-      [RESOURCE_TYPE.FLOUR]: 3,
+      [RESOURCE_TYPE.FLOUR]: 6,
     },
   },
   12, // .. min input threshold,
   50,
   25,
+  false,
+  true,
 );
 world.createTown("Town A", stateCompany.id, 45, TownTier.TierOne);
 world.createTruck("Truck 1", playerCompany.id, RESOURCE_TYPE.GRAIN, 30, 0, 2);
-world.createTruck("Truck 2", playerCompany.id, RESOURCE_TYPE.FLOUR, 30, 15, 2);
+world.createTruck("Truck 2", playerCompany.id, RESOURCE_TYPE.FLOUR, 30, 15, 4);
 
 const update = () => {
   world.advanceTick();

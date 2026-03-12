@@ -104,7 +104,7 @@ export const createManageContractsPage = (world: IWorld): IMenuPage => {
             const distance = contractDistance + supplierOwnerDistance;
             const distanceString = `Total Distance: ${highlight.yellow(distance + " units")}`;
 
-            const truckString = `${getTruckString(world, t)} | ${distanceString}`;
+            const truckString = `${world.getTruckString(t)} | ${distanceString}`;
 
             console.log(
               `${t.storage.resourceType === contract.resourceType ? `- [${i}] ${truckString}` : `- ${highlight.red(`[${i}] ${truckString}`)}`}`,
@@ -121,10 +121,28 @@ export const createManageContractsPage = (world: IWorld): IMenuPage => {
     },
   });
 
+  const createViewContractsInProgressPage = (world: IWorld): IMenuPage => {
+    return createPage("Contracts In Progress", false, [], () => {
+      const contractsInProgress = world
+        .getContracts()
+        .filter((c) => c.shipperId);
+
+      if (contractsInProgress.length === 0) {
+        logWarning(` - There are no contracts in progress`);
+        return;
+      }
+
+      console.log(`\nContracts in progress: ${contractsInProgress.length}`);
+      contractsInProgress.forEach((c, i) => {
+        console.log(` - [${i}] ${world.getContractString(c)}`);
+      });
+    });
+  };
+
   return createPage(
     "Manage Contracts",
     false,
-    [createAcceptContractAction()],
+    [createAcceptContractAction(), createViewContractsInProgressPage(world)],
     () => {
       const availableContracts = world
         .getContracts()

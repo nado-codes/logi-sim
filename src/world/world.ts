@@ -21,6 +21,7 @@ import {
   getTruckById,
   getTruckByPositionOrNull,
   getTrucks,
+  getTruckString,
   updateTrucks,
 } from "./trucks";
 import { ICompany } from "../entities/company";
@@ -28,7 +29,7 @@ import { createCompany, getCompanyById } from "./companies";
 import { Color, highlight } from "../utils/logUtils";
 import { Nullable } from "../entities/entity";
 import { createTown, updateTowns } from "./locations/consumers/towns";
-import { ITown, TownTier } from "../entities/locations/consumer";
+import { TownTier } from "../entities/locations/consumer";
 import { IWorldState } from "../entities/world";
 
 export interface IWorld {
@@ -52,6 +53,7 @@ export interface IWorld {
   getTrucks: () => ITruck[];
   getTruckById: (id: string) => ITruck;
   getTruckByPositionOrNull: (position: number) => Nullable<ITruck>;
+  getTruckString: (truck: ITruck) => string;
 
   getLocations: () => IBaseLocation[];
   getLocationById: (id: string) => IBaseLocation;
@@ -173,7 +175,9 @@ export const createWorld = (): IWorld => {
         map += locationTag + locationDebug;
         spaces +=
           5 + (locationAtPos.debugMessage?.length ?? 0) + (contract ? 3 : 0);
-      } else if (truckAtPos) {
+      }
+
+      if (truckAtPos) {
         const hasResources = truckAtPos.storage.resourceCount > 0;
         const truckCompany = getCompanyById(state, truckAtPos.companyId);
         const truckTag = `${highlight.custom(`[T${hasResources ? highlight.green("o") : ""}]`, truckCompany.color)}`;
@@ -182,7 +186,9 @@ export const createWorld = (): IWorld => {
         map += truckTag + truckDebug;
         spaces +=
           3 + (hasResources ? 1 : 0) + (truckAtPos.debugMessage?.length ?? 0);
-      } else if (spaces <= 0) {
+      }
+
+      if (spaces <= 0 && !truckAtPos && !locationAtPos) {
         map += "_";
       }
 
@@ -217,6 +223,7 @@ export const createWorld = (): IWorld => {
     getTruckById: (id: string) => getTruckById(state, id),
     getTruckByPositionOrNull: (position: number) =>
       getTruckByPositionOrNull(state, position),
+    getTruckString: (truck: ITruck) => getTruckString(state, truck),
 
     getLocations: () => state.getLocations(),
     getLocationById: (id: string) => getLocationById(state, id),

@@ -43,6 +43,16 @@ export const createManageLocationsPage = (world: IWorld): IMenuPage => {
           );
         }
 
+        const inputStrings = Object.entries(location.recipe?.inputs ?? []).map(
+          ([k, v]) => `${v} ${k}`,
+        );
+        const outputStrings = Object.entries(
+          location.recipe?.outputs ?? [],
+        ).map(([k, v]) => `${v} ${k}`);
+        console.log(
+          ` - Recipe: ${highlight.yellow(inputStrings.length > 0 ? inputStrings.join(",") : "∞")} -> ${highlight.yellow(outputStrings.length > 0 ? outputStrings.join(",") : "∞")}`,
+        );
+
         console.log(" - Storage: ");
 
         location.storage.forEach((s) => {

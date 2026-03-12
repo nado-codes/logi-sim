@@ -3,14 +3,15 @@ import readline from "readline";
 import { createWorld } from "../world/world";
 import {
   createPage,
-  createManageTrucksPage,
   createManageCompaniesPage,
+  createViewLogsPage,
 } from "./pages";
 import { createManageContractsPage } from "./manageContracts";
 import { ICompany } from "../entities/company";
 import { getCompanyString } from "../world/companies";
 import { createManageLocationsPage } from "./manageLocations";
 import { highlight } from "../utils/logUtils";
+import { createManageTrucksPage } from "./manageTrucks";
 
 export enum MenuItemType {
   Page,
@@ -55,10 +56,12 @@ export const createMenu = (
     createManageTrucksPage(world),
     createManageLocationsPage(world),
     createManageCompaniesPage(world),
+    createViewLogsPage(),
   ]);
 
   let prevPage: IMenuPage;
   let activePage: IMenuPage = mainMenu;
+  let navHistory: IMenuPage[] = [mainMenu];
 
   const pause = (callback?: () => void) => {
     rl.once("line", callback ?? finish);
@@ -72,12 +75,23 @@ export const createMenu = (
   };
 
   const renderPrevPage = () => {
-    activePage = prevPage;
+    const prevPageIndex = navHistory.findIndex((p) => p === activePage) - 1;
+    activePage = navHistory[prevPageIndex];
+
+    if (activePage === mainMenu) {
+      navHistory = [mainMenu];
+    }
+
     renderPage(activePage);
   };
 
   const renderPage = (page: IMenuPage, errorMessage?: string) => {
     console.clear();
+
+    if (!navHistory.find((p) => p === page)) {
+      navHistory.push(page);
+    }
+
     console.log(
       `WORLD MAP (Tick: ${highlight.yellow(world.getCurrentTick() + "")}):`,
     );

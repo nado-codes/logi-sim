@@ -207,6 +207,12 @@ export const getResourceCount = (
   return resourceStorage.map((s) => s.resourceCount).reduce((a, c) => a + c);
 };
 
+export enum StorageTransferResult {
+  SOURCE_EMPTY,
+  DESTINATION_FULL,
+  SUCCESS,
+}
+
 // .. eventually, this method will allow the transfer of many different types of cargo in one call
 // .. (e.g. trains with different cargo types) but this is (very) complicated to do
 // so for now - we'll just transfer everything
@@ -215,7 +221,7 @@ export const transferResources = (
   resourceType: RESOURCE_TYPE,
   fromStorage: IStorage[],
   toStorage: IStorage[],
-) => {
+): StorageTransferResult => {
   if (notificationConfig.showStorageNotifications) {
     logInfo(`[STORAGE] We'll try to transfer ${amount} ${resourceType}...`);
   }
@@ -261,27 +267,20 @@ export const transferResources = (
     );
   }
 
-  // SCENARIO 1:
-  // - Iron Mine has 30 ore
-  // - Truck has 25 capacity and wants 25
-  // - Truck gets 25 ore, 5 left in the mine
-
-  // SCENARIO 2:
-  // - Iron Mine has 15 ore
-  // - Truck has 25 capacity and wants 25
-  // - Truck can only take 15 ore, so the truck needs to wait for more to get mined
-
+  let result = StorageTransferResult.SUCCESS;
   let amountLeftToTransfer = amount;
 
-  // .. this is the ore in the mine e.g. 30
   matchingSourceStorage.forEach((source) => {
-    // .. do we still have stuff to move? if not, we'll just skip over everything else
+    if (source.resourceCount <= 0) {
+      result = StorageTransferResult.SOURCE_EMPTY;
+      return;
+    }
+
     if (amountLeftToTransfer > 0) {
       if (notificationConfig.showStorageNotifications) {
         logInfo(` - We have ${amountLeftToTransfer} left to transfer`);
       }
-      // .. we know how much we have in total, but how much does this box have in it?
-      // .. we'll try to get everything we need from this box, but if we can't - that's fine
+
       const availableToTransfer = Math.min(
         source.resourceCount,
         amountLeftToTransfer,
@@ -292,10 +291,14 @@ export const transferResources = (
       }
 
       matchingDestinationStorage.forEach((destination) => {
-        // .. ok, now how much space is available in this box to put it into
-        // .. can we transfer everything? or only a bit at a time?
         const availableCapacity =
           destination.resourceCapacity - destination.resourceCount;
+
+        if (availableCapacity <= 0) {
+          result = StorageTransferResult.DESTINATION_FULL;
+          return;
+        }
+
         const amountToTransfer = Math.min(
           availableCapacity,
           availableToTransfer,
@@ -307,29 +310,23 @@ export const transferResources = (
           );
         }
 
-        // .. ok cool, let's move the stuff and track how much we moved
         removeResources(amountToTransfer, source);
         addResources(amountToTransfer, destination);
         amountLeftToTransfer -= amountToTransfer;
+        amountLeftToTransfer = Math.max(amountLeftToTransfer, 0);
       });
     }
   });
 
-  // .. we (really) dont expect this to happen, but if it does, we need to know
-  if (amountLeftToTransfer < 0) {
-    throw Error(
-      `[CRITICAL STORAGE ERROR] Tried to transfer too much  (amount left: ${amountLeftToTransfer} - this is wrong)`,
-    );
-  } else if (amountLeftToTransfer > 0) {
+  if (amountLeftToTransfer > 0) {
     if (notificationConfig.showStorageNotifications) {
       logWarning(
         `[STORAGE WARNING] We couldn't transfer everything, still have ${amountLeftToTransfer} left to go`,
       );
     }
-    return false;
-  } else {
-    return true;
   }
+
+  return result;
 };
 
 export const addResources = (amount: number, to: IStorage) => {

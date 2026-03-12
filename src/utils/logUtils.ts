@@ -1,9 +1,32 @@
-export const logError = (text: string) => console.log(`\x1b[31m${text}\x1b[0m`); // red
-export const logWarning = (text: string) =>
-  console.log(`\x1b[33m${text}\x1b[0m`); // yellow
-export const logInfo = (text: string) => console.log(`\x1b[36m${text}\x1b[0m`); // cyan
-export const logSuccess = (text: string) =>
-  console.log(`\x1b[32m${text}\x1b[0m`); // green
+import { world } from "..";
+
+interface LogEntry {
+  tick: number;
+  entry: string;
+}
+
+export const logEntries: LogEntry[] = [];
+
+export const logError = (text: string) => {
+  const entry = `\x1b[31m${text}\x1b[0m`; // red
+  logEntries.push({ tick: world.getCurrentTick(), entry });
+  console.log(entry);
+};
+export const logWarning = (text: string) => {
+  const entry = `\x1b[33m${text}\x1b[0m`; // yellow
+  logEntries.push({ tick: world.getCurrentTick(), entry });
+  console.log(entry);
+};
+export const logInfo = (text: string) => {
+  const entry = `\x1b[36m${text}\x1b[0m`; // cyan
+  logEntries.push({ tick: world.getCurrentTick(), entry });
+  console.log(entry);
+};
+export const logSuccess = (text: string) => {
+  const entry = `\x1b[32m${text}\x1b[0m`; // green
+  logEntries.push({ tick: world.getCurrentTick(), entry });
+  console.log(entry);
+};
 
 export enum Color {
   Red = "31m",

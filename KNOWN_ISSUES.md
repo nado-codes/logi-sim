@@ -1,8 +1,8 @@
-v0.3.2
+v0.3.5
 
 MAJOR:
 
-- x
+- if locations (e.g. towns) are supplied too quickly (e.g. really fast trucks), the towns get super greedy and population spirals out of control - and the factories can't supply the town - entire economy collapses
 
 MINOR:
 

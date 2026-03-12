@@ -1,9 +1,7 @@
 import { MenuItemType, IMenuAction, IMenuPage, IMenuItem } from "./menu";
 
 import { IWorld } from "../world/world";
-import { getTruckString } from "../world/trucks";
-import { logWarning } from "../utils/logUtils";
-import { getLocationString } from "../world/locations/locations";
+import { highlight, logEntries, logWarning } from "../utils/logUtils";
 import { getCompanyString } from "../world/companies";
 
 export const createPage = (
@@ -31,22 +29,6 @@ export const createPage = (
   };
 };
 
-export const createManageTrucksPage = (world: IWorld): IMenuPage => {
-  return createPage("Manage Trucks", false, [], () => {
-    const availableTrucks = world.getTrucks();
-
-    if (availableTrucks.length === 0) {
-      logWarning(` - There are no trucks available`);
-      return;
-    }
-
-    console.log(`\nAvailable trucks: ${availableTrucks.length}`);
-    availableTrucks.forEach((t, i) => {
-      console.log(` - [${i}] ${getTruckString(world, t)}`);
-    });
-  });
-};
-
 export const createManageCompaniesPage = (world: IWorld): IMenuPage => {
   return createPage("Manage Companies", false, [], () => {
     const companies = world.getCompanies();
@@ -59,6 +41,16 @@ export const createManageCompaniesPage = (world: IWorld): IMenuPage => {
     console.log(`\nAvailable companies: ${companies.length}`);
     companies.forEach((c, i) => {
       console.log(` - [${i}] ${getCompanyString(c)}`);
+    });
+  });
+};
+
+export const createViewLogsPage = (): IMenuPage => {
+  return createPage("Logs", false, [], () => {
+    logEntries.forEach((logEntry) => {
+      console.log(
+        `Tick ${highlight.yellow(logEntry.tick + "")} | ${logEntry.entry}`,
+      );
     });
   });
 };
