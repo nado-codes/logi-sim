@@ -1,5 +1,5 @@
 import { IContract } from "../entities/contract";
-import { getResourceCount, RESOURCE_TYPE } from "../entities/storage";
+import { RESOURCE_TYPE } from "../entities/storage";
 import { loadNotificationConfig } from "../notifications";
 import { ITruck } from "../entities/truck";
 import {
@@ -15,6 +15,7 @@ import { getTruckById } from "./trucks";
 import { IWorld } from "./world";
 import { Nullable } from "../entities/entity";
 import { IWorldState } from "../entities/world";
+import { getResourceCount } from "./storages";
 
 const notificationConfig = loadNotificationConfig();
 
@@ -35,7 +36,8 @@ export const createContract = (
     destinationId,
     supplierId,
     resourceType,
-    amount,
+    totalAmount: amount,
+    amountDelivered: 0,
     payment,
     expectedTick: state.currentTick + dueTicks,
   };
@@ -79,7 +81,7 @@ export const getContractString = (state: IWorldState, contract: IContract) => {
   const contractDestination = getLocationById(state, contract.destinationId);
 
   const amountResource = highlight.yellow(
-    contract.amount + " " + contract.resourceType,
+    contract.totalAmount + " " + contract.resourceType,
   );
   const pickupDropoff = `Pickup: ${highlight.yellow(contractSupplier.name)} | Drop-off: ${highlight.yellow(contractDestination.name)}`;
   const owner = `Owner: ${highlight.yellow(contractCompany.name)}`;
@@ -160,6 +162,15 @@ export const archiveContract = (state: IWorldState, contract: IContract) => {
   state.contracts = state.contracts.filter((c) => c.id !== contract.id);
 };
 
+/* export const progressContract = (state:IWorldState,contract: IContract, resource:RESOURCE_TYPE, amount:number) => {
+  if(contract.resourceType !== resource) {
+    logWarning(
+      `[CONTRACT] ${resource} isn't needed for this contract - only ${contract.resourceType}`,
+    );
+    return;
+  }
+} */
+
 export const completeContract = (state: IWorldState, contract: IContract) => {
   if (notificationConfig.showContractNotifications) {
     logInfo(
@@ -183,10 +194,10 @@ export const completeContract = (state: IWorldState, contract: IContract) => {
     contract.resourceType,
     destination.storage,
   );
-  if (resourceCount < contract.amount) {
+  if (resourceCount < contract.totalAmount) {
     if (notificationConfig.showContractNotifications) {
       logWarning(
-        ` - WARNING: Requirements not satisfied - ${destination.name} needs ${contract.amount} ${contract.resourceType} - only ${resourceCount} available`,
+        ` - WARNING: Requirements not satisfied - ${destination.name} needs ${contract.totalAmount} ${contract.resourceType} - only ${resourceCount} available`,
       );
     }
     return false;

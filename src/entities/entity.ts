@@ -14,5 +14,3 @@ export interface IWorldEntity extends INamedEntity {
   position: number;
   debugMessage?: string;
 }
-
-export const generateId = () => randomUUID();

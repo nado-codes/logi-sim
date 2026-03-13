@@ -70,8 +70,7 @@ export interface IWorld {
     position: number,
     produces: RESOURCE_TYPE,
     productionRate: number,
-    maxStock: number,
-    currentStock?: number,
+    startFull?: boolean,
   ) => void;
 
   createProcessor: (
@@ -79,9 +78,6 @@ export interface IWorld {
     companyId: string,
     position: number,
     recipe: IRecipe,
-    minInputThreshold: number,
-    inputCapacity: number,
-    outputCapacity: number,
     startWithFullInputs?: boolean,
     startWithFullOutputs?: boolean,
   ) => void;
@@ -242,8 +238,7 @@ export const createWorld = (): IWorld => {
       position: number,
       produces: RESOURCE_TYPE,
       productionRate: number,
-      maxStock: number,
-      currentStock?: number,
+      startFull: boolean = false,
     ) =>
       createProducer(
         state,
@@ -252,8 +247,7 @@ export const createWorld = (): IWorld => {
         position,
         produces,
         productionRate,
-        maxStock,
-        currentStock,
+        startFull,
       ),
 
     createProcessor: (
@@ -261,9 +255,6 @@ export const createWorld = (): IWorld => {
       companyId: string,
       position: number,
       recipe: IRecipe,
-      minInputThreshold: number,
-      inputCapacity: number,
-      outputCapacity: number,
       startWithFullInputs: boolean = false,
       startWithFullOutputs: boolean = false,
     ) =>
@@ -273,9 +264,6 @@ export const createWorld = (): IWorld => {
         companyId,
         position,
         recipe,
-        minInputThreshold,
-        inputCapacity,
-        outputCapacity,
         startWithFullInputs,
         startWithFullOutputs,
       ),

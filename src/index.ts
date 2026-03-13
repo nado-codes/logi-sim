@@ -18,28 +18,18 @@ const playerCompany = world.createCompany(
   100000,
   Color.Cyan,
 );
-world.createProducer("Farm", stateCompany.id, 0, RESOURCE_TYPE.GRAIN, 5, 25);
-world.createProcessor(
-  "Flour Mill",
-  stateCompany.id,
-  15, // .. position
-  {
-    inputs: {
-      [RESOURCE_TYPE.GRAIN]: 6,
-    },
-    outputs: {
-      [RESOURCE_TYPE.FLOUR]: 6,
-    },
+world.createProducer("Farm", stateCompany.id, 0, RESOURCE_TYPE.GRAIN, 5);
+world.createProcessor("Flour Mill", stateCompany.id, 15, {
+  inputs: {
+    [RESOURCE_TYPE.GRAIN]: 6,
   },
-  12, // .. min input threshold,
-  50,
-  25,
-  false,
-  true,
-);
+  outputs: {
+    [RESOURCE_TYPE.FLOUR]: 6,
+  },
+});
 world.createTown("Town A", stateCompany.id, 45, TownTier.TierOne);
 world.createTruck("Truck 1", playerCompany.id, RESOURCE_TYPE.GRAIN, 30, 0, 2);
-world.createTruck("Truck 2", playerCompany.id, RESOURCE_TYPE.FLOUR, 30, 15, 4);
+world.createTruck("Truck 2", playerCompany.id, RESOURCE_TYPE.FLOUR, 100, 15, 6);
 
 const update = () => {
   world.advanceTick();

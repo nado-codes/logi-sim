@@ -1,9 +1,4 @@
-import {
-  RESOURCE_TYPE,
-  StorageTransferResult,
-  createAndGetStorage,
-  transferResources,
-} from "../entities/storage";
+import { RESOURCE_TYPE, StorageTransferResult } from "../entities/storage";
 import { ITruck } from "../entities/truck";
 import { loadNotificationConfig } from "../notifications";
 import {
@@ -15,6 +10,7 @@ import { logSuccess, logInfo, highlight } from "../utils/logUtils";
 import { createCompanyEntity, getCompanyById } from "./companies";
 import { getLocationById, getLocationByIdOrNull } from "./locations/locations";
 import { IWorldState } from "../entities/world";
+import { createAndGetStorage, transferResources } from "./storages";
 
 const notificationConfig = loadNotificationConfig();
 
@@ -29,14 +25,16 @@ export const createTruck = (
   speed: number,
   resourceCount: number = 0,
 ) => {
+  const companyEntity = createCompanyEntity(companyId);
   const storage = createAndGetStorage(
+    companyEntity.id,
     resourceType,
     resourceCapacity,
     resourceCount,
   );
 
   const newTruck: ITruck = {
-    ...createCompanyEntity(companyId),
+    ...companyEntity,
     name,
     speed,
     storage,
@@ -162,7 +160,7 @@ export const updateTrucks = (state: IWorldState) => {
 
       if (truck.position === contractSupplier.position) {
         const amountLeftToLoad =
-          truckContract.amount - truck.storage.resourceCount;
+          truckContract.totalAmount - truck.storage.resourceCount;
 
         if (notificationConfig.showTruckNotifications) {
           logInfo(
@@ -172,6 +170,7 @@ export const updateTrucks = (state: IWorldState) => {
         }
 
         const loadResult = transferResources(
+          state,
           amountLeftToLoad,
           truckContract.resourceType,
           contractSupplier.storage,
@@ -196,7 +195,7 @@ export const updateTrucks = (state: IWorldState) => {
         } else if (StorageTransferResult.SOURCE_EMPTY) {
           if (notificationConfig.showTruckNotifications) {
             logInfo(
-              `[TRUCK] ${truck.id} will wait for the rest of the ${truckContract.resourceType} (${truckContract.amount - truck.storage.resourceCount} left)`,
+              `[TRUCK] ${truck.id} will wait for the rest of the ${truckContract.resourceType} (${truckContract.totalAmount - truck.storage.resourceCount} left)`,
             );
             truck.debugMessage = "LD-WT";
           }
@@ -212,7 +211,8 @@ export const updateTrucks = (state: IWorldState) => {
         }
 
         const unloadResult = transferResources(
-          truckContract.amount,
+          state,
+          truckContract.totalAmount,
           truckContract.resourceType,
           [truck.storage],
           contractDestination.storage,

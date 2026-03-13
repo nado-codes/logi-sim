@@ -1,20 +1,16 @@
-import { randomUUID } from "crypto";
 import { IProcessor, LOCATION_TYPE } from "../../entities/locations/location";
-import {
-  createRecipeStorage,
-  getInputStorage,
-  getOutputStorage,
-  getResourceStorage,
-  IRecipe,
-  processRecipe,
-  RESOURCE_TYPE,
-} from "../../entities/storage";
+import { IRecipe, RESOURCE_TYPE } from "../../entities/storage";
 import { createBaseLocation, replenishInputStorage } from "./locations";
-import { completeContract, getContractByResource } from "../contracts";
+import { getContractByResource } from "../contracts";
 import { loadNotificationConfig } from "../../notifications";
 import { logWarning, logSuccess } from "../../utils/logUtils";
-import { generateId } from "../../entities/entity";
 import { IWorldState } from "../../entities/world";
+import {
+  getResourceStorage,
+  getOutputStorage,
+  getInputStorage,
+  processRecipe,
+} from "../storages";
 
 const notificationConfig = loadNotificationConfig();
 
@@ -24,9 +20,6 @@ export const createProcessor = (
   companyId: string,
   position: number,
   recipe: IRecipe,
-  minInputThreshold: number,
-  inputCapacity: number,
-  outputCapacity: number,
   startWithFullInputs: boolean = false,
   startWithFullOutputs: boolean = false,
 ) => {
@@ -41,24 +34,16 @@ export const createProcessor = (
     );
   }
 
-  const storage = createRecipeStorage(
-    recipe,
-    inputCapacity,
-    outputCapacity,
-    startWithFullInputs,
-    startWithFullOutputs,
-  );
-
   const newProcessor: IProcessor = {
     ...createBaseLocation(
       name,
       companyId,
       position,
-      storage,
       recipe,
       LOCATION_TYPE.PROCESSOR,
+      startWithFullInputs,
+      startWithFullOutputs,
     ),
-    minInputThreshold,
   };
 
   state.processors.push(newProcessor);
@@ -67,30 +52,31 @@ export const createProcessor = (
 export const updateProcessors = (state: IWorldState) => {
   state.processors.forEach((processor) => {
     // .. check to see if any contracts have been fulfilled
-    Object.entries(processor.recipe.inputs ?? {}).forEach(
-      ([resourceType, _]) => {
-        const resourceContract = getContractByResource(
-          state,
-          processor.id,
-          resourceType as RESOURCE_TYPE,
-        );
+    Object.keys(processor.recipe.inputs ?? []).forEach((resourceType) => {
+      const resourceContract = getContractByResource(
+        state,
+        processor.id,
+        resourceType as RESOURCE_TYPE,
+      );
 
-        const inputStorage = getResourceStorage(
-          resourceType as RESOURCE_TYPE,
-          processor.storage,
-        );
-        const inputStorageCount = inputStorage
-          .map((s) => s.resourceCount)
-          .reduce((c, v) => c + v);
+      const inputStorage = getResourceStorage(
+        resourceType as RESOURCE_TYPE,
+        processor.storage,
+      );
+      const inputStorageCount = inputStorage
+        .map((s) => s.resourceCount)
+        .reduce((c, v) => c + v);
+      const inputStorageCapacity = inputStorage
+        .map((s) => s.resourceCapacity)
+        .reduce((c, v) => c + v);
 
-        if (
-          resourceContract &&
-          inputStorageCount >= processor.minInputThreshold
-        ) {
-          completeContract(state, resourceContract);
-        }
-      },
-    );
+      /* if (
+        resourceContract &&
+        inputStorageCount >= inputStorageCapacity * 0.25
+      ) {
+        completeContract(state, resourceContract);
+      } */
+    });
 
     // .. check to see if the output is full (we wont try to produce anything if we're already full)
     const outputStorage = getOutputStorage(processor.recipe, processor.storage);

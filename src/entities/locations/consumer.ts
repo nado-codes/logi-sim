@@ -1,8 +1,6 @@
 import { IBaseLocation } from "./location";
 
-export interface IBaseConsumer extends IBaseLocation {
-  minInputThreshold: number; // stock level that triggers delivery contract
-}
+export interface IBaseConsumer extends IBaseLocation {}
 
 export interface ITown extends IBaseConsumer {
   confidence: number;

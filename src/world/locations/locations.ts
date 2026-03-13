@@ -4,19 +4,20 @@ import {
   IBaseLocation,
   LOCATION_TYPE,
 } from "../../entities/locations/location";
-import {
-  getResourceStorage,
-  IRecipe,
-  IStorage,
-  RESOURCE_TYPE,
-} from "../../entities/storage";
+import { IRecipe, RESOURCE_TYPE } from "../../entities/storage";
 import { loadNotificationConfig } from "../../notifications";
 import { logWarning, logInfo, logError, highlight } from "../../utils/logUtils";
 import { getContractByResource, createContract } from "../contracts";
 import { IWorld } from "../world";
 import { IWorldState } from "../../entities/world";
+import {
+  loadStorageConfig,
+  createRecipeStorage,
+  getResourceStorage,
+} from "../storages";
 
 const notificationConfig = loadNotificationConfig();
+const storageConfig = loadStorageConfig();
 
 // .. CREATE
 
@@ -24,12 +25,22 @@ export const createBaseLocation = (
   name: string,
   companyId: string,
   position: number,
-  storage: IStorage[],
   recipe: IRecipe,
   type: LOCATION_TYPE,
+  startWithFullInputs: boolean = false,
+  startWithFullOutputs: boolean = false,
 ): IBaseLocation => {
+  const worldEntity = createWorldEntity(position, name);
+
+  const storage = createRecipeStorage(
+    worldEntity.id,
+    recipe,
+    startWithFullInputs,
+    startWithFullOutputs,
+  );
+
   return {
-    ...createWorldEntity(position, name),
+    ...worldEntity,
     storage,
     recipe,
     type,
@@ -105,6 +116,9 @@ export const replenishInputStorage = (
       const inputStorageCount = inputStorage
         .map((s) => s.resourceCount)
         .reduce((c, v) => c + v);
+      const inputStorageCapacity = inputStorage
+        .map((s) => s.resourceCapacity)
+        .reduce((c, v) => c + v);
 
       const contract = getContractByResource(
         state,
@@ -112,7 +126,10 @@ export const replenishInputStorage = (
         resourceType as RESOURCE_TYPE,
       );
 
-      if (inputStorageCount < requiredAmount) {
+      if (
+        inputStorageCount <
+        inputStorageCapacity * storageConfig.storageLowThreshold
+      ) {
         if (!contract) {
           if (notificationConfig.showLocationNotifications) {
             logWarning(

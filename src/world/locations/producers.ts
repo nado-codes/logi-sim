@@ -1,14 +1,5 @@
-import { randomUUID } from "crypto";
-import { IProducer, LOCATION_TYPE } from "../../entities/locations/location";
-import {
-  IRecipe,
-  RESOURCE_TYPE,
-  createAndGetStorage,
-  getOutputStorage,
-  getResourceCapacity,
-  getResourceCount,
-  processRecipe,
-} from "../../entities/storage";
+import { LOCATION_TYPE } from "../../entities/locations/location";
+import { IRecipe, RESOURCE_TYPE } from "../../entities/storage";
 import { loadNotificationConfig } from "../../notifications";
 import {
   logWarning,
@@ -16,9 +7,14 @@ import {
   logError,
   logInfo,
 } from "../../utils/logUtils";
-import { generateId } from "../../entities/entity";
 import { createBaseLocation } from "./locations";
 import { IWorldState } from "../../entities/world";
+import {
+  getOutputStorage,
+  getResourceCapacity,
+  getResourceCount,
+  processRecipe,
+} from "../storages";
 
 const notificationConfig = loadNotificationConfig();
 
@@ -29,26 +25,19 @@ export const createProducer = (
   position: number,
   produces: RESOURCE_TYPE,
   productionRate: number,
-  maxStock: number,
-  currentStock?: number,
+  startFull: boolean = false,
 ) => {
   const recipe: IRecipe = { outputs: { [produces]: productionRate } };
-  const storage = [createAndGetStorage(produces, maxStock, currentStock)];
 
-  const newProducer: IProducer = {
-    ...createBaseLocation(
-      name,
-      companyId,
-      position,
-      storage,
-      recipe,
-      LOCATION_TYPE.PRODUCER,
-    ),
+  const newProducer = createBaseLocation(
+    name,
+    companyId,
     position,
-    productionRate,
-    currentStock: currentStock ?? 0,
-    maxStock,
-  };
+    recipe,
+    LOCATION_TYPE.PRODUCER,
+    false,
+    startFull,
+  );
 
   state.producers.push(newProducer);
 };

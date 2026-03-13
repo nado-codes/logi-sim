@@ -47,7 +47,7 @@ export const createManageTrucksPage = (world: IWorld): IMenuPage => {
             const contractSupplier = world.getLocationById(c.supplierId);
             const contractDestination = world.getLocationById(c.destinationId);
             console.log(
-              `  - Delivering ${highlight.yellow(c.amount + " " + c.resourceType)} to ${highlight.yellow(contractDestination.name)} from ${highlight.yellow(contractSupplier.name)}`,
+              `  - Delivering ${highlight.yellow(c.totalAmount + " " + c.resourceType)} to ${highlight.yellow(contractDestination.name)} from ${highlight.yellow(contractSupplier.name)}`,
             );
           });
         }

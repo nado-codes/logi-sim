@@ -2,14 +2,11 @@ import { ITown, TownTier } from "../../../entities/locations/consumer";
 import { LOCATION_TYPE } from "../../../entities/locations/location";
 import { RESOURCE_TYPE, ResourceMap } from "../../../entities/storage";
 import { IWorldState } from "../../../entities/world";
-import {
-  getContractByIdOrNull,
-  getContractByLocationIdOrNull,
-  getContractByResource,
-  getContractString,
-} from "../../contracts";
+import { getContractByLocationIdOrNull } from "../../contracts";
 import { createBaseConsumer, updateBaseConsumer } from "./consumers";
 import { loadConfig } from "../../../utils/configUtils";
+import { clamp } from "../../../utils/mathUtils";
+import { loadStorageConfig } from "../../storages";
 
 interface TownConfig {
   populationGrowthThreshold: number;
@@ -19,14 +16,14 @@ interface TownConfig {
   baselineConfidence: number;
   populationScalingExponent: number;
   basePopulationGrowthRate: number;
-  criticalDeclineRate: number;
-  warningDeclineRate: number;
+  confidenceCriticalDeclineRate: number;
+  confidenceWarningDeclineRate: number;
   minorConfidenceChange: number;
   majorConfidenceChange: number;
   catastrophicConfidenceChange: number;
+  ptrRatio: number;
 }
 
-const CONFIG_PATH = "./town-config.json";
 const defaultConfig: TownConfig = {
   populationGrowthThreshold: 70,
   confidenceWarningThreshold: 50,
@@ -35,14 +32,16 @@ const defaultConfig: TownConfig = {
   baselineConfidence: 50,
   populationScalingExponent: 0.5, // .. 0.5 = square-root scaling
   basePopulationGrowthRate: 0.005,
-  criticalDeclineRate: 0.05,
-  warningDeclineRate: 0.01,
+  confidenceCriticalDeclineRate: 0.05,
+  confidenceWarningDeclineRate: 0.01,
   minorConfidenceChange: 1,
   majorConfidenceChange: 3,
   catastrophicConfidenceChange: 5,
+  ptrRatio: 10,
 };
 
-const townConfig = loadConfig(CONFIG_PATH, defaultConfig);
+const townConfig = loadConfig("town", defaultConfig);
+const storageConfig = loadStorageConfig();
 
 export const createTown = (
   state: IWorldState,
@@ -50,46 +49,34 @@ export const createTown = (
   companyId: string,
   position: number,
   tier: TownTier,
-  startFull: boolean,
+  startFull: boolean = false,
 ) => {
   /*
     ALL OF THESE NEED TO BE REPRESENTED BY THE TOWN'S TIER LEVEL
 
     consumes: RESOURCE_TYPE,
-      consumptionRate: number,
-      minInputThreshold: number,
-      maxStock: number,
     */
 
   const consumes: ResourceMap = {
     Flour: 10,
   };
-  const minInputThreshold = 12;
-  const maxStock = 50;
 
   const newTown = {
-    ...createBaseConsumer(
-      state,
-      name,
-      companyId,
-      position,
-      consumes,
-      minInputThreshold,
-      maxStock,
-      startFull,
-    ),
+    ...createBaseConsumer(name, companyId, position, consumes, startFull),
     type: LOCATION_TYPE.TOWN,
-    minInputThreshold,
     confidence: townConfig.baselineConfidence,
     population: townConfig.baselinePopulation,
+    migrationOffset: 0,
   };
 
   state.towns.push(newTown);
 };
 
+let stockHistory = [];
+
 const updateTownConfidence = (state: IWorldState, town: ITown) => {
   // Track last N contracts (rolling window)
-  const activeContract = getContractByLocationIdOrNull(state, town.id);
+  /*const activeContract = getContractByLocationIdOrNull(state, town.id);
   const townContracts = state.contractHistory.filter(
     (c) => c.destinationId === town.id,
   );
@@ -143,20 +130,25 @@ const updateTownConfidence = (state: IWorldState, town: ITown) => {
   // Average change
   const totalContractCount = recentContracts.length + (activeContract ? 1 : 0);
   const avgChange =
-    confidenceChange / (totalContractCount > 0 ? totalContractCount : 1);
+    confidenceChange / (totalContractCount > 0 ? totalContractCount : 1);*/
+
+  // .. customers care if the shelves are empty whenever they go to buy something
+  // .. if shelves are empty a lot of times in a row, confidence should fall
+
+  stockHistory.push();
 
   // Apply to confidence
   town.confidence += avgChange;
-  town.confidence = Math.min(Math.max(0, town.confidence), 100);
+  town.confidence = clamp(town.confidence, 0, 100);
 
-  /* town.debugMessage =
+  town.debugMessage =
     "AvgChg: " +
-    Math.floor(avgChange) +
+    avgChange +
     ", P: " +
     town.population +
     ", C: " +
     town.confidence +
-    "%";*/
+    "%";
 };
 
 const updateTownPopulation = (state: IWorldState, town: ITown) => {
@@ -170,21 +162,34 @@ const updateTownPopulation = (state: IWorldState, town: ITown) => {
     const gain = Math.max(town.population, 1) * growthRate;
     town.population += gain;
   } else if (town.confidence < townConfig.confidenceCriticalThreshold) {
-    const declineRate = townConfig.criticalDeclineRate * multiplier;
+    const declineRate = townConfig.confidenceCriticalDeclineRate * multiplier;
     const loss = town.population * declineRate;
     town.population -= loss;
   } else if (town.confidence < townConfig.confidenceWarningThreshold) {
-    const declineRate = townConfig.warningDeclineRate * multiplier;
+    const declineRate = townConfig.confidenceWarningDeclineRate * multiplier;
     const loss = town.population * declineRate;
     town.population -= loss;
   }
 
-  town.population = Math.round(town.population);
+  town.population = Math.ceil(town.population);
 
   // e.g. 1 flour serves 10 (population-to-resource (PTR) ratio 1:10)
   const townInputs: ResourceMap = town.recipe.inputs ?? {};
   (Object.keys(townInputs ?? {}) as RESOURCE_TYPE[]).forEach((resourceType) => {
-    townInputs[resourceType] = Math.floor(town.population / 10);
+    const newConsumptionRate = Math.max(
+      Math.floor(town.population / townConfig.ptrRatio),
+      1,
+    );
+
+    townInputs[resourceType] = newConsumptionRate;
+
+    const resourceStorage = town.storage.filter(
+      (s) => s.resourceType === resourceType,
+    );
+    resourceStorage.forEach((s) => {
+      s.resourceCapacity =
+        newConsumptionRate * storageConfig.recipeBufferStorageMultiplier;
+    });
   }); //
 };
 

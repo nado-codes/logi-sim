@@ -6,7 +6,8 @@ export interface IContract extends ICompanyEntity {
   supplierId: string;
   shipperId?: string | undefined;
   resourceType: RESOURCE_TYPE;
-  amount: number;
+  totalAmount: number;
+  amountDelivered: number;
   payment: number;
   expectedTick: number;
   deliveredTick?: number;

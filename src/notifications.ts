@@ -11,7 +11,6 @@ export interface NotificationConfig {
   showLocationNotifications: boolean;
 }
 
-const CONFIG_PATH = "./notif-config.json";
 const defaultConfig: NotificationConfig = {
   showStorageNotifications: false,
   showProcessorNotifications: false,
@@ -24,4 +23,4 @@ const defaultConfig: NotificationConfig = {
 };
 
 export const loadNotificationConfig = () =>
-  loadConfig(CONFIG_PATH, defaultConfig);
+  loadConfig("notification", defaultConfig);

@@ -83,11 +83,11 @@ export const createManageLocationsPage = (world: IWorld): IMenuPage => {
                 const shipper = world.getTruckById(c.shipperId);
                 const shipperCompany = world.getCompanyById(shipper.companyId);
                 console.log(
-                  `  - Supplying ${highlight.yellow(c.amount + " " + c.resourceType)} to ${highlight.yellow(contractDestination.name)} with ${highlight.yellow(shipperCompany.name)}`,
+                  `  - Supplying ${highlight.yellow(c.totalAmount + " " + c.resourceType)} to ${highlight.yellow(contractDestination.name)} with ${highlight.yellow(shipperCompany.name)}`,
                 );
               } else {
                 console.log(
-                  `  - Supplying ${highlight.yellow(c.amount + " " + c.resourceType)} to ${highlight.yellow(contractDestination.name)} - waiting for shipper`,
+                  `  - Supplying ${highlight.yellow(c.totalAmount + " " + c.resourceType)} to ${highlight.yellow(contractDestination.name)} - waiting for shipper`,
                 );
               }
             } else if (c.destinationId === location.id) {
@@ -97,11 +97,11 @@ export const createManageLocationsPage = (world: IWorld): IMenuPage => {
                 const shipper = world.getTruckById(c.shipperId);
                 const shipperCompany = world.getCompanyById(shipper.companyId);
                 console.log(
-                  `  - Awaiting delivery of ${highlight.yellow(c.amount + " " + c.resourceType)} from ${highlight.yellow(contractSupplier.name)} by ${highlight.yellow(shipperCompany.name)}`,
+                  `  - Awaiting delivery of ${highlight.yellow(c.totalAmount + " " + c.resourceType)} from ${highlight.yellow(contractSupplier.name)} by ${highlight.yellow(shipperCompany.name)}`,
                 );
               } else {
                 console.log(
-                  `  - Awaiting delivery of ${highlight.yellow(c.amount + " " + c.resourceType)} from ${highlight.yellow(contractSupplier.name)} - waiting for shipper`,
+                  `  - Awaiting delivery of ${highlight.yellow(c.totalAmount + " " + c.resourceType)} from ${highlight.yellow(contractSupplier.name)} - waiting for shipper`,
                 );
               }
             }
