@@ -89,44 +89,20 @@ const updateTownConfidence = (state: IWorldState, town: ITown) => {
     stockLevels.reduce((a, c) => a + c) / stockLevels.length;
   stockHistory.push(avgStockLevel);
 
-  const recentStockHistory = stockHistory.reverse().slice(0, 20);
-
-  let confidenceChange = 0;
-
-  recentStockHistory.forEach((avgStock) => {
-    if (avgStock >= townConfig.stockSafeThreshold) {
-      confidenceChange += townConfig.majorConfidenceChange;
-    } else if (avgStock >= townConfig.stockOkThreshold) {
-      confidenceChange += townConfig.minorConfidenceChange;
-    } else if (avgStock >= townConfig.stockLowThreshold) {
-      confidenceChange -= townConfig.minorConfidenceChange;
-    } else if (avgStock >= townConfig.stockCriticalThreshold) {
-      confidenceChange -= townConfig.majorConfidenceChange;
-    } else {
-      confidenceChange -= townConfig.catastrophicConfidenceChange;
-    }
-  });
-  const avgChange =
-    confidenceChange /
-    (recentStockHistory.length > 0 ? recentStockHistory.length : 1);
+  if (avgStockLevel >= townConfig.stockSafeThreshold) {
+    town.confidence += townConfig.majorConfidenceChange;
+  } else if (avgStockLevel >= townConfig.stockOkThreshold) {
+    town.confidence += townConfig.minorConfidenceChange;
+  } else if (avgStockLevel >= townConfig.stockLowThreshold) {
+    town.confidence -= townConfig.minorConfidenceChange;
+  } else if (avgStockLevel >= townConfig.stockCriticalThreshold) {
+    town.confidence -= townConfig.majorConfidenceChange;
+  } else {
+    town.confidence -= townConfig.catastrophicConfidenceChange;
+  }
 
   // Apply to confidence
-  town.confidence += avgChange;
   town.confidence = clamp(town.confidence, 0, 100);
-
-  town.debugMessage =
-    "RecentStock: [" +
-    recentStockHistory
-      .map((h) => h.toFixed(2))
-      .slice(0, 4)
-      .join(",") +
-    "], AvgConfChg: " +
-    avgChange.toFixed(2) +
-    ", P: " +
-    Math.round(town.population) +
-    ", C: " +
-    Math.round(town.confidence) +
-    "%";
 };
 
 const updateTownPopulation = (state: IWorldState, town: ITown) => {
