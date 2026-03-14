@@ -11,5 +11,9 @@
   "populationScalingExponent": 0.5,
   "basePopulationGrowthRate": 0.005,
   "baselinePopulation": 100,
-  "ptrRatio": 10
+  "ptrRatio": 100,
+  "stockCriticalThreshold": 0.4,
+  "stockLowThreshold": 0.6,
+  "stockOkThreshold": 0.9,
+  "stockSafeThreshold": 1
 }

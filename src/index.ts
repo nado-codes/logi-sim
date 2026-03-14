@@ -2,7 +2,6 @@ import { RESOURCE_TYPE } from "./entities/storage";
 import { createWorld } from "./world/world";
 import { createMenu } from "./menus/menu";
 import { Color, logInfo } from "./utils/logUtils";
-import { TownTier } from "./entities/locations/consumer";
 
 // .. CREATE
 
@@ -27,9 +26,9 @@ world.createProcessor("Flour Mill", stateCompany.id, 15, {
     [RESOURCE_TYPE.FLOUR]: 6,
   },
 });
-world.createTown("Town A", stateCompany.id, 45, TownTier.TierOne);
+world.createTown("Town A", stateCompany.id, 45);
 world.createTruck("Truck 1", playerCompany.id, RESOURCE_TYPE.GRAIN, 30, 0, 2);
-world.createTruck("Truck 2", playerCompany.id, RESOURCE_TYPE.FLOUR, 100, 15, 6);
+world.createTruck("Truck 2", playerCompany.id, RESOURCE_TYPE.FLOUR, 300, 15, 4); //
 
 const update = () => {
   world.advanceTick();
@@ -39,10 +38,8 @@ const update = () => {
   world.updateTowns();
   world.updateContracts();
   world.updateTrucks();
-
-  menu.show();
 };
 
 const menu = createMenu(update, world, playerCompany);
-
+menu.show();
 update();

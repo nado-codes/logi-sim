@@ -190,7 +190,7 @@ export const replenishInputStorage = (
               location.id,
               closestSupplier.id,
               inputStorage[0].resourceType,
-              Math.ceil(requiredAmount * 1.5),
+              Math.ceil(requiredAmount * 1.5) - inputStorageCount,
               100,
               dueTicks,
             );

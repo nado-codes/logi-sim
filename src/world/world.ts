@@ -29,7 +29,6 @@ import { createCompany, getCompanyById } from "./companies";
 import { Color, highlight } from "../utils/logUtils";
 import { Nullable } from "../entities/entity";
 import { createTown, updateTowns } from "./locations/consumers/towns";
-import { TownTier } from "../entities/locations/consumer";
 import { IWorldState } from "../entities/world";
 
 export interface IWorld {
@@ -86,7 +85,6 @@ export interface IWorld {
     name: string,
     companyId: string,
     position: number,
-    tier: TownTier,
     startFull?: boolean,
   ) => void;
 
@@ -272,9 +270,8 @@ export const createWorld = (): IWorld => {
       name: string,
       companyId: string,
       position: number,
-      tier: TownTier,
       startFull: boolean = false,
-    ) => createTown(state, name, companyId, position, tier, startFull),
+    ) => createTown(state, name, companyId, position, startFull),
 
     createContract: (
       companyId: string,

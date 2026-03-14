@@ -1,4 +1,4 @@
 {
   "recipeBufferStorageMultiplier": 5,
-  "storageLowThreshold": 0.25
+  "storageLowThreshold": 0.9
 }
