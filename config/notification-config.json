@@ -4,7 +4,7 @@
   "showProducerNotifications": false,
   "showConsumerNotifications": false,
   "showContractNotifications": false,
-  "showTruckNotifications": true,
+  "showTruckNotifications": false,
   "showUtilsNotifications": false,
   "showProductionNotifications": false,
   "showLocationNotifications": false

@@ -19,7 +19,7 @@ interface IStorageConfig {
 
 const defaultConfig: IStorageConfig = {
   recipeBufferStorageMultiplier: 5,
-  storageLowThreshold: 0.25,
+  storageLowThreshold: 0.9,
 };
 
 export const loadStorageConfig = () => {

@@ -103,7 +103,7 @@ export const getLocationString = (world: IWorld, location: IBaseLocation) => {
 
 // .. UPDATE
 
-export const replenishInputStorage = (
+export const checkInputStorage = (
   state: IWorldState,
   location: IBaseLocation,
 ) => {
@@ -190,7 +190,7 @@ export const replenishInputStorage = (
               location.id,
               closestSupplier.id,
               inputStorage[0].resourceType,
-              Math.ceil(requiredAmount * 1.5) - inputStorageCount,
+              requiredAmount * 100, //Math.ceil(requiredAmount * 1.5) - inputStorageCount,
               100,
               dueTicks,
             );

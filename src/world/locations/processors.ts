@@ -1,6 +1,6 @@
 import { IProcessor, LOCATION_TYPE } from "../../entities/locations/location";
 import { IRecipe, RESOURCE_TYPE } from "../../entities/storage";
-import { createBaseLocation, replenishInputStorage } from "./locations";
+import { createBaseLocation, checkInputStorage } from "./locations";
 import { getContractByResource } from "../contracts";
 import { loadNotificationConfig } from "../../notifications";
 import { logWarning, logSuccess } from "../../utils/logUtils";
@@ -51,32 +51,7 @@ export const createProcessor = (
 
 export const updateProcessors = (state: IWorldState) => {
   state.processors.forEach((processor) => {
-    // .. check to see if any contracts have been fulfilled
-    Object.keys(processor.recipe.inputs ?? []).forEach((resourceType) => {
-      const resourceContract = getContractByResource(
-        state,
-        processor.id,
-        resourceType as RESOURCE_TYPE,
-      );
-
-      const inputStorage = getResourceStorage(
-        resourceType as RESOURCE_TYPE,
-        processor.storage,
-      );
-      const inputStorageCount = inputStorage
-        .map((s) => s.resourceCount)
-        .reduce((c, v) => c + v);
-      const inputStorageCapacity = inputStorage
-        .map((s) => s.resourceCapacity)
-        .reduce((c, v) => c + v);
-
-      /* if (
-        resourceContract &&
-        inputStorageCount >= inputStorageCapacity * 0.25
-      ) {
-        completeContract(state, resourceContract);
-      } */
-    });
+    checkInputStorage(state, processor);
 
     // .. check to see if the output is full (we wont try to produce anything if we're already full)
     const outputStorage = getOutputStorage(processor.recipe, processor.storage);
@@ -113,8 +88,6 @@ export const updateProcessors = (state: IWorldState) => {
             `${processor.name} processed ${recipeInputsString} to produce ${recipeOutputsString} and has ${inputStorageCount} left`,
           );
         }
-      } else {
-        replenishInputStorage(state, processor);
       }
     }
   });

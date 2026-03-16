@@ -3,7 +3,7 @@ import { LOCATION_TYPE } from "../../../entities/locations/location";
 import { ResourceMap } from "../../../entities/storage";
 import { IWorldState } from "../../../entities/world";
 import { processRecipe } from "../../storages";
-import { createBaseLocation, replenishInputStorage } from "../locations";
+import { createBaseLocation, checkInputStorage } from "../locations";
 
 export const createBaseConsumer = (
   name: string,
@@ -28,7 +28,6 @@ export const updateBaseConsumer = (
   state: IWorldState,
   consumer: IBaseConsumer,
 ) => {
-  if (!processRecipe(consumer.recipe, consumer.storage)) {
-    replenishInputStorage(state, consumer);
-  }
+  processRecipe(consumer.recipe, consumer.storage);
+  checkInputStorage(state, consumer);
 };

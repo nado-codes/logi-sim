@@ -125,14 +125,13 @@ const updateTownPopulation = (state: IWorldState, town: ITown) => {
     town.population -= loss;
   }
 
-  //town.population = Math.ceil(town.population);
+  town.population = Math.round(town.population);
 
   // e.g. 1 flour serves 10 (population-to-resource (PTR) ratio 1:10)
   const townInputs: ResourceMap = town.recipe.inputs ?? {};
   (Object.keys(townInputs ?? {}) as RESOURCE_TYPE[]).forEach((resourceType) => {
-    const newConsumptionRate = Math.max(
-      Math.floor(town.population / townConfig.ptrRatio),
-      1,
+    const newConsumptionRate = Math.round(
+      town.population / townConfig.ptrRatio,
     );
 
     townInputs[resourceType] = newConsumptionRate;
@@ -141,10 +140,11 @@ const updateTownPopulation = (state: IWorldState, town: ITown) => {
       (s) => s.resourceType === resourceType,
     );
     resourceStorage.forEach((s) => {
-      s.resourceCapacity =
+      const newStorageCapacity =
         newConsumptionRate * storageConfig.recipeBufferStorageMultiplier;
+      s.resourceCapacity = Math.max(s.resourceCount, newStorageCapacity);
     });
-  }); //
+  });
 };
 
 export const updateTowns = (state: IWorldState) => {

@@ -17,7 +17,7 @@ const playerCompany = world.createCompany(
   100000,
   Color.Cyan,
 );
-world.createProducer("Farm", stateCompany.id, 0, RESOURCE_TYPE.GRAIN, 5);
+world.createProducer("Farm", stateCompany.id, 0, RESOURCE_TYPE.GRAIN, 500);
 world.createProcessor("Flour Mill", stateCompany.id, 15, {
   inputs: {
     [RESOURCE_TYPE.GRAIN]: 6,
@@ -26,9 +26,25 @@ world.createProcessor("Flour Mill", stateCompany.id, 15, {
     [RESOURCE_TYPE.FLOUR]: 6,
   },
 });
-world.createTown("Town A", stateCompany.id, 45);
-world.createTruck("Truck 1", playerCompany.id, RESOURCE_TYPE.GRAIN, 30, 0, 2);
-world.createTruck("Truck 2", playerCompany.id, RESOURCE_TYPE.FLOUR, 300, 15, 4); //
+world.createTown("Town A", stateCompany.id, 45, true);
+world.createTruck(
+  "Truck 1",
+  playerCompany.id,
+  RESOURCE_TYPE.GRAIN,
+  10000,
+  0,
+  2,
+);
+world.createTruck(
+  "Truck 2",
+  playerCompany.id,
+  RESOURCE_TYPE.FLOUR,
+  10000,
+  15,
+  2,
+); //
+
+const simTarget = 100000;
 
 const update = () => {
   world.advanceTick();
@@ -40,6 +56,9 @@ const update = () => {
   world.updateTrucks();
 };
 
+while (world.getCurrentTick() < simTarget) {
+  update();
+}
+
 const menu = createMenu(update, world, playerCompany);
 menu.show();
-update();
