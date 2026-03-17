@@ -7,7 +7,11 @@ import {
   getContractByIdOrNull,
 } from "./contracts";
 import { logSuccess, logInfo, highlight } from "../utils/logUtils";
-import { createCompanyEntity, getCompanyById } from "./companies";
+import {
+  createCompanyEntity,
+  getCompanyById,
+  transferFundsToState,
+} from "./companies";
 import { getLocationById, getLocationByIdOrNull } from "./locations/locations";
 import { IWorldState } from "../entities/world";
 import { createAndGetStorage, transferResources } from "./storages";
@@ -23,6 +27,7 @@ export const createTruck = (
   resourceCapacity: number,
   position: number,
   speed: number,
+  operatingCostPerTick: number,
   resourceCount: number = 0,
 ) => {
   const companyEntity = createCompanyEntity(companyId);
@@ -39,6 +44,7 @@ export const createTruck = (
     speed,
     storage,
     position,
+    operatingCostPerTick,
   };
 
   state.trucks.push(newTruck);
@@ -135,20 +141,6 @@ export const updateTrucks = (state: IWorldState) => {
   state.trucks.forEach((truck) => {
     const truckContract = getContractByIdOrNull(state, truck.contractId);
 
-    // TEMP - just debug code for showing messages - DO NOT CHECK THIS IN
-    if (truck.storage.resourceType === RESOURCE_TYPE.FLOUR) {
-      const truckSupplier = getLocationByIdOrNull(
-        state,
-        truckContract?.supplierId,
-      );
-
-      const truckDestination = getLocationByIdOrNull(
-        state,
-        truck.destinationId,
-      );
-      //truck.debugMessage = `Str: ${truck.storage.resourceCount} ${truck.storage.resourceType.substring(0, 2)}, Dst: ${truckDestination ? truckDestination.name : "N/A"}, CtrSup: ${truckSupplier ? truckSupplier.name : "N/A"}`;
-    }
-
     updateTruckPosition(state, truck);
 
     if (truckContract) {
@@ -229,6 +221,19 @@ export const updateTrucks = (state: IWorldState) => {
           if (completeContract(state, truckContract)) {
             truck.destinationId = undefined;
             truck.contractId = undefined;
+
+            if (!truckContract.acceptedAtTick) {
+              throw Error(`Contract acceptedAtTick must be set`);
+            }
+
+            const truckCompany = getCompanyById(state, truck.companyId);
+            const deliveryTime =
+              state.currentTick - truckContract.acceptedAtTick;
+            const operatingCost = deliveryTime * truck.operatingCostPerTick;
+
+            // ..nowhere to pay funds to yet (e.g. petrol station, driver's bank account)
+            // so we'll just transfer to the state (the void)
+            transferFundsToState(truckCompany, operatingCost);
 
             if (notificationConfig.showTruckNotifications) {
               truck.debugMessage = "CT-FN";

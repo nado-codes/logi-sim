@@ -11,4 +11,5 @@ export interface IContract extends ICompanyEntity {
   payment: number;
   expectedTick: number;
   deliveredTick?: number;
+  acceptedAtTick?: number;
 }

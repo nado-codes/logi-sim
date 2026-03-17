@@ -1,6 +1,5 @@
 import { ICompanyEntity } from "./company";
 import { IWorldEntity } from "./entity";
-import { IBaseLocation } from "./locations/location";
 import { IStorage } from "./storage";
 
 export interface ITruck extends IWorldEntity, ICompanyEntity {
@@ -8,4 +7,5 @@ export interface ITruck extends IWorldEntity, ICompanyEntity {
   destinationId?: string | undefined;
   contractId?: string | undefined;
   storage: IStorage;
+  operatingCostPerTick: number;
 }

@@ -9,11 +9,13 @@ export const createCompany = (
   name: string,
   money: number,
   color: Color,
+  isStateControlled: boolean = false,
 ): ICompany => {
   const newCompany: ICompany = {
     ...createNamedEntity(name),
     money,
     color,
+    isStateControlled,
   };
 
   state.companies.push(newCompany);
@@ -42,4 +44,38 @@ export const getCompanyById = (state: IWorldState, id: string) => {
 
 export const getCompanyString = (company: ICompany) => {
   return `Name: ${highlight.yellow(company.name)} | Money: ${highlight.yellow(company.money + "")} | Color: ${highlight.custom("███", company.color)}`;
+};
+
+// UPDATE
+
+export const transferFunds = (
+  fromCompany: ICompany,
+  toCompany: ICompany,
+  amount: number,
+) => {
+  if (fromCompany.money > 0) {
+    if (!fromCompany.isStateControlled) {
+      fromCompany.money -= Math.abs(amount);
+    }
+
+    toCompany.money += Math.abs(amount);
+  }
+};
+
+/**
+ * Transfer funds to state (economic sink).
+ *
+ * In Phase 2, this represents operating costs (fuel, maintenance)
+ * going into "the void" since fuel stations/service providers
+ * don't exist yet.
+ *
+ * In Phase 5+, replace with transferFunds(company, serviceProvider, amount)
+ * to route money to actual economic actors.
+ *
+ * State-controlled companies are exempt (infinite funds).
+ */
+export const transferFundsToState = (fromCompany: ICompany, amount: number) => {
+  if (!fromCompany.isStateControlled && fromCompany.money > 0) {
+    fromCompany.money -= Math.abs(amount);
+  }
 };

@@ -61,7 +61,12 @@ export interface IWorld {
   getCompanies: () => ICompany[];
   getCompanyById: (id: string) => ICompany;
 
-  createCompany: (name: string, money: number, color: Color) => ICompany;
+  createCompany: (
+    name: string,
+    money: number,
+    color: Color,
+    isState?: boolean,
+  ) => ICompany;
 
   createProducer: (
     name: string,
@@ -94,7 +99,6 @@ export interface IWorld {
     supplierId: string,
     resourceType: RESOURCE_TYPE,
     amount: number,
-    payment: number,
     dueTicks: number,
   ) => void;
 
@@ -105,6 +109,7 @@ export interface IWorld {
     resourceCapacity: number,
     position: number,
     speed: number,
+    operatingCostPerTick: number,
     resourceCount?: number,
   ) => void;
 }
@@ -227,8 +232,12 @@ export const createWorld = (): IWorld => {
     getCompanies: () => state.companies,
     getCompanyById: (id: string) => getCompanyById(state, id),
 
-    createCompany: (name: string, money: number, color: Color) =>
-      createCompany(state, name, money, color),
+    createCompany: (
+      name: string,
+      money: number,
+      color: Color,
+      isStateControlled: boolean = false,
+    ) => createCompany(state, name, money, color, isStateControlled),
 
     createProducer: (
       name: string,
@@ -279,7 +288,6 @@ export const createWorld = (): IWorld => {
       supplierId: string,
       resourceType: RESOURCE_TYPE,
       amount: number,
-      payment: number,
       dueTicks: number,
     ) =>
       createContract(
@@ -289,7 +297,6 @@ export const createWorld = (): IWorld => {
         supplierId,
         resourceType,
         amount,
-        payment,
         dueTicks,
       ),
 
@@ -300,6 +307,7 @@ export const createWorld = (): IWorld => {
       resourceCapacity: number,
       position: number,
       speed: number,
+      operatingCostPerTick: number,
       resourceCount?: number,
     ) =>
       createTruck(
@@ -310,6 +318,7 @@ export const createWorld = (): IWorld => {
         resourceCapacity,
         position,
         speed,
+        operatingCostPerTick,
         resourceCount,
       ),
   };

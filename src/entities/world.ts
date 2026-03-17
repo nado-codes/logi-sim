@@ -1,6 +1,6 @@
 import { ICompany } from "./company";
 import { IContract } from "./contract";
-import { IBaseConsumer, ITown } from "./locations/consumer";
+import { ITown } from "./locations/consumer";
 import { IProducer, IProcessor, IBaseLocation } from "./locations/location";
 import { ITruck } from "./truck";
 

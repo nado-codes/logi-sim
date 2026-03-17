@@ -9,17 +9,91 @@ import {
   logError,
   highlight,
 } from "../utils/logUtils";
-import { createCompanyEntity, getCompanyById } from "./companies";
+import {
+  createCompanyEntity,
+  getCompanyById,
+  transferFunds,
+} from "./companies";
 import { getLocationById } from "./locations/locations";
 import { getTruckById } from "./trucks";
-import { IWorld } from "./world";
 import { Nullable } from "../entities/entity";
 import { IWorldState } from "../entities/world";
 import { getResourceCount } from "./storages";
+import { loadConfig } from "../utils/configUtils";
+import { world } from "..";
 
 const notificationConfig = loadNotificationConfig();
 
+type UrgencyMultiplier = {
+  threshold: number;
+  multiplier: number;
+};
+
+interface IContractConfig {
+  perUnitRate: number;
+  distanceRate: number;
+  urgencyMultipliers: {
+    critical: UrgencyMultiplier;
+    urgent: UrgencyMultiplier;
+    priority: UrgencyMultiplier;
+  };
+}
+
+const defaultConfig: IContractConfig = {
+  perUnitRate: 5,
+  distanceRate: 2,
+  urgencyMultipliers: {
+    critical: {
+      threshold: 3,
+      multiplier: 2,
+    },
+    urgent: {
+      threshold: 5,
+      multiplier: 1.5,
+    },
+    priority: {
+      threshold: 10,
+      multiplier: 1.2,
+    },
+  },
+};
+
+const contractConfig = loadConfig("contract", defaultConfig);
+
 // .. CREATE
+
+const getUrgencyMultiplier = (ticksUntilExpiry: number) => {
+  const { urgencyMultipliers } = contractConfig;
+
+  if (ticksUntilExpiry <= urgencyMultipliers.critical.threshold) {
+    return urgencyMultipliers.critical.multiplier;
+  }
+  if (ticksUntilExpiry <= urgencyMultipliers.urgent.threshold) {
+    return urgencyMultipliers.urgent.multiplier;
+  }
+  if (ticksUntilExpiry <= urgencyMultipliers.priority.threshold) {
+    return urgencyMultipliers.priority.multiplier;
+  }
+  return 1.0;
+};
+
+const calculateContractPayment = (
+  quantity: number,
+  distance: number,
+  ticksUntilExpiry: number,
+) => {
+  const basePayment = quantity * contractConfig.perUnitRate;
+  const distancePremium = distance * contractConfig.distanceRate;
+  const urgencyMultiplier = getUrgencyMultiplier(ticksUntilExpiry);
+
+  if (notificationConfig.showContractNotifications) {
+    logInfo(` - Base Payment: ${basePayment}`);
+    logInfo(` - Distance Premium: ${distancePremium}`);
+    logInfo(` - Urgency Multiplier: ${urgencyMultiplier}`);
+  }
+
+  return Math.round((basePayment + distancePremium) * urgencyMultiplier);
+};
 
 export const createContract = (
   state: IWorldState,
@@ -28,9 +102,17 @@ export const createContract = (
   supplierId: string,
   resourceType: RESOURCE_TYPE,
   amount: number,
-  payment: number,
   dueTicks: number,
 ) => {
+  if (notificationConfig.showContractNotifications) {
+    logInfo(`[CONTRACT] Trying to create ${resourceType} contract...`);
+  }
+
+  const supplier = getLocationById(state, supplierId);
+  const destination = getLocationById(state, destinationId);
+  const distance = Math.abs(destination.position - supplier.position);
+  const payment = calculateContractPayment(amount, distance, dueTicks);
+
   const newContract: IContract = {
     ...createCompanyEntity(companyId),
     destinationId,
@@ -41,6 +123,12 @@ export const createContract = (
     payment,
     expectedTick: state.currentTick + dueTicks,
   };
+
+  if (notificationConfig.showContractNotifications) {
+    logSuccess(
+      `[CONTRACT] Created contract for ${amount} ${resourceType} from ${supplier.name} to ${destination.name}, due in ${dueTicks} ticks and paying ${payment}`,
+    );
+  }
 
   state.contracts.push(newContract);
 };
@@ -86,8 +174,9 @@ export const getContractString = (state: IWorldState, contract: IContract) => {
   const pickupDropoff = `Pickup: ${highlight.yellow(contractSupplier.name)} | Drop-off: ${highlight.yellow(contractDestination.name)}`;
   const owner = `Owner: ${highlight.yellow(contractCompany.name)}`;
   const dueIn = `Due in: ${highlight.yellow(contract.expectedTick - state.currentTick + " ticks")}`;
+  const payment = `Payment: ${highlight.yellow(contract.payment + "")}`;
 
-  return `| ${highlight.custom("███", contractCompany.color)} | ${amountResource} | ${pickupDropoff} | ${owner} | ${dueIn}`;
+  return `| ${highlight.custom("███", contractCompany.color)} | ${amountResource} | ${pickupDropoff} | ${owner} | ${dueIn} | ${payment}`;
 };
 
 // .. UPDATE
@@ -147,6 +236,7 @@ export const assignContract = (contract: IContract, shipper: ITruck) => {
 
   shipper.contractId = contract.id;
   contract.shipperId = shipper.id;
+  contract.acceptedAtTick = world.getCurrentTick();
 
   if (notificationConfig.showContractNotifications) {
     logSuccess(
@@ -161,15 +251,6 @@ export const archiveContract = (state: IWorldState, contract: IContract) => {
   state.contractHistory.push(contract);
   state.contracts = state.contracts.filter((c) => c.id !== contract.id);
 };
-
-/* export const progressContract = (state:IWorldState,contract: IContract, resource:RESOURCE_TYPE, amount:number) => {
-  if(contract.resourceType !== resource) {
-    logWarning(
-      `[CONTRACT] ${resource} isn't needed for this contract - only ${contract.resourceType}`,
-    );
-    return;
-  }
-} */
 
 export const completeContract = (state: IWorldState, contract: IContract) => {
   if (notificationConfig.showContractNotifications) {
@@ -209,40 +290,14 @@ export const completeContract = (state: IWorldState, contract: IContract) => {
 
   const shipper = getTruckById(state, contract.shipperId);
   const shipperCompany = getCompanyById(state, shipper.companyId);
-  shipperCompany.money += contract.payment;
+
+  const contractOwner = getLocationById(state, contract.destinationId);
+  const contractOwnerCompany = getCompanyById(state, contractOwner.companyId);
+
+  transferFunds(contractOwnerCompany, shipperCompany, contract.payment);
 
   contract.deliveredTick = state.currentTick;
   archiveContract(state, contract);
 
   return true;
-};
-
-export const removeOwnedContracts = (
-  state: IWorldState,
-  destinationId: string,
-) => {
-  const contractsToRemove = state.contracts.filter(
-    (c) => c.destinationId === destinationId,
-  );
-
-  if (contractsToRemove.length > 0) {
-    if (notificationConfig.showContractNotifications) {
-      const destination = state
-        .getLocations()
-        .find((l) => l.id === contractsToRemove[0].destinationId);
-
-      if (!destination) {
-        throw Error(
-          `[CRITICAL SYSTEM ERROR] Location with id ${contractsToRemove[0].destinationId} doesn't exist - removal not possible`,
-        );
-      }
-
-      logSuccess(
-        `[CONTRACTS] Voiding ${contractsToRemove.length} contracts from ${destination.name}`,
-      );
-    }
-    state.contracts = state.contracts.filter(
-      (c) => !contractsToRemove.find((ctr) => ctr.id == c.id),
-    );
-  }
 };

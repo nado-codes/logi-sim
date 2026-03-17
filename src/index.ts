@@ -11,7 +11,12 @@ export const world = createWorld();
 logInfo("Logi sim starting...");
 logInfo("LogiSim v0.3.5");
 
-const stateCompany = world.createCompany("State", 1000000000, Color.Magenta);
+const stateCompany = world.createCompany(
+  "State",
+  1000000000,
+  Color.Magenta,
+  true,
+);
 const playerCompany = world.createCompany(
   "NadoCo Logistics",
   100000,
@@ -34,6 +39,7 @@ world.createTruck(
   10000,
   0,
   2,
+  100,
 );
 world.createTruck(
   "Truck 2",
@@ -42,9 +48,10 @@ world.createTruck(
   10000,
   15,
   2,
-); //
+  100,
+);
 
-const simTarget = 100000;
+const simTarget = 0;
 
 const update = () => {
   world.advanceTick();

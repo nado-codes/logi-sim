@@ -1,6 +1,5 @@
 import { logError, logSuccess, logWarning, highlight } from "../utils/logUtils";
-import { assignContract, getContractString } from "../world/contracts";
-import { getTruckString } from "../world/trucks";
+import { assignContract } from "../world/contracts";
 import { IWorld } from "../world/world";
 import { IMenuPage, IMenuAction, MenuItemType } from "./menu";
 import { createPage } from "./pages";

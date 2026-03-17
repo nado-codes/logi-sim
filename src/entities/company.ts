@@ -4,6 +4,7 @@ import { IBaseEntity, INamedEntity } from "./entity";
 export interface ICompany extends INamedEntity {
   money: number;
   color: Color;
+  isStateControlled: boolean;
 }
 
 export interface ICompanyEntity extends IBaseEntity {

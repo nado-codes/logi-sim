@@ -3,9 +3,8 @@
   "showProcessorNotifications": false,
   "showProducerNotifications": false,
   "showConsumerNotifications": false,
-  "showContractNotifications": false,
+  "showContractNotifications": true,
   "showTruckNotifications": false,
-  "showUtilsNotifications": false,
   "showProductionNotifications": false,
   "showLocationNotifications": false
 }

@@ -190,8 +190,7 @@ export const checkInputStorage = (
               location.id,
               closestSupplier.id,
               inputStorage[0].resourceType,
-              requiredAmount * 100, //Math.ceil(requiredAmount * 1.5) - inputStorageCount,
-              100,
+              requiredAmount * 100,
               dueTicks,
             );
           }

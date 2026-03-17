@@ -1,0 +1,18 @@
+{
+  "perUnitRate": 5,
+  "distanceRate": 2,
+  "urgencyMultipliers": {
+    "critical": {
+      "threshold": 3,
+      "multiplier": 2
+    },
+    "urgent": {
+      "threshold": 5,
+      "multiplier": 1.5
+    },
+    "priority": {
+      "threshold": 10,
+      "multiplier": 1.2
+    }
+  }
+}
