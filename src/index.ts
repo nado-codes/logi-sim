@@ -9,7 +9,7 @@ import { Color, logInfo } from "./utils/logUtils";
 export const world = createWorld();
 
 logInfo("Logi sim starting...");
-logInfo("LogiSim v0.3.5");
+logInfo("LogiSim v0.5.0");
 
 const stateCompany = world.createCompany(
   "State",
