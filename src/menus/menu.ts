@@ -117,13 +117,9 @@ export const createMenu = (
       logError(errorMessage);
     }
 
-    if (!activePage.isRoot) {
-      console.log("Enter a number corresponding to one of the above options");
-    } else {
-      console.log(
-        "Enter a number corresponding to one of the above options or press enter to advance tick",
-      );
-    }
+    console.log(
+      "Enter a number corresponding to one of the above options or press enter to advance tick",
+    );
   };
 
   const executeAction = (action: IMenuAction, args: any) => {
@@ -180,9 +176,6 @@ export const createMenu = (
           renderPage(activePage, `"${command}" is not a valid option`);
           waitForInput();
         }
-      } else if (!activePage.isRoot) {
-        renderPage(activePage, `Please choose an option`);
-        waitForInput();
       } else {
         finish();
       }
