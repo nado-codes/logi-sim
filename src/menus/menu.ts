@@ -59,7 +59,6 @@ export const createMenu = (
     createViewLogsPage(),
   ]);
 
-  let prevPage: IMenuPage;
   let activePage: IMenuPage = mainMenu;
   let navHistory: IMenuPage[] = [mainMenu];
 
@@ -69,9 +68,10 @@ export const createMenu = (
 
   const finish = () => {
     console.clear();
-    activePage = mainMenu;
-    prevPage = mainMenu;
+
     callback();
+    renderPage(activePage);
+    waitForInput();
   };
 
   const renderPrevPage = () => {
@@ -163,7 +163,6 @@ export const createMenu = (
 
         if (menuItem) {
           if (menuItem.type === MenuItemType.Page) {
-            prevPage = activePage;
             activePage = menuItem as IMenuPage;
             renderPage(activePage);
             waitForInput();
