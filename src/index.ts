@@ -1,13 +1,7 @@
-import { RESOURCE_TYPE } from "./entities/storage";
 import { createWorld } from "./world/world";
 import { createMenu } from "./menus/menu";
-import {
-  Color,
-  highlight,
-  logEntries,
-  logError,
-  logInfo,
-} from "./utils/logUtils";
+import { Color, logError, logInfo } from "./utils/logUtils";
+import { RESOURCE_TYPE } from "./entities/resource";
 
 // .. CREATE
 
@@ -57,7 +51,7 @@ world.createTruck(
   100,
 );
 
-const simTarget = 17500;
+const simTarget = 0;
 
 const update = () => {
   world.advanceTick();

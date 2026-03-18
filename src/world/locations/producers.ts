@@ -1,5 +1,5 @@
 import { LOCATION_TYPE } from "../../entities/locations/location";
-import { IRecipe, RESOURCE_TYPE } from "../../entities/storage";
+import { IRecipe } from "../../entities/storage";
 import { loadNotificationConfig } from "../../notifications";
 import {
   logWarning,
@@ -15,6 +15,7 @@ import {
   getResourceCount,
   processRecipe,
 } from "../storages";
+import { RESOURCE_TYPE } from "../../entities/resource";
 
 const notificationConfig = loadNotificationConfig();
 

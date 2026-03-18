@@ -1,9 +1,4 @@
-export enum RESOURCE_TYPE {
-  GRAIN = "Grain",
-  FLOUR = "Flour",
-}
-
-export type ResourceMap = Partial<Record<RESOURCE_TYPE, number>>;
+import { ResourceMap, RESOURCE_TYPE } from "./resource";
 
 export interface IRecipe {
   inputs?: ResourceMap;

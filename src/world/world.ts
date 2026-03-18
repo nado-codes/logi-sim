@@ -1,6 +1,6 @@
 import { IContract } from "../entities/contract";
-import { IBaseLocation, LOCATION_TYPE } from "../entities/locations/location";
-import { IRecipe, RESOURCE_TYPE } from "../entities/storage";
+import { IBaseLocation } from "../entities/locations/location";
+import { IRecipe } from "../entities/storage";
 import { ITruck } from "../entities/truck";
 import {
   createContract,
@@ -30,6 +30,7 @@ import { Color, highlight } from "../utils/logUtils";
 import { Nullable } from "../entities/entity";
 import { createTown, updateTowns } from "./locations/consumers/towns";
 import { IWorldState } from "../entities/world";
+import { RESOURCE_TYPE } from "../entities/resource";
 
 export interface IWorld {
   advanceTick: () => void;

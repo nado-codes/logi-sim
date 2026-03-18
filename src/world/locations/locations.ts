@@ -4,7 +4,7 @@ import {
   IBaseLocation,
   LOCATION_TYPE,
 } from "../../entities/locations/location";
-import { IRecipe, RESOURCE_TYPE } from "../../entities/storage";
+import { IRecipe } from "../../entities/storage";
 import { loadNotificationConfig } from "../../notifications";
 import { logWarning, logInfo, logError, highlight } from "../../utils/logUtils";
 import { getContractByResource, createContract } from "../contracts";
@@ -15,6 +15,7 @@ import {
   createRecipeStorage,
   getResourceStorage,
 } from "../storages";
+import { RESOURCE_TYPE } from "../../entities/resource";
 
 const notificationConfig = loadNotificationConfig();
 const storageConfig = loadStorageConfig();

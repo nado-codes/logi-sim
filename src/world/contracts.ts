@@ -1,5 +1,4 @@
 import { IContract } from "../entities/contract";
-import { RESOURCE_TYPE } from "../entities/storage";
 import { loadNotificationConfig } from "../notifications";
 import { ITruck } from "../entities/truck";
 import {
@@ -21,6 +20,7 @@ import { IWorldState } from "../entities/world";
 import { getResourceCount } from "./storages";
 import { loadConfig } from "../utils/configUtils";
 import { world } from "..";
+import { RESOURCE_TYPE } from "../entities/resource";
 
 const notificationConfig = loadNotificationConfig();
 

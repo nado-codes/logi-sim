@@ -1,9 +1,5 @@
-import {
-  RESOURCE_TYPE,
-  IStorage,
-  IRecipe,
-  StorageTransferResult,
-} from "../entities/storage";
+import { RESOURCE_TYPE } from "../entities/resource";
+import { IStorage, IRecipe, StorageTransferResult } from "../entities/storage";
 import { IWorldState } from "../entities/world";
 import { loadNotificationConfig } from "../notifications";
 import { loadConfig } from "../utils/configUtils";

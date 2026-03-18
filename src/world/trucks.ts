@@ -1,4 +1,4 @@
-import { RESOURCE_TYPE, StorageTransferResult } from "../entities/storage";
+import { StorageTransferResult } from "../entities/storage";
 import { ITruck } from "../entities/truck";
 import { loadNotificationConfig } from "../notifications";
 import {
@@ -20,6 +20,7 @@ import {
   transferResources,
 } from "./storages";
 import { IBaseLocation } from "../entities/locations/location";
+import { RESOURCE_TYPE } from "../entities/resource";
 
 const notificationConfig = loadNotificationConfig();
 

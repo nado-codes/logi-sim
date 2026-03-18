@@ -1,7 +1,6 @@
 import { IProcessor, LOCATION_TYPE } from "../../entities/locations/location";
-import { IRecipe, RESOURCE_TYPE } from "../../entities/storage";
+import { IRecipe } from "../../entities/storage";
 import { createBaseLocation, checkInputStorage } from "./locations";
-import { getContractByResource } from "../contracts";
 import { loadNotificationConfig } from "../../notifications";
 import { logWarning, logSuccess } from "../../utils/logUtils";
 import { IWorldState } from "../../entities/world";

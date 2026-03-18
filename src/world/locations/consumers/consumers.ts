@@ -1,6 +1,6 @@
 import { IBaseConsumer } from "../../../entities/locations/consumer";
 import { LOCATION_TYPE } from "../../../entities/locations/location";
-import { ResourceMap } from "../../../entities/storage";
+import { ResourceMap } from "../../../entities/resource";
 import { IWorldState } from "../../../entities/world";
 import { processRecipe } from "../../storages";
 import { createBaseLocation, checkInputStorage } from "../locations";

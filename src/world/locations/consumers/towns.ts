@@ -1,12 +1,12 @@
 import { ITown } from "../../../entities/locations/consumer";
 import { LOCATION_TYPE } from "../../../entities/locations/location";
-import { RESOURCE_TYPE, ResourceMap } from "../../../entities/storage";
 import { IWorldState } from "../../../entities/world";
 import { getContractByLocationIdOrNull } from "../../contracts";
 import { createBaseConsumer, updateBaseConsumer } from "./consumers";
 import { loadConfig } from "../../../utils/configUtils";
 import { clamp } from "../../../utils/mathUtils";
 import { getInputStorage, loadStorageConfig } from "../../storages";
+import { ResourceMap, RESOURCE_TYPE } from "../../../entities/resource";
 
 interface TownConfig {
   populationGrowthThreshold: number;
