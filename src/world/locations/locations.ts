@@ -131,13 +131,13 @@ export const checkInputStorage = (
         inputStorageCapacity * storageConfig.storageLowThreshold
       ) {
         if (!contract) {
-          if (notificationConfig.showLocationNotifications) {
+          if (notificationConfig.logLocationNotifications) {
             logWarning(
               `[LOCATION WARNING] ${location.name} doesn't have enough ${inputStorage[0].resourceType} ${inputStorageCount > 0 ? `(only ${inputStorageCount} available) ` : ""}- so we'll create a contract`,
             );
           }
 
-          if (notificationConfig.showLocationNotifications) {
+          if (notificationConfig.logLocationNotifications) {
             logInfo(
               `[LOCATION INFO] ${location.name} is searching for a supplier...`,
             );
@@ -148,7 +148,7 @@ export const checkInputStorage = (
             );
 
             if (s.id !== location.id) {
-              if (notificationConfig.showLocationNotifications) {
+              if (notificationConfig.logLocationNotifications) {
                 logInfo(
                   ` - Contacted ${s.name} -> ${hasResources ? "Found some resources!" : "Nothing available"}`,
                 );
@@ -176,7 +176,7 @@ export const checkInputStorage = (
           }
 
           if (!closestSupplier) {
-            if (notificationConfig.showLocationNotifications) {
+            if (notificationConfig.logLocationNotifications) {
               logError(`- No nearby suppliers to resupply ${location.name}`);
             }
           } else {

@@ -1,10 +1,17 @@
 {
-  "showStorageNotifications": false,
-  "showProcessorNotifications": false,
-  "showProducerNotifications": false,
-  "showConsumerNotifications": false,
-  "showContractNotifications": true,
-  "showTruckNotifications": false,
-  "showProductionNotifications": false,
-  "showLocationNotifications": false
+  "logStorageNotifications": false,
+  "logProcessorNotifications": false,
+  "logProducerNotifications": false,
+  "logConsumerNotifications": false,
+  "logContractNotifications": false,
+  "logTruckNotifications": {
+    "all": false,
+    "loading": true,
+    "unloading": true,
+    "movement": false,
+    "costs": true
+  },
+  "logProductionNotifications": false,
+  "logLocationNotifications": false,
+  "logCompanyNotifications": true
 }

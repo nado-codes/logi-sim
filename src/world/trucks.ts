@@ -14,7 +14,12 @@ import {
 } from "./companies";
 import { getLocationById, getLocationByIdOrNull } from "./locations/locations";
 import { IWorldState } from "../entities/world";
-import { createAndGetStorage, transferResources } from "./storages";
+import {
+  createAndGetStorage,
+  getResourceStorage,
+  transferResources,
+} from "./storages";
+import { IBaseLocation } from "../entities/locations/location";
 
 const notificationConfig = loadNotificationConfig();
 
@@ -117,16 +122,22 @@ const updateTruckPosition = (state: IWorldState, truck: ITruck) => {
     }
 
     if (truck.position === truckDestination.position) {
-      if (notificationConfig.showTruckNotifications) {
+      if (
+        notificationConfig.logTruckNotifications.all ||
+        notificationConfig.logTruckNotifications.movement
+      ) {
         logSuccess(
-          `[TRUCK] ${truck.id} has arrived at ${truckDestination.name}`,
+          `[TRUCK] ${truck.name} has arrived at ${truckDestination.name}`,
         );
         truck.debugMessage = "AR";
       }
     } else {
-      if (notificationConfig.showTruckNotifications) {
+      if (
+        notificationConfig.logTruckNotifications.all ||
+        notificationConfig.logTruckNotifications.movement
+      ) {
         logInfo(
-          `[TRUCK] ${truck.id} moved ${truck.speed} distance units and is ${Math.abs(distance)} units away from the destination`,
+          `[TRUCK] ${truck.name} moved ${truck.speed} distance units and is ${Math.abs(distance)} units away from the destination`,
         );
         truck.debugMessage = "MV";
       }
@@ -154,9 +165,12 @@ export const updateTrucks = (state: IWorldState) => {
         const amountLeftToLoad =
           truckContract.totalAmount - truck.storage.resourceCount;
 
-        if (notificationConfig.showTruckNotifications) {
+        if (
+          notificationConfig.logTruckNotifications.all ||
+          notificationConfig.logTruckNotifications.loading
+        ) {
           logInfo(
-            `[TRUCK] ${truck.id} requested ${amountLeftToLoad} ${truckContract.resourceType} from ${contractSupplier.name}`,
+            `[TRUCK] ${truck.name} requested ${amountLeftToLoad} ${truckContract.resourceType} from ${contractSupplier.name}`,
           );
           truck.debugMessage = "LD-ST";
         }
@@ -174,20 +188,26 @@ export const updateTrucks = (state: IWorldState) => {
             loadResult === StorageTransferResult.DESTINATION_FULL,
           amountLeftToLoad <= 0)
         ) {
-          if (notificationConfig.showTruckNotifications) {
+          if (
+            notificationConfig.logTruckNotifications.all ||
+            notificationConfig.logTruckNotifications.loading
+          ) {
             const contractDestination = state
               .getLocations()
               .find((l) => l.id === truckContract.destinationId);
             logSuccess(
-              `[TRUCK] ${truck.id} finished loading at ${contractSupplier.name}. Heading to ${contractDestination!.name}`,
+              `[TRUCK] ${truck.name} finished loading at ${contractSupplier.name}. Heading to ${contractDestination!.name}`,
             );
             truck.debugMessage = "LD-FN";
           }
           truck.destinationId = truckContract.destinationId;
         } else if (StorageTransferResult.SOURCE_EMPTY) {
-          if (notificationConfig.showTruckNotifications) {
+          if (
+            notificationConfig.logTruckNotifications.all ||
+            notificationConfig.logTruckNotifications.loading
+          ) {
             logInfo(
-              `[TRUCK] ${truck.id} will wait for the rest of the ${truckContract.resourceType} (${truckContract.totalAmount - truck.storage.resourceCount} left)`,
+              `[TRUCK] ${truck.name} will wait for the rest of the ${truckContract.resourceType} (${truckContract.totalAmount - truck.storage.resourceCount} left)`,
             );
             truck.debugMessage = "LD-WT";
           }
@@ -195,25 +215,21 @@ export const updateTrucks = (state: IWorldState) => {
       }
 
       if (truck.position === contractDestination.position) {
-        if (notificationConfig.showTruckNotifications) {
-          logInfo(
-            `[TRUCK] ${truck.id} tried to unload ${truck.storage.resourceCount} ${truck.storage.resourceType} at ${contractDestination.name}`,
-          );
-          truck.debugMessage = "UL-ST";
-        }
-
         const unloadResult = transferResources(
           state,
-          truckContract.totalAmount,
-          truckContract.resourceType,
+          truck.storage.resourceCount,
+          truck.storage.resourceType,
           [truck.storage],
           contractDestination.storage,
         );
 
         if (unloadResult === StorageTransferResult.SUCCESS) {
-          if (notificationConfig.showTruckNotifications) {
+          if (
+            notificationConfig.logTruckNotifications.all ||
+            notificationConfig.logTruckNotifications.unloading
+          ) {
             logSuccess(
-              `[TRUCK] ${truck.id} finished unloading at ${contractDestination.name}. Contract completed`,
+              `[TRUCK] ${truck.name} finished unloading at ${contractDestination.name}`,
             );
             truck.debugMessage = "UL-FN";
           }
@@ -235,14 +251,23 @@ export const updateTrucks = (state: IWorldState) => {
             // so we'll just transfer to the state (the void)
             transferFundsToState(truckCompany, operatingCost);
 
-            if (notificationConfig.showTruckNotifications) {
+            if (
+              notificationConfig.logTruckNotifications.all ||
+              notificationConfig.logTruckNotifications.costs
+            ) {
+              logInfo(
+                `[TRUCK] ${truck.name} was paid ${highlight.yellow("$" + operatingCost)} for a ${highlight.yellow(deliveryTime + "-tick")} job`,
+              );
               truck.debugMessage = "CT-FN";
             }
           }
         } else if (unloadResult === StorageTransferResult.DESTINATION_FULL) {
-          if (notificationConfig.showTruckNotifications) {
+          if (
+            notificationConfig.logTruckNotifications.all ||
+            notificationConfig.logTruckNotifications.unloading
+          ) {
             logInfo(
-              `[TRUCK] ${truck.id} will wait to unload the rest of the ${truckContract.resourceType} (${truck.storage.resourceCount} left)`,
+              `[TRUCK] ${truck.name} will wait to unload the rest of the ${truckContract.resourceType} (${truck.storage.resourceCount} left)`,
             );
           }
           truck.debugMessage = "UL-WT";
@@ -260,16 +285,25 @@ export const updateTrucks = (state: IWorldState) => {
         if (assignContract(validContract, truck)) {
           truck.destinationId = validContract.supplierId;
 
-          if (notificationConfig.showTruckNotifications) {
+          if (
+            notificationConfig.logTruckNotifications.all ||
+            notificationConfig.logTruckNotifications.movement
+          ) {
             truck.debugMessage = "CT-ST";
           }
         } else {
-          if (notificationConfig.showTruckNotifications) {
+          if (
+            notificationConfig.logTruckNotifications.all ||
+            notificationConfig.logTruckNotifications.movement
+          ) {
             truck.debugMessage = "CT-FL";
           }
         }
       } else {
-        if (notificationConfig.showTruckNotifications) {
+        if (
+          notificationConfig.logTruckNotifications.all ||
+          notificationConfig.logTruckNotifications.movement
+        ) {
           truck.debugMessage = "N-CT";
         }
       }

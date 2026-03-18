@@ -1,6 +1,6 @@
 import { ICompany, ICompanyEntity } from "../entities/company";
 import { createBaseEntity, createNamedEntity } from "../entities";
-import { Color, highlight } from "../utils/logUtils";
+import { Color, highlight, logInfo } from "../utils/logUtils";
 import { IWorldState } from "../entities/world";
 
 // .. CREATE
@@ -59,6 +59,14 @@ export const transferFunds = (
     }
 
     toCompany.money += Math.abs(amount);
+
+    const transferString = `${highlight.yellow(fromCompany.name)} transferred ${highlight.yellow("$" + amount)} to ${highlight.yellow(toCompany.name)}`;
+    const moneyString =
+      fromCompany.money > 0
+        ? `${highlight.yellow("$" + fromCompany.money)}`
+        : `${highlight.red("$" + fromCompany.money)}`;
+
+    logInfo(`${transferString} and has ${moneyString} left`);
   }
 };
 
@@ -77,5 +85,13 @@ export const transferFunds = (
 export const transferFundsToState = (fromCompany: ICompany, amount: number) => {
   if (!fromCompany.isStateControlled && fromCompany.money > 0) {
     fromCompany.money -= Math.abs(amount);
+
+    const transferString = `${highlight.yellow(fromCompany.name)} transferred ${highlight.yellow("$" + amount)} to ${highlight.yellow("State")}`;
+    const moneyString =
+      fromCompany.money > 0
+        ? `${highlight.yellow("$" + fromCompany.money)}`
+        : `${highlight.red("$" + fromCompany.money)}`;
+
+    logInfo(`${transferString} and has ${moneyString} left`);
   }
 };

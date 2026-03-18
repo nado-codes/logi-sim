@@ -72,7 +72,7 @@ export const updateProducers = (state: IWorldState) => {
     const outputStorageCount = getResourceCount(resourceType, outputStorage);
 
     if (outputStorageCount >= outputStorageCapacity) {
-      if (notificationConfig.showProducerNotifications) {
+      if (notificationConfig.logProducerNotifications) {
         logWarning(
           `${producer.name} is full and can't produce any more ${resourceType}`,
         );
@@ -84,14 +84,14 @@ export const updateProducers = (state: IWorldState) => {
           outputStorage,
         );
 
-        if (notificationConfig.showProducerNotifications) {
+        if (notificationConfig.logProducerNotifications) {
           logSuccess(
             `${producer.name} produced ${productionRate} ${resourceType} and has ${outputStorageCount} available`,
           );
         }
       } else {
         if (outputStorageCount > outputStorageCapacity - productionRate) {
-          if (notificationConfig.showProducerNotifications) {
+          if (notificationConfig.logProducerNotifications) {
             logWarning(
               `${producer.name} is full and can't produce any more ${resourceType}`,
             );

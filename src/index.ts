@@ -1,7 +1,13 @@
 import { RESOURCE_TYPE } from "./entities/storage";
 import { createWorld } from "./world/world";
 import { createMenu } from "./menus/menu";
-import { Color, logInfo } from "./utils/logUtils";
+import {
+  Color,
+  highlight,
+  logEntries,
+  logError,
+  logInfo,
+} from "./utils/logUtils";
 
 // .. CREATE
 
@@ -28,7 +34,7 @@ world.createProcessor("Flour Mill", stateCompany.id, 15, {
     [RESOURCE_TYPE.GRAIN]: 6,
   },
   outputs: {
-    [RESOURCE_TYPE.FLOUR]: 6,
+    [RESOURCE_TYPE.FLOUR]: 3,
   },
 });
 world.createTown("Town A", stateCompany.id, 45, true);
@@ -51,7 +57,7 @@ world.createTruck(
   100,
 );
 
-const simTarget = 0;
+const simTarget = 17500;
 
 const update = () => {
   world.advanceTick();
@@ -65,6 +71,13 @@ const update = () => {
 
 while (world.getCurrentTick() < simTarget) {
   update();
+
+  if (playerCompany.money < 0) {
+    logError(
+      `[SYSTEM] Exiting auto-sim early because the player company ran out of money`,
+    );
+    break;
+  }
 }
 
 const menu = createMenu(update, world, playerCompany);

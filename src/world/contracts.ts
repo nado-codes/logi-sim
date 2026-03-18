@@ -86,7 +86,7 @@ const calculateContractPayment = (
   const distancePremium = distance * contractConfig.distanceRate;
   const urgencyMultiplier = getUrgencyMultiplier(ticksUntilExpiry);
 
-  if (notificationConfig.showContractNotifications) {
+  if (notificationConfig.logContractNotifications) {
     logInfo(` - Base Payment: ${basePayment}`);
     logInfo(` - Distance Premium: ${distancePremium}`);
     logInfo(` - Urgency Multiplier: ${urgencyMultiplier}`);
@@ -104,7 +104,7 @@ export const createContract = (
   amount: number,
   dueTicks: number,
 ) => {
-  if (notificationConfig.showContractNotifications) {
+  if (notificationConfig.logContractNotifications) {
     logInfo(`[CONTRACT] Trying to create ${resourceType} contract...`);
   }
 
@@ -124,7 +124,7 @@ export const createContract = (
     expectedTick: state.currentTick + dueTicks,
   };
 
-  if (notificationConfig.showContractNotifications) {
+  if (notificationConfig.logContractNotifications) {
     logSuccess(
       `[CONTRACT] Created contract for ${amount} ${resourceType} from ${supplier.name} to ${destination.name}, due in ${dueTicks} ticks and paying ${payment}`,
     );
@@ -200,12 +200,12 @@ export const updateContracts = (state: IWorldState) => {
 
     if (contractDueTicks > 0) {
       if (contractDueTicks - 1 <= 0) {
-        if (notificationConfig.showContractNotifications) {
+        if (notificationConfig.logContractNotifications) {
           logWarning(`Contract ${contract.id} has expired`);
         }
         // .. impose some sort of penalty on the shipper if they fail to deliver?
       } else {
-        if (notificationConfig.showContractNotifications) {
+        if (notificationConfig.logContractNotifications) {
           logInfo(
             `Contract ${contract.id} is due in ${contractDueTicks} ticks`,
           );
@@ -216,7 +216,7 @@ export const updateContracts = (state: IWorldState) => {
 };
 
 export const assignContract = (contract: IContract, shipper: ITruck) => {
-  if (notificationConfig.showContractNotifications) {
+  if (notificationConfig.logContractNotifications) {
     logInfo(`[CONTRACT] Trying to assign ${contract.resourceType} contract...`);
   }
 
@@ -238,7 +238,7 @@ export const assignContract = (contract: IContract, shipper: ITruck) => {
   contract.shipperId = shipper.id;
   contract.acceptedAtTick = world.getCurrentTick();
 
-  if (notificationConfig.showContractNotifications) {
+  if (notificationConfig.logContractNotifications) {
     logSuccess(
       `- SUCCESS: Contract ${highlight.yellow(contract.id)} assigned to shipper ${highlight.yellow(shipper.id)}`,
     );
@@ -253,7 +253,7 @@ export const archiveContract = (state: IWorldState, contract: IContract) => {
 };
 
 export const completeContract = (state: IWorldState, contract: IContract) => {
-  if (notificationConfig.showContractNotifications) {
+  if (notificationConfig.logContractNotifications) {
     logInfo(
       `[CONTRACT] Trying to complete ${contract.resourceType} contract...`,
     );
@@ -276,7 +276,7 @@ export const completeContract = (state: IWorldState, contract: IContract) => {
     destination.storage,
   );
   if (resourceCount < contract.totalAmount) {
-    if (notificationConfig.showContractNotifications) {
+    if (notificationConfig.logContractNotifications) {
       logWarning(
         ` - WARNING: Requirements not satisfied - ${destination.name} needs ${contract.totalAmount} ${contract.resourceType} - only ${resourceCount} available`,
       );
@@ -284,7 +284,7 @@ export const completeContract = (state: IWorldState, contract: IContract) => {
     return false;
   }
 
-  if (notificationConfig.showContractNotifications) {
+  if (notificationConfig.logContractNotifications) {
     logSuccess(` - SUCCESS: All requirements met. Contract will be voided.`);
   }
 

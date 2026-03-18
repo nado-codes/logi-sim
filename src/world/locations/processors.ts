@@ -63,7 +63,7 @@ export const updateProcessors = (state: IWorldState) => {
       .reduce((c, v) => c + v);
 
     if (outputStorageCount >= outputStorageCapacity) {
-      if (notificationConfig.showProcessorNotifications) {
+      if (notificationConfig.logProcessorNotifications) {
         logWarning(`${processor.name} is full and can't produce any more`);
       }
     } else {
@@ -83,7 +83,7 @@ export const updateProcessors = (state: IWorldState) => {
           .map(([resource, amount]) => `${amount} units of ${resource}`)
           .join(", ");
 
-        if (notificationConfig.showProcessorNotifications) {
+        if (notificationConfig.logProcessorNotifications) {
           logSuccess(
             `${processor.name} processed ${recipeInputsString} to produce ${recipeOutputsString} and has ${inputStorageCount} left`,
           );
