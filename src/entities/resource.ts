@@ -9,7 +9,7 @@ export type ResourceDefinition = {
   weight: number;
 };
 
-export const Resource: Partial<Record<RESOURCE_TYPE, ResourceDefinition>> = {
+export const Resource: Record<RESOURCE_TYPE, ResourceDefinition> = {
   Grain: { name: RESOURCE_TYPE.GRAIN, weight: 2 },
   Flour: { name: RESOURCE_TYPE.FLOUR, weight: 1 },
 };

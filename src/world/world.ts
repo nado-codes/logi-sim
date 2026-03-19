@@ -109,7 +109,7 @@ export interface IWorld {
     resourceType: RESOURCE_TYPE,
     resourceCapacity: number,
     position: number,
-    speed: number,
+    speedModifier: number,
     operatingCostPerTick: number,
     resourceCount?: number,
   ) => void;
@@ -307,7 +307,7 @@ export const createWorld = (): IWorld => {
       resourceType: RESOURCE_TYPE,
       resourceCapacity: number,
       position: number,
-      speed: number,
+      speedModifier: number,
       operatingCostPerTick: number,
       resourceCount?: number,
     ) =>
@@ -318,7 +318,7 @@ export const createWorld = (): IWorld => {
         resourceType,
         resourceCapacity,
         position,
-        speed,
+        speedModifier,
         operatingCostPerTick,
         resourceCount,
       ),

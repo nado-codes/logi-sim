@@ -1,0 +1,7 @@
+{
+  "distanceUnit": "km",
+  "weightUnit": "t",
+  "tickUnit": "hr",
+  "currency": "$",
+  "distanceScale": 0.01
+}

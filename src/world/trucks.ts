@@ -6,7 +6,7 @@ import {
   completeContract,
   getContractByIdOrNull,
 } from "./contracts";
-import { logSuccess, logInfo, highlight } from "../utils/logUtils";
+import { logSuccess, logInfo, highlight, logWarning } from "../utils/logUtils";
 import {
   createCompanyEntity,
   getCompanyById,
@@ -14,15 +14,28 @@ import {
 } from "./companies";
 import { getLocationById, getLocationByIdOrNull } from "./locations/locations";
 import { IWorldState } from "../entities/world";
-import {
-  createAndGetStorage,
-  getResourceStorage,
-  transferResources,
-} from "./storages";
-import { IBaseLocation } from "../entities/locations/location";
+import { createAndGetStorage, transferResources } from "./storages";
 import { RESOURCE_TYPE } from "../entities/resource";
+import { loadConfig } from "../utils/configUtils";
+import { measurementConfig } from "../utils/measurementUtils";
 
 const notificationConfig = loadNotificationConfig();
+
+interface ITruckConfig {
+  fuelToWeightRatio: number;
+  speedToWeightRatio: number;
+  baseSpeed: number;
+  baseFuelConsumptionRate: number;
+}
+
+const defaultConfig: ITruckConfig = {
+  fuelToWeightRatio: 0.05,
+  speedToWeightRatio: 0.005,
+  baseSpeed: 2,
+  baseFuelConsumptionRate: 0.01,
+};
+
+const truckConfig = loadConfig("truck", defaultConfig);
 
 // .. CREATE
 export const createTruck = (
@@ -32,7 +45,7 @@ export const createTruck = (
   resourceType: RESOURCE_TYPE,
   resourceCapacity: number,
   position: number,
-  speed: number,
+  speedModifier: number,
   operatingCostPerTick: number,
   resourceCount: number = 0,
 ) => {
@@ -47,10 +60,13 @@ export const createTruck = (
   const newTruck: ITruck = {
     ...companyEntity,
     name,
-    speed,
+    speed:
+      truckConfig.baseSpeed * speedModifier * measurementConfig.distanceScale,
+    speedModifier,
     storage,
     position,
     operatingCostPerTick,
+    fuel: 100,
   };
 
   state.trucks.push(newTruck);
@@ -75,7 +91,7 @@ export const getTruckByPositionOrNull = (
   state: IWorldState,
   position: number,
 ) => {
-  const truck = state.trucks.find((t) => t.position === position);
+  const truck = state.trucks.find((t) => Math.floor(t.position) === position);
 
   return truck;
 };
@@ -116,7 +132,32 @@ const updateTruckPosition = (state: IWorldState, truck: ITruck) => {
   const direction = Math.sign(distance);
 
   if (truck.position != truckDestination.position) {
-    truck.position -= direction * truck.speed;
+    if (truck.fuel > 0) {
+      truck.fuel -=
+        truckConfig.baseFuelConsumptionRate +
+        truck.storage.resourceWeight * truckConfig.fuelToWeightRatio;
+
+      const weightModifier =
+        truckConfig.speedToWeightRatio * truck.storage.resourceWeight;
+      const adjustedSpeed =
+        truckConfig.baseSpeed * truck.speedModifier * (1 - weightModifier);
+
+      truck.speed = adjustedSpeed;
+      truck.position -=
+        direction * (truck.speed * measurementConfig.distanceScale);
+    } else {
+      logWarning(`[TRUCK] ${truck.name} ran out of fuel`);
+
+      const fuelBaseCost = 1;
+      const fuelCost = 100 * fuelBaseCost;
+      truck.fuel = 100;
+      const truckCompany = getCompanyById(state, truck.companyId);
+      transferFundsToState(truckCompany, fuelCost);
+
+      logSuccess(
+        `- Refueled at a cost of ${highlight.yellow(`${measurementConfig.currency}` + fuelCost)}`,
+      );
+    }
 
     if (Math.abs(truck.position - truckDestination.position) < truck.speed) {
       truck.position = truckDestination.position; // Snap to destination
@@ -138,7 +179,7 @@ const updateTruckPosition = (state: IWorldState, truck: ITruck) => {
         notificationConfig.logTruckNotifications.movement
       ) {
         logInfo(
-          `[TRUCK] ${truck.name} moved ${truck.speed} distance units and is ${Math.abs(distance)} units away from the destination`,
+          `[TRUCK] ${truck.name} moved ${truck.speed}${measurementConfig.distanceUnit}/${measurementConfig.tickUnit} and is ${Math.abs(distance)}${measurementConfig.distanceUnit} away from the destination`,
         );
         truck.debugMessage = "MV";
       }
@@ -257,7 +298,7 @@ export const updateTrucks = (state: IWorldState) => {
               notificationConfig.logTruckNotifications.costs
             ) {
               logInfo(
-                `[TRUCK] ${truck.name} was paid ${highlight.yellow("$" + operatingCost)} for a ${highlight.yellow(deliveryTime + "-tick")} job`,
+                `[TRUCK] ${truck.name} was paid ${highlight.yellow(`${measurementConfig.currency}` + operatingCost)} for a ${highlight.yellow(deliveryTime + `-${measurementConfig.tickUnit}`)} job`,
               );
               truck.debugMessage = "CT-FN";
             }

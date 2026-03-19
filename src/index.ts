@@ -38,7 +38,7 @@ world.createTruck(
   RESOURCE_TYPE.GRAIN,
   10000,
   0,
-  2,
+  1,
   100,
 );
 world.createTruck(
@@ -47,7 +47,7 @@ world.createTruck(
   RESOURCE_TYPE.FLOUR,
   10000,
   15,
-  2,
+  1,
   100,
 );
 

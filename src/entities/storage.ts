@@ -26,6 +26,7 @@ export interface IStorage {
   resourceType: RESOURCE_TYPE;
   resourceCapacity: number;
   resourceCount: number;
+  resourceWeight: number;
   transferEvents: IStorageTransferEvent[];
 }
 

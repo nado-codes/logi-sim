@@ -1,6 +1,7 @@
 import { ITown } from "../entities/locations/consumer";
 import { LOCATION_TYPE } from "../entities/locations/location";
 import { highlight, logWarning } from "../utils/logUtils";
+import { measurementConfig } from "../utils/measurementUtils";
 import { IWorld } from "../world/world";
 import { IMenuAction, IMenuPage, logError, MenuItemType } from "./menu";
 import { createPage } from "./pages";
@@ -30,8 +31,17 @@ export const createManageTrucksPage = (world: IWorld): IMenuPage => {
       }
 
       return createPage(`${truck.name}`, false, [], () => {
+        const storageCountString = `Stored: ${highlight.yellow(truck.storage.resourceCount + "")}`;
+        const storageCapacityString = `Capacity: ${highlight.yellow(truck.storage.resourceCapacity + "")}`;
+        const storageWeightString = `Weight: ${highlight.yellow(truck.storage.resourceWeight + `${measurementConfig.weightUnit}`)}`;
         console.log(
-          `  - Storage: ${highlight.yellow(truck.storage.resourceType)} | Stored: ${highlight.yellow(truck.storage.resourceCount + "")} | Capacity: ${highlight.yellow(truck.storage.resourceCapacity + "")}`,
+          `  - Storage: ${highlight.yellow(truck.storage.resourceType)} | ${storageCountString} | ${storageCapacityString} | ${storageWeightString}`,
+        );
+        console.log(
+          `  - Fuel: ${highlight.yellow(Math.round(truck.fuel) + "%")}`,
+        );
+        console.log(
+          `  - Speed: ${highlight.yellow(truck.speed + `${measurementConfig.distanceUnit}/${measurementConfig.tickUnit}`)}`,
         );
 
         const activeContracts = world

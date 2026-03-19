@@ -4,8 +4,10 @@ import { IStorage } from "./storage";
 
 export interface ITruck extends IWorldEntity, ICompanyEntity {
   speed: number;
+  speedModifier: number;
   destinationId?: string | undefined;
   contractId?: string | undefined;
   storage: IStorage;
   operatingCostPerTick: number;
+  fuel: number;
 }

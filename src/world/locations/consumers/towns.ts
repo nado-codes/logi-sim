@@ -127,12 +127,10 @@ const updateTownPopulation = (state: IWorldState, town: ITown) => {
 
   town.population = Math.round(town.population);
 
-  // e.g. 1 flour serves 10 (population-to-resource (PTR) ratio 1:10)
+  // e.g. 1 flour serves 10 (population-to-resource (PTR) ratio 1:10) //
   const townInputs: ResourceMap = town.recipe.inputs ?? {};
   (Object.keys(townInputs ?? {}) as RESOURCE_TYPE[]).forEach((resourceType) => {
-    const newConsumptionRate = Math.round(
-      town.population / townConfig.ptrRatio,
-    );
+    const newConsumptionRate = town.population / townConfig.ptrRatio;
 
     townInputs[resourceType] = newConsumptionRate;
 

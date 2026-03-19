@@ -1,4 +1,4 @@
-import { RESOURCE_TYPE } from "../entities/resource";
+import { Resource, RESOURCE_TYPE } from "../entities/resource";
 import { IStorage, IRecipe, StorageTransferResult } from "../entities/storage";
 import { IWorldState } from "../entities/world";
 import { loadNotificationConfig } from "../notifications";
@@ -38,6 +38,7 @@ export const createAndGetStorage = (
     resourceType,
     resourceCapacity,
     resourceCount,
+    resourceWeight: 1,
     transferEvents: [],
   };
 
@@ -347,6 +348,11 @@ export const transferResources = (
   return result;
 };
 
+const _updateStorageWeight = (storage: IStorage) => {
+  storage.resourceWeight =
+    storage.resourceCount * Resource[storage.resourceType].weight;
+};
+
 const _addResources = (amount: number, to: IStorage) => {
   if (to.resourceCount + amount > to.resourceCapacity) {
     if (notificationConfig.logStorageNotifications) {
@@ -362,6 +368,8 @@ const _addResources = (amount: number, to: IStorage) => {
   if (notificationConfig.logStorageNotifications) {
     logSuccess(`[STORAGE] Added ${amountToAdd} ${to.resourceType}`);
   }
+
+  _updateStorageWeight(to);
 
   return amountToAdd;
 };
@@ -381,6 +389,8 @@ const _removeResources = (amount: number, from: IStorage) => {
   if (notificationConfig.logStorageNotifications) {
     logSuccess(`[STORAGE] Removed ${amountToRemove} ${from.resourceType}`);
   }
+
+  _updateStorageWeight(from);
 
   return amountToRemove;
 };
