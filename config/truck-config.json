@@ -1,6 +1,7 @@
 {
   "fuelToWeightRatio": 0.0005,
-  "speedToWeightRatio": 0.0005,
+  "fuelToSpeedRatio": 0.05,
+  "speedToWeightRatio": 0.1,
   "baseSpeed": 60,
   "baseFuelConsumptionRate": 0.3
 }

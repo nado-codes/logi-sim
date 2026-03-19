@@ -15,7 +15,7 @@ import {
 import { getLocationById, getLocationByIdOrNull } from "./locations/locations";
 import { IWorldState } from "../entities/world";
 import { createAndGetStorage, transferResources } from "./storages";
-import { RESOURCE_TYPE } from "../entities/resource";
+import { Resource, RESOURCE_TYPE } from "../entities/resource";
 import { loadConfig } from "../utils/configUtils";
 import { measurementConfig } from "../utils/measurementUtils";
 
@@ -23,6 +23,7 @@ const notificationConfig = loadNotificationConfig();
 
 interface ITruckConfig {
   fuelToWeightRatio: number;
+  fuelToSpeedRatio: number;
   speedToWeightRatio: number;
   baseSpeed: number;
   baseFuelConsumptionRate: number;
@@ -30,6 +31,7 @@ interface ITruckConfig {
 
 const defaultConfig: ITruckConfig = {
   fuelToWeightRatio: 0.05,
+  fuelToSpeedRatio: 0.05,
   speedToWeightRatio: 0.005,
   baseSpeed: 2,
   baseFuelConsumptionRate: 0.01,
@@ -91,7 +93,7 @@ export const getTruckByPositionOrNull = (
   state: IWorldState,
   position: number,
 ) => {
-  const truck = state.trucks.find((t) => Math.floor(t.position) === position);
+  const truck = state.trucks.find((t) => Math.round(t.position) === position);
 
   return truck;
 };
@@ -121,6 +123,19 @@ export const getTruckString = (state: IWorldState, truck: ITruck) => {
   return `| ${highlight.custom("███", truckCompany.color)} | Carries: ${highlight.yellow(truck.storage.resourceType)} | ${locationString} | ${contractString}`;
 };
 
+const updateTruckSpeed = (truck: ITruck) => {
+  const maxWeight =
+    truck.storage.resourceCapacity *
+    Resource[truck.storage.resourceType].weight;
+  const weightPct = truck.storage.resourceWeight / maxWeight;
+  const weightModifier = 1 - weightPct;
+  const adjustedSpeed =
+    truckConfig.baseSpeed * truck.speedModifier * weightModifier;
+
+  truck.debugMessage = `WM=${weightModifier}`;
+
+  truck.speed = adjustedSpeed;
+};
 const updateTruckPosition = (state: IWorldState, truck: ITruck) => {
   const truckDestination = getLocationByIdOrNull(state, truck.destinationId);
 
@@ -133,16 +148,12 @@ const updateTruckPosition = (state: IWorldState, truck: ITruck) => {
 
   if (truck.position != truckDestination.position) {
     if (truck.fuel > 0) {
-      truck.fuel -=
-        truckConfig.baseFuelConsumptionRate +
+      const fuelWeightModifier =
         truck.storage.resourceWeight * truckConfig.fuelToWeightRatio;
+      truck.fuel -=
+        truckConfig.baseFuelConsumptionRate * truckConfig.fuelToSpeedRatio +
+        fuelWeightModifier;
 
-      const weightModifier =
-        truckConfig.speedToWeightRatio * truck.storage.resourceWeight;
-      const adjustedSpeed =
-        truckConfig.baseSpeed * truck.speedModifier * (1 - weightModifier);
-
-      truck.speed = adjustedSpeed;
       truck.position -=
         direction * (truck.speed * measurementConfig.distanceScale);
     } else {
@@ -159,7 +170,10 @@ const updateTruckPosition = (state: IWorldState, truck: ITruck) => {
       );
     }
 
-    if (Math.abs(truck.position - truckDestination.position) < truck.speed) {
+    if (
+      Math.abs(truck.position - truckDestination.position) <
+      truck.speed * measurementConfig.distanceScale
+    ) {
       truck.position = truckDestination.position; // Snap to destination
     }
 
@@ -192,10 +206,10 @@ const updateTruckPosition = (state: IWorldState, truck: ITruck) => {
 // .. UPDATE
 export const updateTrucks = (state: IWorldState) => {
   state.trucks.forEach((truck) => {
-    const truckContract = getContractByIdOrNull(state, truck.contractId);
-
+    updateTruckSpeed(truck);
     updateTruckPosition(state, truck);
 
+    const truckContract = getContractByIdOrNull(state, truck.contractId);
     if (truckContract) {
       const contractSupplier = getLocationById(state, truckContract.supplierId);
       const contractDestination = getLocationById(
@@ -315,7 +329,10 @@ export const updateTrucks = (state: IWorldState) => {
           truck.debugMessage = "UL-WT";
         } else if (unloadResult === StorageTransferResult.SOURCE_EMPTY) {
           truck.destinationId = contractSupplier.id;
-          truck.debugMessage = "CT-ST";
+
+          if (notificationConfig.logTruckNotifications.all) {
+            truck.debugMessage = "CT-ST";
+          }
         }
       }
     } else {
