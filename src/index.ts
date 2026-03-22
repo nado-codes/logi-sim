@@ -45,7 +45,6 @@ world.createTruck(
   10000,
   0,
   2,
-  100,
 );
 world.createTruck(
   "Truck 2",
@@ -54,10 +53,9 @@ world.createTruck(
   10000,
   15,
   2,
-  100,
 );
 
-const simTarget = 17500;
+const simTarget = 1000000;
 
 const update = () => {
   world.advanceTick();

@@ -7,5 +7,4 @@ export interface ITruck extends IWorldEntity, ICompanyEntity {
   destinationId?: string | undefined;
   contractId?: string | undefined;
   storage: IStorage;
-  operatingCostPerTick: number;
 }

@@ -14,14 +14,19 @@ import {
 } from "./companies";
 import { getLocationById, getLocationByIdOrNull } from "./locations/locations";
 import { IWorldState } from "../entities/world";
-import {
-  createAndGetStorage,
-  getResourceStorage,
-  transferResources,
-} from "./storages";
-import { IBaseLocation } from "../entities/locations/location";
+import { createAndGetStorage, transferResources } from "./storages";
+import { loadConfig } from "../utils/configUtils";
+
+interface ITruckConfig {
+  baseOperatingCost: number;
+}
+
+const defaultConfig: ITruckConfig = {
+  baseOperatingCost: 100,
+};
 
 const notificationConfig = loadNotificationConfig();
+const truckConfig = loadConfig("truck", defaultConfig);
 
 // .. CREATE
 export const createTruck = (
@@ -32,7 +37,6 @@ export const createTruck = (
   resourceCapacity: number,
   position: number,
   speed: number,
-  operatingCostPerTick: number,
   resourceCount: number = 0,
 ) => {
   const companyEntity = createCompanyEntity(companyId);
@@ -49,7 +53,6 @@ export const createTruck = (
     speed,
     storage,
     position,
-    operatingCostPerTick,
   };
 
   state.trucks.push(newTruck);
@@ -245,7 +248,7 @@ export const updateTrucks = (state: IWorldState) => {
             const truckCompany = getCompanyById(state, truck.companyId);
             const deliveryTime =
               state.currentTick - truckContract.acceptedAtTick;
-            const operatingCost = deliveryTime * truck.operatingCostPerTick;
+            const operatingCost = deliveryTime * truckConfig.baseOperatingCost;
 
             // ..nowhere to pay funds to yet (e.g. petrol station, driver's bank account)
             // so we'll just transfer to the state (the void)

@@ -109,7 +109,6 @@ export interface IWorld {
     resourceCapacity: number,
     position: number,
     speed: number,
-    operatingCostPerTick: number,
     resourceCount?: number,
   ) => void;
 }
@@ -307,7 +306,6 @@ export const createWorld = (): IWorld => {
       resourceCapacity: number,
       position: number,
       speed: number,
-      operatingCostPerTick: number,
       resourceCount?: number,
     ) =>
       createTruck(
@@ -318,7 +316,6 @@ export const createWorld = (): IWorld => {
         resourceCapacity,
         position,
         speed,
-        operatingCostPerTick,
         resourceCount,
       ),
   };
