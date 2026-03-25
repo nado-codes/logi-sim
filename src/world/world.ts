@@ -25,11 +25,29 @@ import {
   updateTrucks,
 } from "./trucks";
 import { ICompany } from "../entities/company";
-import { createCompany, getCompanyById } from "./companies";
+import {
+  createCompany,
+  getCompanyById,
+  getCompanyByIdOrNull,
+} from "./companies";
 import { Color, highlight } from "../utils/logUtils";
-import { Nullable } from "../entities/entity";
+import { IWorldEntity, Nullable } from "../entities/entity";
 import { createTown, updateTowns } from "./locations/consumers/towns";
 import { IWorldState } from "../entities/world";
+import {
+  ICoastline,
+  IMountain,
+  IResourceDeposit,
+  IWater,
+} from "../entities/geography";
+import {
+  createCoastline,
+  createMountain,
+  createResourceDeposit,
+  createWater,
+} from "./geographies";
+import { getMap } from "./map";
+import { getWorldEntityByPositionOrNull } from "./entities";
 
 export interface IWorld {
   advanceTick: () => void;
@@ -41,6 +59,8 @@ export interface IWorld {
 
   getMap: () => void;
   getCurrentTick: () => number;
+
+  getWorldEntityByPositionOrNull: (position: number) => Nullable<IWorldEntity>;
 
   getContracts: () => IContract[];
   getContractByIdOrNull: (id: Nullable<string>) => Nullable<IContract>;
@@ -60,6 +80,19 @@ export interface IWorld {
 
   getCompanies: () => ICompany[];
   getCompanyById: (id: string) => ICompany;
+  getCompanyByIdOrNull: (id: string) => Nullable<ICompany>;
+
+  createCoastline: (position: number) => ICoastline;
+  createWater: (position: number) => IWater;
+  createMountain: (
+    position: number,
+    width: number,
+    height: number,
+  ) => IMountain;
+  createResourceDeposit: (
+    position: number,
+    resourceType: RESOURCE_TYPE,
+  ) => IResourceDeposit;
 
   createCompany: (
     name: string,
@@ -123,6 +156,7 @@ const createInitialState = (): IWorldState => {
     contractHistory: [],
     trucks: [],
     companies: [],
+    geographies: [],
   };
 
   return {
@@ -138,66 +172,6 @@ const createInitialState = (): IWorldState => {
 export const createWorld = (): IWorld => {
   const state: IWorldState = createInitialState();
 
-  const getMap = () => {
-    const locations = state.getLocations();
-
-    const worldPositions = [
-      ...locations.map((l) => l.position),
-      ...getTrucks(state).map((t) => t.position),
-    ];
-    const maxPosition = worldPositions.reduce((a, c) => Math.max(a, c));
-
-    let map = "";
-    let spaces = 0;
-
-    for (var pos = 0; pos <= maxPosition; pos++) {
-      const locationAtPos = getLocationByPositionOrNull(state, pos);
-      const truckAtPos = getTruckByPositionOrNull(state, pos);
-
-      if (locationAtPos) {
-        const tagMap = {
-          Producer: "PRD",
-          Processor: "PRC",
-          Consumer: "CNS",
-          Town: "TWN",
-        };
-        const tag = tagMap[locationAtPos.type];
-        const contract = getContractByLocationIdOrNull(state, locationAtPos.id);
-        const notificationTag = contract ? highlight.red(`[!]`) : "";
-
-        const locationCompany = getCompanyById(state, locationAtPos.companyId);
-
-        const locationTag = `${notificationTag ? `${notificationTag}` : ""}${highlight.custom(`[${tag}]`, locationCompany.color)}`;
-        const locationDebug = `${locationAtPos.debugMessage ? highlight.yellow("[" + locationAtPos.debugMessage + "]") : ""}`;
-
-        map += locationTag + locationDebug;
-        spaces +=
-          5 + (locationAtPos.debugMessage?.length ?? 0) + (contract ? 3 : 0);
-      }
-
-      if (truckAtPos) {
-        const hasResources = truckAtPos.storage.resourceCount > 0;
-        const truckCompany = getCompanyById(state, truckAtPos.companyId);
-        const truckTag = `${highlight.custom(`[T${hasResources ? highlight.green("o") : ""}]`, truckCompany.color)}`;
-        const truckDebug = `${truckAtPos.debugMessage ? highlight.yellow("[" + truckAtPos.debugMessage + "]") : ""}`;
-
-        map += truckTag + truckDebug;
-        spaces +=
-          3 + (hasResources ? 1 : 0) + (truckAtPos.debugMessage?.length ?? 0);
-      }
-
-      if (spaces <= 0 && !truckAtPos && !locationAtPos) {
-        map += "_";
-      }
-
-      if (spaces > 0) {
-        spaces--;
-      }
-    }
-
-    return map;
-  };
-
   return {
     advanceTick: () => state.currentTick++,
     updateProcessors: () => updateProcessors(state),
@@ -206,8 +180,11 @@ export const createWorld = (): IWorld => {
     updateContracts: () => updateContracts(state),
     updateTrucks: () => updateTrucks(state),
 
-    getMap: () => getMap(),
+    getMap: () => getMap(state),
     getCurrentTick: () => state.currentTick,
+
+    getWorldEntityByPositionOrNull: (position: number) =>
+      getWorldEntityByPositionOrNull(state, position),
 
     getContracts: () => state.contracts,
     getContractByIdOrNull: (id: string | undefined) =>
@@ -230,6 +207,14 @@ export const createWorld = (): IWorld => {
 
     getCompanies: () => state.companies,
     getCompanyById: (id: string) => getCompanyById(state, id),
+    getCompanyByIdOrNull: (id: string) => getCompanyByIdOrNull(state, id),
+
+    createCoastline: (position: number) => createCoastline(state, position),
+    createWater: (position: number) => createWater(state, position),
+    createMountain: (position: number, width: number, height: number) =>
+      createMountain(state, position, width, height),
+    createResourceDeposit: (position: number, resourceType: RESOURCE_TYPE) =>
+      createResourceDeposit(state, position, resourceType),
 
     createCompany: (
       name: string,

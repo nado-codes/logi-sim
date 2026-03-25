@@ -17,7 +17,7 @@ export const createBaseConsumer = (
     companyId,
     position,
     { inputs: consumes },
-    LOCATION_TYPE.CONSUMER,
+    LOCATION_TYPE.Consumer,
     startFull,
   );
 

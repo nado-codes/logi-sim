@@ -42,6 +42,12 @@ export const getCompanyById = (state: IWorldState, id: string) => {
   return company;
 };
 
+export const getCompanyByIdOrNull = (state: IWorldState, id: string) => {
+  const company = state.companies.find((cm) => cm.id === id);
+
+  return company;
+};
+
 export const getCompanyString = (company: ICompany) => {
   return `Name: ${highlight.yellow(company.name)} | Money: ${highlight.yellow(company.money + "")} | Color: ${highlight.custom("███", company.color)}`;
 };

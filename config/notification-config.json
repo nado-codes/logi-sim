@@ -6,8 +6,8 @@
   "logContractNotifications": false,
   "logTruckNotifications": {
     "all": false,
-    "loading": true,
-    "unloading": true,
+    "loading": false,
+    "unloading": false,
     "movement": false,
     "costs": true
   },

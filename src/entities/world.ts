@@ -1,5 +1,6 @@
 import { ICompany } from "./company";
 import { IContract } from "./contract";
+import { IGeographicEntity } from "./geography";
 import { ITown } from "./locations/consumer";
 import { IProducer, IProcessor, IBaseLocation } from "./locations/location";
 import { ITruck } from "./truck";
@@ -13,5 +14,6 @@ export interface IWorldState {
   contractHistory: IContract[];
   trucks: ITruck[];
   companies: ICompany[];
+  geographies: IGeographicEntity[];
   getLocations: () => IBaseLocation[];
 }

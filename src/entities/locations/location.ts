@@ -3,16 +3,16 @@ import { IWorldEntity } from "../entity";
 import { IRecipe, IStorage } from "../storage";
 
 export enum LOCATION_TYPE {
-  PRODUCER = "Producer",
-  PROCESSOR = "Processor",
-  CONSUMER = "Consumer",
-  TOWN = "Town",
+  Producer = "Producer",
+  Processor = "Processor",
+  Consumer = "Consumer",
+  Town = "Town",
 }
 
 export interface IBaseLocation extends ICompanyEntity, IWorldEntity {
   storage: IStorage[];
   recipe: IRecipe;
-  type: LOCATION_TYPE;
+  locationType: LOCATION_TYPE;
 }
 
 export interface IProducer extends IBaseLocation {}

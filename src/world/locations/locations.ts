@@ -1,5 +1,5 @@
 import { createWorldEntity } from "../../entities";
-import { Nullable } from "../../entities/entity";
+import { Nullable, WorldEntityType } from "../../entities/entity";
 import {
   IBaseLocation,
   LOCATION_TYPE,
@@ -26,11 +26,15 @@ export const createBaseLocation = (
   companyId: string,
   position: number,
   recipe: IRecipe,
-  type: LOCATION_TYPE,
+  locationType: LOCATION_TYPE,
   startWithFullInputs: boolean = false,
   startWithFullOutputs: boolean = false,
 ): IBaseLocation => {
-  const worldEntity = createWorldEntity(position, name);
+  const worldEntity = createWorldEntity(
+    WorldEntityType.Location,
+    position,
+    name,
+  );
 
   const storage = createRecipeStorage(
     worldEntity.id,
@@ -43,7 +47,7 @@ export const createBaseLocation = (
     ...worldEntity,
     storage,
     recipe,
-    type,
+    locationType,
     companyId,
   };
 };

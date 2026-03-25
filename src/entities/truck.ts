@@ -2,9 +2,16 @@ import { ICompanyEntity } from "./company";
 import { IWorldEntity } from "./entity";
 import { IStorage } from "./storage";
 
-export interface ITruck extends IWorldEntity, ICompanyEntity {
+export enum VEHICLE_TYPE {
+  Truck = "Truck",
+}
+
+export interface IVehicle extends IWorldEntity, ICompanyEntity {
+  vehicleType: VEHICLE_TYPE;
+  storage: IStorage;
   speed: number;
   destinationId?: string | undefined;
   contractId?: string | undefined;
-  storage: IStorage;
 }
+
+export interface ITruck extends IVehicle {}

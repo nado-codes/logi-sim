@@ -32,7 +32,7 @@ export const createManageLocationsPage = (world: IWorld): IMenuPage => {
       }
 
       return createPage(`${location.name}`, false, [], () => {
-        if (location.type === LOCATION_TYPE.TOWN) {
+        if (location.locationType === LOCATION_TYPE.Town) {
           const town = location as ITown;
           console.log(
             ` - Population: ${highlight.yellow(town.population + "")}`,

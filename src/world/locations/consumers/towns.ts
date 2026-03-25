@@ -66,7 +66,7 @@ export const createTown = (
 
   const newTown = {
     ...createBaseConsumer(name, companyId, position, consumes, true),
-    type: LOCATION_TYPE.TOWN,
+    locationType: LOCATION_TYPE.Town,
     confidence: townConfig.baselineConfidence,
     population: townConfig.baselinePopulation,
     migrationOffset: 0,

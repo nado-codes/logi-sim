@@ -1,17 +1,10 @@
 import { RESOURCE_TYPE } from "./entities/storage";
 import { createWorld } from "./world/world";
 import { createMenu } from "./menus/menu";
-import {
-  Color,
-  highlight,
-  logEntries,
-  logError,
-  logInfo,
-} from "./utils/logUtils";
+import { Color, highlight, logError, logInfo } from "./utils/logUtils";
 
 // .. CREATE
 
-// .. BUILD THE WORLD
 export const world = createWorld();
 
 logInfo("Logi sim starting...");
@@ -28,20 +21,26 @@ const playerCompany = world.createCompany(
   100000,
   Color.Cyan,
 );
-world.createProducer("Farm", stateCompany.id, 0, RESOURCE_TYPE.GRAIN, 500);
+
+world.createCoastline(0);
+world.createWater(20);
+world.createMountain(24, 5, 10);
+world.createResourceDeposit(25, RESOURCE_TYPE.Grain);
+
+world.createProducer("Farm", stateCompany.id, 2, RESOURCE_TYPE.Grain, 500);
 world.createProcessor("Flour Mill", stateCompany.id, 15, {
   inputs: {
-    [RESOURCE_TYPE.GRAIN]: 6,
+    [RESOURCE_TYPE.Grain]: 6,
   },
   outputs: {
-    [RESOURCE_TYPE.FLOUR]: 3,
+    [RESOURCE_TYPE.Flour]: 3,
   },
 });
 world.createTown("Town A", stateCompany.id, 45, true);
 world.createTruck(
   "Truck 1",
   playerCompany.id,
-  RESOURCE_TYPE.GRAIN,
+  RESOURCE_TYPE.Grain,
   10000,
   0,
   2,
@@ -49,13 +48,14 @@ world.createTruck(
 world.createTruck(
   "Truck 2",
   playerCompany.id,
-  RESOURCE_TYPE.FLOUR,
+  RESOURCE_TYPE.Flour,
   10000,
   15,
   2,
-);
+); /**/
 
-const simTarget = 1000000;
+const simTarget = 0;
+const checkpointFactor = simTarget / 10;
 
 const update = () => {
   world.advanceTick();
@@ -67,7 +67,32 @@ const update = () => {
   world.updateTrucks();
 };
 
+let lastSnapshot = Date.now();
+
+const trySnapshot = () => {
+  if (
+    simTarget <= 0 ||
+    world.getCurrentTick() / checkpointFactor !==
+      Math.round(world.getCurrentTick() / checkpointFactor)
+  ) {
+    return;
+  }
+
+  const lastSnapshotDuration = new Date(Date.now() - lastSnapshot);
+
+  console.log(
+    `- Tick ${highlight.yellow(world.getCurrentTick() + "/" + simTarget) + `(${Math.round((world.getCurrentTick() / simTarget) * 100)}%)`} [${lastSnapshotDuration.getMilliseconds() + "ms"}]`,
+  );
+
+  lastSnapshot = Date.now();
+};
+
+if (simTarget > 0) {
+  console.log(highlight.cyan(`Simulating...`));
+}
+
 while (world.getCurrentTick() < simTarget) {
+  trySnapshot();
   update();
 
   if (playerCompany.money < 0) {
@@ -77,6 +102,14 @@ while (world.getCurrentTick() < simTarget) {
     break;
   }
 }
+if (simTarget > 0) {
+  console.log(highlight.green(`- Success! Press any key to start playing`));
+}
 
 const menu = createMenu(update, world, playerCompany);
-menu.show();
+
+if (simTarget > 0) {
+  menu.pause(menu.show);
+} else {
+  menu.show();
+}

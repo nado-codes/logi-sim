@@ -1,5 +1,6 @@
 import { RESOURCE_TYPE, StorageTransferResult } from "../entities/storage";
-import { ITruck } from "../entities/truck";
+import { WorldEntityType } from "../entities/entity";
+import { ITruck, VEHICLE_TYPE } from "../entities/truck";
 import { loadNotificationConfig } from "../notifications";
 import {
   assignContract,
@@ -53,6 +54,8 @@ export const createTruck = (
     speed,
     storage,
     position,
+    type: WorldEntityType.Vehicle,
+    vehicleType: VEHICLE_TYPE.Truck,
   };
 
   state.trucks.push(newTruck);
@@ -261,7 +264,10 @@ export const updateTrucks = (state: IWorldState) => {
               logInfo(
                 `[TRUCK] ${truck.name} was paid ${highlight.yellow("$" + operatingCost)} for a ${highlight.yellow(deliveryTime + "-tick")} job`,
               );
-              truck.debugMessage = "CT-FN";
+
+              if (notificationConfig.logTruckNotifications.all) {
+                truck.debugMessage = "CT-FN";
+              }
             }
           }
         } else if (unloadResult === StorageTransferResult.DESTINATION_FULL) {
@@ -276,7 +282,10 @@ export const updateTrucks = (state: IWorldState) => {
           truck.debugMessage = "UL-WT";
         } else if (unloadResult === StorageTransferResult.SOURCE_EMPTY) {
           truck.destinationId = contractSupplier.id;
-          truck.debugMessage = "CT-ST";
+
+          if (notificationConfig.logTruckNotifications.all) {
+            truck.debugMessage = "CT-ST";
+          }
         }
       }
     } else {

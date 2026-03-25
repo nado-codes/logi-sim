@@ -1,5 +1,10 @@
 import { randomUUID } from "crypto";
-import { IBaseEntity, INamedEntity, IWorldEntity } from "./entities/entity";
+import {
+  IBaseEntity,
+  INamedEntity,
+  IWorldEntity,
+  WorldEntityType,
+} from "./entities/entity";
 
 export const generateId = () => randomUUID();
 
@@ -19,11 +24,13 @@ export const createNamedEntity = (name: string): INamedEntity => {
 };
 
 export const createWorldEntity = (
+  type: WorldEntityType,
   position: number,
   name: string,
 ): IWorldEntity => {
   return {
     ...createNamedEntity(name),
+    type,
     position,
   };
 };

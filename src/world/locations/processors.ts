@@ -40,7 +40,7 @@ export const createProcessor = (
       companyId,
       position,
       recipe,
-      LOCATION_TYPE.PROCESSOR,
+      LOCATION_TYPE.Processor,
       startWithFullInputs,
       startWithFullOutputs,
     ),

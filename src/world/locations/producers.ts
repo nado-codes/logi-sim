@@ -34,7 +34,7 @@ export const createProducer = (
     companyId,
     position,
     recipe,
-    LOCATION_TYPE.PRODUCER,
+    LOCATION_TYPE.Producer,
     false,
     startFull,
   );

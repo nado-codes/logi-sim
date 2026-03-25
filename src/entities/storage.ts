@@ -1,6 +1,6 @@
 export enum RESOURCE_TYPE {
-  GRAIN = "Grain",
-  FLOUR = "Flour",
+  Grain = "Grain",
+  Flour = "Flour",
 }
 
 export type ResourceMap = Partial<Record<RESOURCE_TYPE, number>>;
