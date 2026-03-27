@@ -9,11 +9,7 @@ import {
   getContractString,
   updateContracts,
 } from "./contracts";
-import {
-  getLocationById,
-  getLocationByIdOrNull,
-  getLocationByPositionOrNull,
-} from "./locations/locations";
+import { getLocationById, getLocationByIdOrNull } from "./locations/locations";
 import { createProcessor, updateProcessors } from "./locations/processors";
 import { createProducer, updateProducers } from "./locations/producers";
 import {
@@ -24,11 +20,16 @@ import {
   getTruckString,
   updateTrucks,
 } from "./trucks";
-import { ICompany } from "../entities/company";
+import {
+  defaultCompanyOptions,
+  ICompany,
+  ICreateCompanyOptions,
+} from "../entities/company";
 import {
   createCompany,
   getCompanyById,
   getCompanyByIdOrNull,
+  updateCompanies,
 } from "./companies";
 import { Color, highlight } from "../utils/logUtils";
 import { IWorldEntity, Nullable } from "../entities/entity";
@@ -56,6 +57,7 @@ export interface IWorld {
   updateProducers: () => void;
   updateContracts: () => void;
   updateTrucks: () => void;
+  updateCompanies: () => void;
 
   getMap: () => void;
   getCurrentTick: () => number;
@@ -98,7 +100,7 @@ export interface IWorld {
     name: string,
     money: number,
     color: Color,
-    isState?: boolean,
+    options?: Partial<ICreateCompanyOptions>,
   ) => ICompany;
 
   createProducer: (
@@ -179,6 +181,7 @@ export const createWorld = (): IWorld => {
     updateProducers: () => updateProducers(state),
     updateContracts: () => updateContracts(state),
     updateTrucks: () => updateTrucks(state),
+    updateCompanies: () => updateCompanies(state),
 
     getMap: () => getMap(state),
     getCurrentTick: () => state.currentTick,
@@ -220,8 +223,8 @@ export const createWorld = (): IWorld => {
       name: string,
       money: number,
       color: Color,
-      isStateControlled: boolean = false,
-    ) => createCompany(state, name, money, color, isStateControlled),
+      options: Partial<ICreateCompanyOptions> = defaultCompanyOptions,
+    ) => createCompany(state, name, money, color, options),
 
     createProducer: (
       name: string,

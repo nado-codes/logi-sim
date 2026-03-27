@@ -10,6 +10,17 @@ import {
 } from "../entities/geography";
 import { RESOURCE_TYPE } from "../entities/storage";
 import { IWorldState } from "../entities/world";
+import { loadConfig } from "../utils/configUtils";
+
+interface IGeographyConfig {
+  arableLandRadius: number;
+}
+
+const defaultConfig: IGeographyConfig = {
+  arableLandRadius: 3,
+};
+
+export const loadGeographyConfig = () => loadConfig("geography", defaultConfig);
 
 export const createBaseGeographicEntity = (
   position: number,

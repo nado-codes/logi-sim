@@ -10,12 +10,10 @@ export const world = createWorld();
 logInfo("Logi sim starting...");
 logInfo("LogiSim v0.5.0");
 
-const stateCompany = world.createCompany(
-  "State",
-  1000000000,
-  Color.Magenta,
-  true,
-);
+const stateCompany = world.createCompany("State", 1000000000, Color.Magenta, {
+  isAiEnabled: true,
+  hasUnlimitedMoney: true,
+});
 const playerCompany = world.createCompany(
   "NadoCo Logistics",
   100000,
@@ -27,7 +25,7 @@ world.createWater(20);
 world.createMountain(24, 5, 10);
 world.createResourceDeposit(25, RESOURCE_TYPE.Grain);
 
-world.createProducer("Farm", stateCompany.id, 2, RESOURCE_TYPE.Grain, 500);
+/*world.createProducer("Farm", stateCompany.id, 2, RESOURCE_TYPE.Grain, 500);
 world.createProcessor("Flour Mill", stateCompany.id, 15, {
   inputs: {
     [RESOURCE_TYPE.Grain]: 6,
@@ -52,7 +50,7 @@ world.createTruck(
   10000,
   15,
   2,
-); /**/
+); */
 
 const simTarget = 0;
 const checkpointFactor = simTarget / 10;
@@ -60,6 +58,7 @@ const checkpointFactor = simTarget / 10;
 const update = () => {
   world.advanceTick();
 
+  world.updateCompanies();
   world.updateProducers();
   world.updateProcessors();
   world.updateTowns();
