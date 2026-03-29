@@ -5,13 +5,23 @@ import {
   ICreateCompanyOptions,
 } from "../entities/company";
 import { createBaseEntity, createNamedEntity } from "../entities";
-import { Color, highlight, logInfo } from "../utils/logUtils";
+import {
+  Color,
+  highlight,
+  logInfo,
+  logSuccess,
+  logWarning,
+} from "../utils/logUtils";
 import { IWorldState } from "../entities/world";
 import { GEOGRAPHY_TYPE, IResourceDeposit } from "../entities/geography";
 import { loadGeographyConfig } from "./geographies";
-import { getLocationByPositionOrNull } from "./locations/locations";
+import { world } from "..";
+import { randomUUID } from "node:crypto";
+import { loadNotificationConfig } from "../notifications";
+import { Nullable } from "../entities/entity";
 
 const geographyConfig = loadGeographyConfig();
+const notificationConfig = loadNotificationConfig();
 
 // .. CREATE
 export const createCompany = (
@@ -82,7 +92,9 @@ export const transferFunds = (
         ? `${highlight.yellow("$" + fromCompany.money)}`
         : `${highlight.red("$" + fromCompany.money)}`;
 
-    logInfo(`${transferString} and has ${moneyString} left`);
+    if (notificationConfig.logCompanyNotifications) {
+      logInfo(`${transferString} and has ${moneyString} left`);
+    }
   }
 };
 
@@ -108,31 +120,75 @@ export const transferFundsToState = (fromCompany: ICompany, amount: number) => {
         ? `${highlight.yellow("$" + fromCompany.money)}`
         : `${highlight.red("$" + fromCompany.money)}`;
 
-    logInfo(`${transferString} and has ${moneyString} left`);
+    if (notificationConfig.logCompanyNotifications) {
+      logInfo(`${transferString} and has ${moneyString} left`);
+    }
   }
 };
 
 export const updateCompanies = (state: IWorldState) => {
+  logInfo(`Updating companies...`);
   state.companies.forEach((company) => {
-    if (!company.options.isAiEnabled) return;
+    if (!company.options.isAiEnabled) {
+      if (notificationConfig.logCompanyNotifications) {
+        logWarning(`[COMPANY] AI behaviour for ${company.name} not enabled`);
+      }
+      return;
+    }
 
-    // 1. Towns -> Near arable land & water
-    const allWater = state.geographies.filter(
-      (g) => g.geographyType === GEOGRAPHY_TYPE.Water,
-    );
+    logInfo(`[COMPANY] Running AI behaviour for ${company.name}...`);
 
-    const allLocations = state.getLocations();
-    const allEmptyArablePositions = allWater.map((w) => {
-      const arableRad = geographyConfig.arableLandRadius;
-      const arablePositions = new Array<number>(arableRad * 2 + 1).map(
-        (_, i) => -arableRad + i + w.position,
+    const positionHasLocation = (position: number) => {
+      const allLocations = state.getLocations();
+      return !!allLocations.find((l) => l.position === position);
+    };
+    const createTowns = () => {
+      logInfo(`[COMPANY] Trying to create a town...`);
+
+      // 1. Towns -> Near arable land & water //
+      const allWater = state.geographies.filter(
+        (g) => g.geographyType === GEOGRAPHY_TYPE.Water,
       );
 
-      return arablePositions.filter(
-        (p) => !allLocations.some((l) => l.position === p),
-      );
-    });
-    //const allEmptyArableEdges = allEmptyArablePositions.map(pArr => )
+      if (allWater.length === 0 && notificationConfig.logCompanyNotifications) {
+        logWarning(`[COMPANY] No water found - skipping town creation`);
+      }
+
+      const allEdges = allWater.map((w) => [
+        w.position - geographyConfig.arableLandRadius - 1,
+        w.position + geographyConfig.arableLandRadius + 1,
+      ]);
+
+      let spawnPos: Nullable<number> = undefined;
+
+      allEdges.forEach(([leftEdge, rightEdge]) => {
+        let posLeft = leftEdge;
+        let posRight = rightEdge;
+
+        while (spawnPos === undefined) {
+          posLeft--;
+          posRight++;
+
+          if (!positionHasLocation(posLeft)) {
+            spawnPos = posLeft;
+          } else if (!positionHasLocation(posRight)) {
+            spawnPos = posRight;
+          }
+        }
+      });
+
+      if (spawnPos) {
+        world.createTown(`Town ${randomUUID()}`, company.id, spawnPos, true);
+
+        if (notificationConfig.logCompanyNotifications) {
+          logSuccess(`[COMPANY] Created town`);
+        }
+      } else if (notificationConfig.logCompanyNotifications) {
+        logWarning(`[COMPANY] Unable to create town - no suitable position`);
+      }
+    };
+
+    createTowns();
 
     // 1. Resource -> Processor/Factory or End Consumer
     const resourceDeposits = state.geographies
