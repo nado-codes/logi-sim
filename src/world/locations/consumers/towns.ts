@@ -26,29 +26,37 @@ interface TownConfig {
   stockLowThreshold: number;
   stockOkThreshold: number;
   stockSafeThreshold: number;
+  avgDwellingSize: number;
+  townCatchmentRadius: number;
 }
 
-const defaultConfig: TownConfig = {
-  populationGrowthThreshold: 70,
-  confidenceWarningThreshold: 50,
-  confidenceCriticalThreshold: 20,
-  baselinePopulation: 100,
-  baselineConfidence: 50,
-  populationScalingExponent: 0.5, // .. 0.5 = square-root scaling
-  basePopulationGrowthRate: 0.005,
-  confidenceCriticalDeclineRate: 0.05,
-  confidenceWarningDeclineRate: 0.01,
-  minorConfidenceChange: 1,
-  majorConfidenceChange: 3,
-  catastrophicConfidenceChange: 5,
-  ptrRatio: 10,
-  stockCriticalThreshold: 0.2,
-  stockLowThreshold: 0.4,
-  stockOkThreshold: 0.75,
-  stockSafeThreshold: 0.9,
+export const loadTownConfig = () => {
+  const defaultConfig: TownConfig = {
+    populationGrowthThreshold: 70,
+    confidenceWarningThreshold: 50,
+    confidenceCriticalThreshold: 20,
+    baselinePopulation: 100,
+    baselineConfidence: 50,
+    populationScalingExponent: 0.5, // .. 0.5 = square-root scaling
+    basePopulationGrowthRate: 0.005,
+    confidenceCriticalDeclineRate: 0.05,
+    confidenceWarningDeclineRate: 0.01,
+    minorConfidenceChange: 1,
+    majorConfidenceChange: 3,
+    catastrophicConfidenceChange: 5,
+    ptrRatio: 10,
+    stockCriticalThreshold: 0.2,
+    stockLowThreshold: 0.4,
+    stockOkThreshold: 0.75,
+    stockSafeThreshold: 0.9,
+    avgDwellingSize: 1,
+    townCatchmentRadius: 6,
+  };
+
+  return loadConfig("town", defaultConfig);
 };
 
-const townConfig = loadConfig("town", defaultConfig);
+const townConfig = loadTownConfig();
 const storageConfig = loadStorageConfig();
 
 export const createTown = (
@@ -75,9 +83,12 @@ export const createTown = (
   state.towns.push(newTown);
 };
 
-let stockHistory = [];
+export const townHasSpace = (town: ITown) => {
+  const spaceTaken = town.population * townConfig.avgDwellingSize;
+  return spaceTaken < townConfig.townCatchmentRadius * 2;
+};
 
-const updateTownConfidence = (state: IWorldState, town: ITown) => {
+const updateTownConfidence = (town: ITown) => {
   // .. customers care if the shelves are empty whenever they go to buy something
   // .. if shelves are empty a lot of times in a row, confidence should fall
 
@@ -87,7 +98,6 @@ const updateTownConfidence = (state: IWorldState, town: ITown) => {
   );
   const avgStockLevel =
     stockLevels.reduce((a, c) => a + c) / stockLevels.length;
-  stockHistory.push(avgStockLevel);
 
   if (avgStockLevel >= townConfig.stockSafeThreshold) {
     town.confidence += townConfig.majorConfidenceChange;
@@ -105,13 +115,16 @@ const updateTownConfidence = (state: IWorldState, town: ITown) => {
   town.confidence = clamp(town.confidence, 0, 100);
 };
 
-const updateTownPopulation = (state: IWorldState, town: ITown) => {
+const updateTownPopulation = (town: ITown) => {
   const multiplier = Math.pow(
     town.population / townConfig.baselinePopulation,
     townConfig.populationScalingExponent,
   );
 
-  if (town.confidence >= townConfig.populationGrowthThreshold) {
+  if (
+    town.confidence >= townConfig.populationGrowthThreshold &&
+    townHasSpace(town)
+  ) {
     const growthRate = townConfig.basePopulationGrowthRate * multiplier;
     const gain = Math.max(town.population, 1) * growthRate;
     town.population += gain;
@@ -150,12 +163,7 @@ const updateTownPopulation = (state: IWorldState, town: ITown) => {
 export const updateTowns = (state: IWorldState) => {
   state.towns.forEach((town) => {
     updateBaseConsumer(state, town);
-    updateTownConfidence(state, town);
-    updateTownPopulation(state, town);
-
-    const activeContract = getContractByLocationIdOrNull(state, town.id);
-    if (activeContract) {
-      //town.debugMessage = getContractString(state, activeContract);
-    }
+    updateTownConfidence(town);
+    updateTownPopulation(town);
   });
 };
