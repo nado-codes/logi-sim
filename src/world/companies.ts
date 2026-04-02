@@ -141,83 +141,59 @@ export const updateCompanies = (state: IWorldState) => {
       logInfo(`[COMPANY] Running AI behaviour for ${company.name}...`);
     }
 
-    const createTowns = () => {
-      logInfo(`[COMPANY] Trying to create a town...`);
+    logInfo(`[COMPANY] Trying to create a town...`);
 
-      // 1. Towns -> Near arable land & water & existing towns already at capacity
-      if (
-        state.towns.some(
-          (t) =>
-            t.population * townConfig.avgDwellingSize <
-            townConfig.townCatchmentRadius * 2,
-        )
-      ) {
-        if (notificationConfig.logCompanyNotifications) {
-          logWarning(
-            `[COMPANY] Existing towns not at capacity yet - skipping town creation`,
-          );
-        }
-        return;
+    // 1. Towns -> Near arable land & water & existing towns already at capacity
+    if (
+      state.towns.some(
+        (t) =>
+          t.population * townConfig.avgDwellingSize <
+          townConfig.townCatchmentRadius * 2,
+      )
+    ) {
+      if (notificationConfig.logCompanyNotifications) {
+        logWarning(
+          `[COMPANY] Existing towns not at capacity yet - skipping town creation`,
+        );
       }
+      return;
+    }
 
-      const allWater = state.geographies.filter(
-        (g) => g.geographyType === GEOGRAPHY_TYPE.Water,
-      );
-
-      if (allWater.length === 0 && notificationConfig.logCompanyNotifications) {
-        logWarning(`[COMPANY] No water found - skipping town creation`);
-        return;
-      }
-
-      const allPositions = allWater
-        .map((w) =>
-          Array.from(
-            { length: 1 + geographyConfig.arableLandRadius * 2 },
-            (_, i) => w.position - geographyConfig.arableLandRadius + i,
-          ),
-        )
-        .reduce((a, c) => a.concat(c));
-      const allLocations = state.getLocations();
-
-      const spawnPos = allPositions.find(
-        (p) =>
-          !allLocations.some((l) => l.position === p) &&
-          !state.towns.some(
-            (t) => Math.abs(t.position - p) < townConfig.townCatchmentRadius,
-          ),
-      );
-
-      if (spawnPos) {
-        world.createTown(`Town ${randomUUID()}`, company.id, spawnPos, true);
-
-        if (notificationConfig.logCompanyNotifications) {
-          logSuccess(`[COMPANY] Created town`);
-        }
-      } else if (notificationConfig.logCompanyNotifications) {
-        logWarning(`[COMPANY] Unable to create town - no suitable position`);
-      }
-    };
-
-    createTowns();
-
-    // 1. Resource -> Processor/Factory or End Consumer
-    const resourceDeposits = state.geographies
-      .filter((g) => g.geographyType === GEOGRAPHY_TYPE.ResourceDeposit)
-      .map((d) => d as IResourceDeposit);
-    const unclaimedDeposits = resourceDeposits.filter(
-      (d) => !state.producers.some((p) => p.position === d.position),
+    const allWater = state.geographies.filter(
+      (g) => g.geographyType === GEOGRAPHY_TYPE.Water,
     );
 
-    const allCustomers = [...state.processors, ...state.towns];
+    if (allWater.length === 0 && notificationConfig.logCompanyNotifications) {
+      logWarning(`[COMPANY] No water found - skipping town creation`);
+      return;
+    }
 
-    // .. customers should have actual demand for this resource (un-served with contracts) ... otherwise its pointless
-    const depositsWithCustomers = unclaimedDeposits.find((d) => {
-      const viableCustomers = allCustomers.find((pc) =>
-        Object.entries(pc.recipe.inputs ?? {}).find(
-          ([k, _]) => k === d.resourceType,
+    const allPositions = allWater
+      .map((w) =>
+        Array.from(
+          { length: 1 + geographyConfig.arableLandRadius * 2 },
+          (_, i) => w.position - geographyConfig.arableLandRadius + i,
         ),
-      );
-    });
-    // 2. Processor/Factory -> End Consumer & Near Resources (Prefer weber, otherwise next suitable)
+      )
+      .reduce((a, c) => a.concat(c));
+    const allLocations = state.getLocations();
+
+    const spawnPos = allPositions.find(
+      (p) =>
+        !allLocations.some((l) => l.position === p) &&
+        !state.towns.some(
+          (t) => Math.abs(t.position - p) < townConfig.townCatchmentRadius,
+        ),
+    );
+
+    if (spawnPos) {
+      world.createTown(`Town ${randomUUID()}`, company.id, spawnPos, true);
+
+      if (notificationConfig.logCompanyNotifications) {
+        logSuccess(`[COMPANY] Created town`);
+      }
+    } else if (notificationConfig.logCompanyNotifications) {
+      logWarning(`[COMPANY] Unable to create town - no suitable position`);
+    }
   });
 };
