@@ -179,7 +179,7 @@ export const updateCompanies = (state: IWorldState) => {
         .reduce((a, c) => a.concat(c));
       const allLocations = state.getLocations();
 
-      const spawnPos_2 = allPositions.find(
+      const spawnPos = allPositions.find(
         (p) =>
           !allLocations.some((l) => l.position === p) &&
           !state.towns.some(
@@ -187,10 +187,8 @@ export const updateCompanies = (state: IWorldState) => {
           ),
       );
 
-      logInfo(`SpawnPos2=${spawnPos_2}`);
-
-      if (spawnPos_2) {
-        world.createTown(`Town ${randomUUID()}`, company.id, spawnPos_2, true);
+      if (spawnPos) {
+        world.createTown(`Town ${randomUUID()}`, company.id, spawnPos, true);
 
         if (notificationConfig.logCompanyNotifications) {
           logSuccess(`[COMPANY] Created town`);
