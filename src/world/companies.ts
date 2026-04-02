@@ -18,8 +18,7 @@ import { loadGeographyConfig } from "./geographies";
 import { world } from "..";
 import { randomUUID } from "node:crypto";
 import { loadNotificationConfig } from "../notifications";
-import { Nullable } from "../entities/entity";
-import { loadTownConfig, townHasSpace } from "./locations/consumers/towns";
+import { loadTownConfig } from "./locations/consumers/towns";
 
 const geographyConfig = loadGeographyConfig();
 const notificationConfig = loadNotificationConfig();
@@ -146,7 +145,13 @@ export const updateCompanies = (state: IWorldState) => {
       logInfo(`[COMPANY] Trying to create a town...`);
 
       // 1. Towns -> Near arable land & water & existing towns already at capacity
-      if (state.towns.some((t) => townHasSpace(t))) {
+      if (
+        state.towns.some(
+          (t) =>
+            t.population * townConfig.avgDwellingSize <
+            townConfig.townCatchmentRadius * 2,
+        )
+      ) {
         if (notificationConfig.logCompanyNotifications) {
           logWarning(
             `[COMPANY] Existing towns not at capacity yet - skipping town creation`,
@@ -164,57 +169,28 @@ export const updateCompanies = (state: IWorldState) => {
         return;
       }
 
-      const allFarmlandAdjacentPositions = allWater.map((w) => [
-        w.position - geographyConfig.arableLandRadius - 1,
-        w.position + geographyConfig.arableLandRadius + 1,
-      ]);
-
-      let spawnPos: Nullable<number> = undefined;
+      const allPositions = allWater
+        .map((w) =>
+          Array.from(
+            { length: 1 + geographyConfig.arableLandRadius * 2 },
+            (_, i) => w.position - geographyConfig.arableLandRadius + i,
+          ),
+        )
+        .reduce((a, c) => a.concat(c));
       const allLocations = state.getLocations();
 
-      allFarmlandAdjacentPositions.forEach(([leftEdge, rightEdge]) => {
-        let posLeft = leftEdge;
-        let posRight = rightEdge;
+      const spawnPos_2 = allPositions.find(
+        (p) =>
+          !allLocations.some((l) => l.position === p) &&
+          !state.towns.some(
+            (t) => Math.abs(t.position - p) < townConfig.townCatchmentRadius,
+          ),
+      );
 
-        while (
-          spawnPos === undefined &&
-          (Math.abs(leftEdge - posLeft) < townConfig.townCatchmentRadius ||
-            Math.abs(rightEdge - posRight) < townConfig.townCatchmentRadius)
-        ) {
-          if (Math.abs(leftEdge - posLeft) < townConfig.townCatchmentRadius) {
-            posLeft--;
-          }
-          if (Math.abs(rightEdge - posRight) < townConfig.townCatchmentRadius) {
-            posRight++;
-          }
+      logInfo(`SpawnPos2=${spawnPos_2}`);
 
-          if (
-            !allLocations.some((l) => l.position === posLeft) &&
-            !state.towns.some((t) => {
-              logInfo(
-                ` - [CHECK LEFT] Town->PosLeft=${Math.abs(t.position - posLeft)}, TCR=${townConfig.townCatchmentRadius}`,
-              );
-              return (
-                Math.abs(t.position - posLeft) < townConfig.townCatchmentRadius
-              );
-            })
-          ) {
-            spawnPos = posLeft;
-          } else if (
-            !allLocations.some((l) => l.position === posRight) &&
-            !state.towns.some(
-              (t) =>
-                Math.abs(t.position - posRight) <
-                townConfig.townCatchmentRadius,
-            )
-          ) {
-            spawnPos = posRight;
-          }
-        }
-      });
-
-      if (spawnPos) {
-        world.createTown(`Town ${randomUUID()}`, company.id, spawnPos, true);
+      if (spawnPos_2) {
+        world.createTown(`Town ${randomUUID()}`, company.id, spawnPos_2, true);
 
         if (notificationConfig.logCompanyNotifications) {
           logSuccess(`[COMPANY] Created town`);

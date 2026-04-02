@@ -1,20 +1,32 @@
 import { ICompanyEntity } from "../entities/company";
-import { IContract } from "../entities/contract";
-import { IWorldEntity, WorldEntityType } from "../entities/entity";
+import { WorldEntityType } from "../entities/entity";
 import { GEOGRAPHY_TYPE, IGeographicEntity } from "../entities/geography";
 import { CONSUMER_TYPE } from "../entities/locations/consumer";
 import { IBaseLocation, LOCATION_TYPE } from "../entities/locations/location";
-import { ITruck, IVehicle, VEHICLE_TYPE } from "../entities/truck";
+import { IVehicle, VEHICLE_TYPE } from "../entities/truck";
 import { IWorldState } from "../entities/world";
+import { loadConfig } from "../utils/configUtils";
 import { Color, highlight } from "../utils/logUtils";
-import { getCompanyById, getCompanyByIdOrNull } from "./companies";
+import { getCompanyByIdOrNull } from "./companies";
 import { getContractByLocationIdOrNull } from "./contracts";
 import { getWorldEntityByPositionOrNull } from "./entities";
-import {
-  getLocationByIdOrNull,
-  getLocationByPositionOrNull,
-} from "./locations/locations";
-import { getTruckByPositionOrNull } from "./trucks";
+import { loadGeographyConfig } from "./geographies";
+import { loadTownConfig } from "./locations/consumers/towns";
+import { getLocationByIdOrNull } from "./locations/locations";
+
+interface MapConfig {
+  highlightArableLand: boolean;
+  highlightTownRadius: boolean;
+}
+
+const defaultConfig: MapConfig = {
+  highlightArableLand: true,
+  highlightTownRadius: true,
+};
+
+const mapConfig = loadConfig("map", defaultConfig);
+const geographyConfig = loadGeographyConfig();
+const townConfig = loadTownConfig();
 
 type TagDefinition = {
   tag: string;
@@ -46,6 +58,12 @@ export const getMap = (state: IWorldState) => {
     ...state.geographies.map((g) => g.position),
     ...state.trucks.map((t) => t.position),
   ];
+  const allWater = state.geographies.filter(
+    (g) => g.geographyType === GEOGRAPHY_TYPE.Water,
+  );
+  const allTowns = state
+    .getLocations()
+    .filter((l) => l.locationType === LOCATION_TYPE.Town);
 
   if (worldPositions.length <= 0) {
     return "";
@@ -106,7 +124,23 @@ export const getMap = (state: IWorldState) => {
       const debugMessageLength = entityAtPos.debugMessage?.length ?? 0;
       spaces += debugMessageLength > 0 ? 1 + debugMessageLength : 0;
     } else if (spaces <= 0) {
-      map += "_";
+      if (
+        allWater.some(
+          (w) => Math.abs(w.position - pos) < geographyConfig.arableLandRadius,
+        ) &&
+        mapConfig.highlightArableLand
+      ) {
+        map += highlight.cyan("_");
+      } else if (
+        allTowns.some(
+          (t) => Math.abs(t.position - pos) < townConfig.townCatchmentRadius,
+        ) &&
+        mapConfig.highlightArableLand
+      ) {
+        map += highlight.green("_");
+      } else {
+        map += "_";
+      }
     }
 
     if (spaces > 0) {

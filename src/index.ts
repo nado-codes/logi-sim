@@ -24,6 +24,7 @@ world.createCoastline(0);
 world.createWater(20);
 world.createMountain(24, 5, 10);
 world.createResourceDeposit(25, RESOURCE_TYPE.Grain);
+world.createWater(60);
 
 /*world.createProducer("Farm", stateCompany.id, 2, RESOURCE_TYPE.Grain, 500);
 world.createProcessor("Flour Mill", stateCompany.id, 15, {

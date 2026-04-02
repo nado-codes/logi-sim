@@ -17,5 +17,5 @@
   "stockOkThreshold": 0.9,
   "stockSafeThreshold": 1,
   "avgDwellingSize": 1,
-  "townCatchmentRadius": 80
+  "townCatchmentRadius": 8
 }

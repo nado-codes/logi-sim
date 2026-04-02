@@ -121,10 +121,7 @@ const updateTownPopulation = (town: ITown) => {
     townConfig.populationScalingExponent,
   );
 
-  if (
-    town.confidence >= townConfig.populationGrowthThreshold &&
-    townHasSpace(town)
-  ) {
+  if (town.confidence >= townConfig.populationGrowthThreshold) {
     const growthRate = townConfig.basePopulationGrowthRate * multiplier;
     const gain = Math.max(town.population, 1) * growthRate;
     town.population += gain;
