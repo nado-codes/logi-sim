@@ -121,7 +121,10 @@ const updateTownPopulation = (town: ITown) => {
     townConfig.populationScalingExponent,
   );
 
-  if (town.confidence >= townConfig.populationGrowthThreshold) {
+  if (
+    town.confidence >= townConfig.populationGrowthThreshold &&
+    townHasSpace(town)
+  ) {
     const growthRate = townConfig.basePopulationGrowthRate * multiplier;
     const gain = Math.max(town.population, 1) * growthRate;
     town.population += gain;
@@ -140,8 +143,9 @@ const updateTownPopulation = (town: ITown) => {
   // e.g. 1 flour serves 10 (population-to-resource (PTR) ratio 1:10)
   const townInputs: ResourceMap = town.recipe.inputs ?? {};
   (Object.keys(townInputs ?? {}) as RESOURCE_TYPE[]).forEach((resourceType) => {
-    const newConsumptionRate = Math.round(
-      town.population / townConfig.ptrRatio,
+    const newConsumptionRate = Math.max(
+      1,
+      Math.round(town.population / townConfig.ptrRatio),
     );
 
     townInputs[resourceType] = newConsumptionRate;

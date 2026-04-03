@@ -8,7 +8,7 @@ import { Color, highlight, logError, logInfo } from "./utils/logUtils";
 export const world = createWorld();
 
 logInfo("Logi sim starting...");
-logInfo("LogiSim v0.5.0");
+logInfo("LogiSim v0.6.0");
 
 const stateCompany = world.createCompany("State", 1000000000, Color.Magenta, {
   isAiEnabled: true,
@@ -26,21 +26,20 @@ world.createMountain(24, 5, 10);
 world.createResourceDeposit(25, RESOURCE_TYPE.Grain);
 world.createWater(60);
 
-/*world.createProducer("Farm", stateCompany.id, 2, RESOURCE_TYPE.Grain, 500);
-world.createProcessor("Flour Mill", stateCompany.id, 15, {
+world.createProducer("Farm", stateCompany.id, 26, RESOURCE_TYPE.Grain, 25);
+world.createProcessor("Flour Mill", stateCompany.id, 27, {
   inputs: {
     [RESOURCE_TYPE.Grain]: 6,
   },
   outputs: {
-    [RESOURCE_TYPE.Flour]: 3,
-  },
+    [RESOURCE_TYPE.Flour]: 300,
+  }, //
 });
-world.createTown("Town A", stateCompany.id, 45, true);
 world.createTruck(
   "Truck 1",
   playerCompany.id,
   RESOURCE_TYPE.Grain,
-  10000,
+  1000000,
   0,
   2,
 );
@@ -48,10 +47,10 @@ world.createTruck(
   "Truck 2",
   playerCompany.id,
   RESOURCE_TYPE.Flour,
-  10000,
+  1000000,
   15,
   2,
-); */
+);
 
 const simTarget = 0;
 const checkpointFactor = simTarget / 10;
