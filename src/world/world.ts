@@ -14,6 +14,7 @@ import { createProcessor, updateProcessors } from "./locations/processors";
 import { createProducer, updateProducers } from "./locations/producers";
 import {
   createTruck,
+  deleteTruck,
   getTruckById,
   getTruckByPositionOrNull,
   getTrucks,
@@ -146,6 +147,8 @@ export interface IWorld {
     speed: number,
     resourceCount?: number,
   ) => void;
+
+  deleteTruck: (truck: ITruck) => void;
 }
 
 const createInitialState = (): IWorldState => {
@@ -306,5 +309,7 @@ export const createWorld = (): IWorld => {
         speed,
         resourceCount,
       ),
+
+    deleteTruck: (truck: ITruck) => deleteTruck(state, truck),
   };
 };

@@ -115,7 +115,7 @@ export const transferFundsToState = (fromCompany: ICompany, amount: number) => {
   if (!fromCompany.options.hasUnlimitedMoney && fromCompany.money > 0) {
     fromCompany.money -= Math.abs(amount);
 
-    const transferString = `${highlight.yellow(fromCompany.name)} transferred ${highlight.yellow("$" + amount)} to ${highlight.yellow("State")}`;
+    const transferString = `${highlight.yellow(fromCompany.name)} transferred ${highlight.yellow("$" + amount)} to ${highlight.yellow("The State")}`;
     const moneyString =
       fromCompany.money > 0
         ? `${highlight.yellow("$" + fromCompany.money)}`
@@ -124,6 +124,20 @@ export const transferFundsToState = (fromCompany: ICompany, amount: number) => {
     if (notificationConfig.logCompanyNotifications) {
       logInfo(`${transferString} and has ${moneyString} left`);
     }
+  }
+};
+
+export const transferFundsFromState = (toCompany: ICompany, amount: number) => {
+  toCompany.money += Math.abs(amount);
+
+  const transferString = `${highlight.yellow(toCompany.name)} was paid ${highlight.yellow("$" + amount)} by ${highlight.yellow("The State")}`;
+  const moneyString =
+    toCompany.money > 0
+      ? `${highlight.yellow("$" + toCompany.money)}`
+      : `${highlight.red("$" + toCompany.money)}`;
+
+  if (notificationConfig.logCompanyNotifications) {
+    logInfo(`${transferString} and now has ${moneyString}`);
   }
 };
 

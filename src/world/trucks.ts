@@ -20,14 +20,17 @@ import { loadConfig } from "../utils/configUtils";
 
 interface ITruckConfig {
   baseOperatingCost: number;
+  baseSalePrice: number;
 }
 
 const defaultConfig: ITruckConfig = {
   baseOperatingCost: 100,
+  baseSalePrice: 10000,
 };
 
 const notificationConfig = loadNotificationConfig();
-const truckConfig = loadConfig("truck", defaultConfig);
+export const loadTruckConfig = () => loadConfig("truck", defaultConfig);
+const truckConfig = loadTruckConfig();
 
 // .. CREATE
 export const createTruck = (
@@ -324,5 +327,9 @@ export const updateTrucks = (state: IWorldState) => {
 };
 
 // .. DELETE
+
+export const deleteTruck = (state: IWorldState, truck: ITruck) => {
+  state.trucks = state.trucks.filter((t) => t.id !== truck.id);
+};
 
 // .. TODO? Deleting/selling trucks?

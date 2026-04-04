@@ -12,6 +12,8 @@ import { getCompanyString } from "../world/companies";
 import { createManageLocationsPage } from "./manageLocations";
 import { highlight } from "../utils/logUtils";
 import { createManageTrucksPage } from "./manageTrucks";
+import { Session as Session } from "inspector";
+import { ISession } from "../session";
 
 export enum MenuItemType {
   Page,
@@ -44,7 +46,7 @@ export const logError = (errorMessage: string) => {
 export const createMenu = (
   callback: () => void,
   world: ReturnType<typeof createWorld>,
-  playerCompany: ICompany,
+  userSession: ISession,
 ) => {
   const rl = readline.createInterface({
     input: process.stdin,
@@ -97,9 +99,12 @@ export const createMenu = (
     );
     console.log(world.getMap());
     console.log();
+
+    const playerCompany = world.getCompanyById(userSession.companyId);
     console.log(`YOUR COMPANY:`);
     console.log(getCompanyString(playerCompany));
     console.log();
+
     console.log(`===${page.title.toUpperCase()}===`);
 
     if (page.customRender !== undefined) {
