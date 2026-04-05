@@ -8,7 +8,7 @@ import { loadConfig } from "../../../utils/configUtils";
 import { clamp } from "../../../utils/mathUtils";
 import { getInputStorage, loadStorageConfig } from "../../storages";
 
-interface TownConfig {
+interface ITownConfig {
   populationGrowthThreshold: number;
   confidenceWarningThreshold: number;
   confidenceCriticalThreshold: number;
@@ -31,7 +31,7 @@ interface TownConfig {
 }
 
 export const loadTownConfig = () => {
-  const defaultConfig: TownConfig = {
+  const defaultConfig: ITownConfig = {
     populationGrowthThreshold: 70,
     confidenceWarningThreshold: 50,
     confidenceCriticalThreshold: 20,

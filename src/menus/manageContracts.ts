@@ -1,4 +1,4 @@
-import { logError, logSuccess, logWarning, highlight } from "../utils/logUtils";
+import { highlight } from "../utils/logUtils";
 import { assignContract } from "../world/contracts";
 import { IWorld } from "../world/world";
 import { IMenuPage, IMenuAction, MenuItemType } from "./menu";
@@ -10,24 +10,26 @@ export const createManageContractsPage = (world: IWorld): IMenuPage => {
     type: MenuItemType.Action,
     action: (args: string[] = []) => {
       if (args.length === 0) {
-        logError("You need to select a contract");
+        console.log(highlight.error("You need to select a contract"));
         return false;
       }
 
       const contractChoice = parseInt(args[0]);
 
       if (isNaN(contractChoice)) {
-        logError("You must enter a number to select a contract");
+        console.log(
+          highlight.error("You must enter a number to select a contract"),
+        );
         return false;
       }
 
-      const availableContracts = world
-        .getContracts()
-        .filter((c) => !c.shipperId);
+      const availableContracts = world.getContracts().filter((c) => !c.truckId);
       const contract = availableContracts.find((_, i) => i === contractChoice);
 
       if (!contract) {
-        logError(`Contract ${contractChoice} doesn't exist`);
+        console.log(
+          highlight.error(`Contract ${contractChoice} doesn't exist`),
+        );
         return false;
       }
 
@@ -51,19 +53,21 @@ export const createManageContractsPage = (world: IWorld): IMenuPage => {
           const truckChoice = parseInt(args[0]);
 
           if (isNaN(truckChoice)) {
-            logError("You must enter a number to select a truck");
+            console.log(
+              highlight.error("You must enter a number to select a truck"),
+            );
             return false;
           }
 
           const truck = availableTrucks.find((_, i) => i === truckChoice);
 
           if (!truck) {
-            logError(`Truck ${truckChoice} doesn't exist`);
+            console.log(highlight.error(`Truck ${truckChoice} doesn't exist`));
             return false;
           }
 
-          if (assignContract(contract, truck)) {
-            logSuccess(`Contract accepted`);
+          if (world.assignContract(contract, truck)) {
+            console.log(highlight.success(`Contract accepted`));
             console.log();
 
             const distance =
@@ -77,8 +81,10 @@ export const createManageContractsPage = (world: IWorld): IMenuPage => {
               ` - It will take ${highlight.yellow("" + distance / truck.speed)} ticks to complete`,
             );
           } else {
-            logError(
-              `[CONTRACT ERROR] Unable to assign contract due to an unknown error`,
+            console.log(
+              highlight.error(
+                `[CONTRACT ERROR] Unable to assign contract due to an unknown error`,
+              ),
             );
           }
         },
@@ -111,8 +117,10 @@ export const createManageContractsPage = (world: IWorld): IMenuPage => {
           });
 
           if (availableTrucks.length === 0) {
-            logWarning(
-              ` Warning: There are no trucks that can handle this contract`,
+            console.log(
+              highlight.warning(
+                ` Warning: There are no trucks that can handle this contract`,
+              ),
             );
           }
         },
@@ -122,12 +130,10 @@ export const createManageContractsPage = (world: IWorld): IMenuPage => {
 
   const createViewContractsInProgressPage = (world: IWorld): IMenuPage => {
     return createPage("Contracts In Progress", false, [], () => {
-      const contractsInProgress = world
-        .getContracts()
-        .filter((c) => c.shipperId);
+      const contractsInProgress = world.getContracts().filter((c) => c.truckId);
 
       if (contractsInProgress.length === 0) {
-        logWarning(` - There are no contracts in progress`);
+        console.log(highlight.warning(` - There are no contracts in progress`));
         return;
       }
 
@@ -143,12 +149,10 @@ export const createManageContractsPage = (world: IWorld): IMenuPage => {
     false,
     [createAcceptContractAction(), createViewContractsInProgressPage(world)],
     () => {
-      const availableContracts = world
-        .getContracts()
-        .filter((c) => !c.shipperId);
+      const availableContracts = world.getContracts().filter((c) => !c.truckId);
 
       if (availableContracts.length === 0) {
-        logWarning(` - There are no contracts available`);
+        console.log(highlight.warning(` - There are no contracts available`));
         return;
       }
 
@@ -168,8 +172,10 @@ export const createManageContractsPage = (world: IWorld): IMenuPage => {
         );
 
       if (availableTrucks.length === 0) {
-        logWarning(
-          ` Warning: There are no trucks that can handle any of these contracts`,
+        console.log(
+          highlight.warning(
+            ` Warning: There are no trucks that can handle any of these contracts`,
+          ),
         );
       }
     },

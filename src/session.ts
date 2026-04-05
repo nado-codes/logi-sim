@@ -1,3 +1,3 @@
-export interface ISession {
+export interface IUserSession {
   companyId: string;
 }

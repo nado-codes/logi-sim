@@ -4,19 +4,22 @@ import { ITruck, VEHICLE_TYPE } from "../entities/truck";
 import { loadNotificationConfig } from "../notifications";
 import {
   assignContract,
+  breakContract,
   completeContract,
+  CONTRACT_BREAK_TYPE,
   getContractByIdOrNull,
 } from "./contracts";
 import { logSuccess, logInfo, highlight } from "../utils/logUtils";
 import {
   createCompanyEntity,
   getCompanyById,
-  transferFundsToState,
+  transferCompanyFundsToState,
 } from "./companies";
 import { getLocationById, getLocationByIdOrNull } from "./locations/locations";
 import { IWorldState } from "../entities/world";
 import { createAndGetStorage, transferResources } from "./storages";
 import { loadConfig } from "../utils/configUtils";
+import { IContract } from "../entities/contract";
 
 interface ITruckConfig {
   baseOperatingCost: number;
@@ -60,6 +63,12 @@ export const createTruck = (
     type: WorldEntityType.Vehicle,
     vehicleType: VEHICLE_TYPE.Truck,
   };
+
+  if (notificationConfig.logTruckNotifications) {
+    logSuccess(
+      `[TRUCK] Created a ${highlight.yellow(resourceType)} truck at position ${highlight.yellow(position)}`,
+    );
+  }
 
   state.trucks.push(newTruck);
 };
@@ -152,7 +161,7 @@ const updateTruckPosition = (state: IWorldState, truck: ITruck) => {
       }
     }
   } else {
-    truck.destinationId = undefined;
+    stopTruck(truck);
   }
 };
 
@@ -244,7 +253,7 @@ export const updateTrucks = (state: IWorldState) => {
           }
 
           if (completeContract(state, truckContract)) {
-            truck.destinationId = undefined;
+            stopTruck(truck);
             truck.contractId = undefined;
 
             if (!truckContract.acceptedAtTick) {
@@ -258,7 +267,7 @@ export const updateTrucks = (state: IWorldState) => {
 
             // ..nowhere to pay funds to yet (e.g. petrol station, driver's bank account)
             // so we'll just transfer to the state (the void)
-            transferFundsToState(truckCompany, operatingCost);
+            transferCompanyFundsToState(truckCompany, operatingCost);
 
             if (
               notificationConfig.logTruckNotifications.all ||
@@ -297,7 +306,7 @@ export const updateTrucks = (state: IWorldState) => {
       );
 
       if (validContract) {
-        if (assignContract(validContract, truck)) {
+        if (assignContract(state, validContract, truck)) {
           truck.destinationId = validContract.supplierId;
 
           if (
@@ -326,10 +335,28 @@ export const updateTrucks = (state: IWorldState) => {
   });
 };
 
+export const setTruckContract = (truck: ITruck, contract: IContract) => {
+  truck.contractId = contract.id;
+};
+
+export const stopTruck = (truck: ITruck) => {
+  truck.destinationId = undefined;
+};
+
 // .. DELETE
 
 export const deleteTruck = (state: IWorldState, truck: ITruck) => {
+  const truckContract = getContractByIdOrNull(state, truck.contractId);
+
+  if (notificationConfig.logTruckNotifications) {
+    logSuccess(
+      `[TRUCK] Deleted a ${highlight.yellow(truck.storage.resourceType)} truck`,
+    );
+  }
+
+  if (truckContract) {
+    breakContract(state, truckContract, CONTRACT_BREAK_TYPE.SHIPPER);
+  }
+
   state.trucks = state.trucks.filter((t) => t.id !== truck.id);
 };
-
-// .. TODO? Deleting/selling trucks?

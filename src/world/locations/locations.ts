@@ -6,8 +6,21 @@ import {
 } from "../../entities/locations/location";
 import { IRecipe, RESOURCE_TYPE } from "../../entities/storage";
 import { loadNotificationConfig } from "../../notifications";
-import { logWarning, logInfo, logError, highlight } from "../../utils/logUtils";
-import { getContractByResource, createContract } from "../contracts";
+import {
+  logWarning,
+  logInfo,
+  logError,
+  highlight,
+  logSuccess,
+} from "../../utils/logUtils";
+import {
+  getContractByResource,
+  createContract,
+  getContractByIdOrNull,
+  breakContract,
+  CONTRACT_BREAK_TYPE,
+  getContractByLocationIdOrNull,
+} from "../contracts";
 import { IWorld } from "../world";
 import { IWorldState } from "../../entities/world";
 import {
@@ -15,6 +28,17 @@ import {
   createRecipeStorage,
   getResourceStorage,
 } from "../storages";
+import { loadConfig } from "../../utils/configUtils";
+
+interface ILocationConfig {
+  baseSalePrice: number;
+}
+
+const defaultConfig: ILocationConfig = {
+  baseSalePrice: 50000,
+};
+
+export const loadLocationConfig = () => loadConfig("location", defaultConfig);
 
 const notificationConfig = loadNotificationConfig();
 const storageConfig = loadStorageConfig();
@@ -198,7 +222,7 @@ export const checkInputStorage = (
               dueTicks,
             );
           }
-        } else if (!contract.shipperId) {
+        } else if (!contract.truckId) {
           logError(
             `- ${location.name} was unable to create a contract because one already exists and is NOT being shipped`,
           );
@@ -206,4 +230,36 @@ export const checkInputStorage = (
       }
     },
   );
+};
+
+// .. DELETE
+
+export const deleteLocation = (state: IWorldState, location: IBaseLocation) => {
+  const locationContract = getContractByLocationIdOrNull(state, location.id);
+
+  if (notificationConfig.logLocationNotifications) {
+    logSuccess(`[LOCATION] Deleted a ${highlight.yellow(location.name)}`);
+  }
+
+  if (locationContract) {
+    const breakType =
+      location.id === locationContract.supplierId
+        ? CONTRACT_BREAK_TYPE.SUPPLIER
+        : CONTRACT_BREAK_TYPE.DESTINATION;
+    breakContract(state, locationContract, breakType);
+  }
+
+  switch (location.locationType) {
+    case LOCATION_TYPE.Producer:
+      state.producers = state.producers.filter((p) => p.id !== location.id);
+      break;
+    case LOCATION_TYPE.Processor:
+      state.processors = state.processors.filter((p) => p.id !== location.id);
+      break;
+    case LOCATION_TYPE.Consumer:
+      break;
+    case LOCATION_TYPE.Town:
+      state.towns = state.towns.filter((t) => t.id !== location.id);
+      break;
+  }
 };

@@ -105,7 +105,7 @@ if (simTarget > 0) {
   console.log(highlight.green(`- Success! Press any key to start playing`));
 }
 
-const menu = createMenu(update, world, { companyId: playerCompany.id });
+export const menu = createMenu(update, world, { companyId: playerCompany.id });
 
 if (simTarget > 0) {
   menu.pause(menu.show);

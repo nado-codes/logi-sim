@@ -13,7 +13,7 @@ import { createManageLocationsPage } from "./manageLocations";
 import { highlight } from "../utils/logUtils";
 import { createManageTrucksPage } from "./manageTrucks";
 import { Session as Session } from "inspector";
-import { ISession } from "../session";
+import { IUserSession } from "../session";
 
 export enum MenuItemType {
   Page,
@@ -46,7 +46,7 @@ export const logError = (errorMessage: string) => {
 export const createMenu = (
   callback: () => void,
   world: ReturnType<typeof createWorld>,
-  userSession: ISession,
+  userSession: IUserSession,
 ) => {
   const rl = readline.createInterface({
     input: process.stdin,
@@ -56,7 +56,7 @@ export const createMenu = (
   const mainMenu: IMenuPage = createPage("Main Menu", true, [
     createManageContractsPage(world),
     createManageTrucksPage(world, userSession),
-    createManageLocationsPage(world),
+    createManageLocationsPage(world, userSession),
     createManageCompaniesPage(world),
     createViewLogsPage(),
   ]);

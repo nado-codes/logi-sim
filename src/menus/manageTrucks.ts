@@ -1,11 +1,11 @@
 import { randomUUID } from "node:crypto";
 import { RESOURCE_TYPE } from "../entities/storage";
-import { ISession } from "../session";
+import { IUserSession } from "../session";
 import { highlight, logSuccess, logWarning } from "../utils/logUtils";
 import {
   COMPANY_OP_RESULT,
-  transferFundsFromState,
-  transferFundsToState,
+  transferCompanyFundsFromState,
+  transferCompanyFundsToState,
 } from "../world/companies";
 import { loadTruckConfig } from "../world/trucks";
 import { IWorld } from "../world/world";
@@ -16,7 +16,7 @@ const truckConfig = loadTruckConfig();
 
 export const createManageTrucksPage = (
   world: IWorld,
-  userSession: ISession,
+  userSession: IUserSession,
 ): IMenuPage => {
   const createViewTruckAction = (): IMenuAction => ({
     title: "View Truck",
@@ -48,7 +48,7 @@ export const createManageTrucksPage = (
 
         const activeContracts = world
           .getContracts()
-          .filter((c) => c.shipperId === truck.id);
+          .filter((c) => c.truckId === truck.id);
 
         console.log(" - Active Contracts: ");
 
@@ -101,7 +101,7 @@ export const createManageTrucksPage = (
           }
 
           const playerCompany = world.getCompanyById(userSession.companyId);
-          const result = transferFundsToState(
+          const result = transferCompanyFundsToState(
             playerCompany,
             truckConfig.baseSalePrice,
           );
@@ -177,13 +177,24 @@ export const createManageTrucksPage = (
         return false;
       }
 
+      const truckContract = world.getContractByIdOrNull(truck.contractId);
+      const contractSupplier = world.getLocationByIdOrNull(
+        truckContract?.supplierId,
+      );
+      const contractDestination = world.getLocationByIdOrNull(
+        truckContract?.destinationId,
+      );
+
       const createConfirmSellTruckAction = (): IMenuAction => ({
         title: "Confirm",
         type: MenuItemType.Action,
         action: (args: string[] = []) => {
           const truckCompany = world.getCompanyById(truck.companyId);
 
-          transferFundsFromState(truckCompany, truckConfig.baseSalePrice);
+          transferCompanyFundsFromState(
+            truckCompany,
+            truckConfig.baseSalePrice,
+          );
 
           logSuccess(
             `${highlight.yellow(truckCompany.name)} sold a ${highlight.yellow(truck.storage.resourceType)} truck for ${highlight.yellow(`$${truckConfig.baseSalePrice}`)}`,
@@ -192,7 +203,11 @@ export const createManageTrucksPage = (
           console.log(
             ` - You sold a ${highlight.yellow(truck.storage.resourceType)} truck for ${highlight.yellow(`$${truckConfig.baseSalePrice}`)}`,
           );
-          console.log();
+          if (contractSupplier && contractDestination) {
+            console.log(
+              ` - The contract between ${highlight.yellow(contractSupplier.name)} and ${highlight.yellow(contractDestination.name)} was broken, forfeiting payment`,
+            );
+          }
 
           world.deleteTruck(truck);
         },
@@ -206,6 +221,12 @@ export const createManageTrucksPage = (
           console.log(
             `You're about to sell a ${highlight.yellow(truck.storage.resourceType)} truck for ${highlight.yellow(`$${truckConfig.baseSalePrice}`)}`,
           );
+
+          if (contractSupplier && contractDestination) {
+            console.log(
+              ` - This will break a contract between ${highlight.yellow(contractSupplier.name)} and ${highlight.yellow(contractDestination.name)}, and will forfeit payment`,
+            );
+          }
         },
       );
     },
@@ -219,7 +240,7 @@ export const createManageTrucksPage = (
       const availableTrucks = world.getTrucks();
 
       if (availableTrucks.length === 0) {
-        logWarning(` - There are no trucks available`);
+        console.log(highlight.warning(` - There are no trucks available`));
         return;
       }
 

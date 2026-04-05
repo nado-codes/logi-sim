@@ -4,7 +4,7 @@ import { RESOURCE_TYPE } from "./storage";
 export interface IContract extends ICompanyEntity {
   destinationId: string;
   supplierId: string;
-  shipperId?: string | undefined;
+  truckId?: string | undefined;
   resourceType: RESOURCE_TYPE;
   totalAmount: number;
   amountDelivered: number;

@@ -14,12 +14,12 @@ import { loadGeographyConfig } from "./geographies";
 import { loadTownConfig } from "./locations/consumers/towns";
 import { getLocationByIdOrNull } from "./locations/locations";
 
-interface MapConfig {
+interface IMapConfig {
   highlightArableLand: boolean;
   highlightTownRadius: boolean;
 }
 
-const defaultConfig: MapConfig = {
+const defaultConfig: IMapConfig = {
   highlightArableLand: true,
   highlightTownRadius: true,
 };

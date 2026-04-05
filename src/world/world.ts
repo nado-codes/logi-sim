@@ -3,13 +3,18 @@ import { IBaseLocation, LOCATION_TYPE } from "../entities/locations/location";
 import { IRecipe, RESOURCE_TYPE } from "../entities/storage";
 import { ITruck } from "../entities/truck";
 import {
+  assignContract,
   createContract,
   getContractByIdOrNull,
   getContractByLocationIdOrNull,
   getContractString,
   updateContracts,
 } from "./contracts";
-import { getLocationById, getLocationByIdOrNull } from "./locations/locations";
+import {
+  deleteLocation,
+  getLocationById,
+  getLocationByIdOrNull,
+} from "./locations/locations";
 import { createProcessor, updateProcessors } from "./locations/processors";
 import { createProducer, updateProducers } from "./locations/producers";
 import {
@@ -148,7 +153,10 @@ export interface IWorld {
     resourceCount?: number,
   ) => void;
 
+  assignContract: (contract: IContract, truck: ITruck) => boolean;
+
   deleteTruck: (truck: ITruck) => void;
+  deleteLocation: (location: IBaseLocation) => void;
 }
 
 const createInitialState = (): IWorldState => {
@@ -310,6 +318,11 @@ export const createWorld = (): IWorld => {
         resourceCount,
       ),
 
+    assignContract: (contract: IContract, truck: ITruck) =>
+      assignContract(state, contract, truck),
+
     deleteTruck: (truck: ITruck) => deleteTruck(state, truck),
+    deleteLocation: (location: IBaseLocation) =>
+      deleteLocation(state, location),
   };
 };

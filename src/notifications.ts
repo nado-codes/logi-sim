@@ -8,7 +8,7 @@ type TruckNotifications = {
   costs: boolean;
 };
 
-export interface NotificationConfig {
+export interface INotificationConfig {
   logStorageNotifications: boolean;
   logProcessorNotifications: boolean;
   logProducerNotifications: boolean;
@@ -20,7 +20,7 @@ export interface NotificationConfig {
   logCompanyNotifications: boolean;
 }
 
-const defaultConfig: NotificationConfig = {
+const defaultConfig: INotificationConfig = {
   logStorageNotifications: false,
   logProcessorNotifications: false,
   logProducerNotifications: false,

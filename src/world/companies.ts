@@ -80,7 +80,7 @@ export const getCompanyString = (company: ICompany) => {
 
 // UPDATE
 
-export const transferFunds = (
+export const transferCompanyFunds = (
   fromCompany: ICompany,
   toCompany: ICompany,
   amount: number,
@@ -120,7 +120,7 @@ export const transferFunds = (
  *
  * State-controlled companies are exempt (infinite funds).
  */
-export const transferFundsToState = (
+export const transferCompanyFundsToState = (
   fromCompany: ICompany,
   amount: number,
 ): COMPANY_OP_RESULT => {
@@ -145,7 +145,10 @@ export const transferFundsToState = (
   }
 };
 
-export const transferFundsFromState = (toCompany: ICompany, amount: number) => {
+export const transferCompanyFundsFromState = (
+  toCompany: ICompany,
+  amount: number,
+) => {
   toCompany.money += Math.abs(amount);
 
   const transferString = `${highlight.yellow(toCompany.name)} was paid ${highlight.yellow("$" + amount)} by ${highlight.yellow("The State")}`;

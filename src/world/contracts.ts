@@ -12,13 +12,17 @@ import {
 import {
   createCompanyEntity,
   getCompanyById,
-  transferFunds,
+  transferCompanyFunds as transferCompanyFunds,
 } from "./companies";
 import { getLocationById } from "./locations/locations";
-import { getTruckById } from "./trucks";
+import { getTruckById, setTruckContract } from "./trucks";
 import { Nullable } from "../entities/entity";
 import { IWorldState } from "../entities/world";
-import { getResourceCount } from "./storages";
+import {
+  getOutputStorage,
+  getResourceCount,
+  getResourceStorage,
+} from "./storages";
 import { loadConfig } from "../utils/configUtils";
 import { world } from "..";
 
@@ -215,39 +219,50 @@ export const updateContracts = (state: IWorldState) => {
   });
 };
 
-export const assignContract = (contract: IContract, shipper: ITruck) => {
+export const assignContract = (
+  state: IWorldState,
+  contract: IContract,
+  truck: ITruck,
+) => {
   if (notificationConfig.logContractNotifications) {
     logInfo(`[CONTRACT] Trying to assign ${contract.resourceType} contract...`);
   }
 
-  if (contract.shipperId) {
+  if (contract.truckId) {
     logError(
       ` - ERROR: Contract already being shipped - assignment not possible`,
     );
     return false;
   }
 
-  if (shipper.storage.resourceType !== contract.resourceType) {
+  if (truck.storage.resourceType !== contract.resourceType) {
     logError(
       ` - ERROR: Incompatible shipper resource type - assignment not possible`,
     );
     return false;
   }
 
-  shipper.contractId = contract.id;
-  contract.shipperId = shipper.id;
+  setTruckContract(truck, contract);
+  contract.truckId = truck.id;
   contract.acceptedAtTick = world.getCurrentTick();
 
   if (notificationConfig.logContractNotifications) {
+    const truckCompany = getCompanyById(state, truck.companyId);
     logSuccess(
-      `- SUCCESS: Contract ${highlight.yellow(contract.id)} assigned to shipper ${highlight.yellow(shipper.id)}`,
+      `- SUCCESS: Contract ${highlight.yellow(contract.id)} assigned to ${highlight.yellow(truck.name)} of ${highlight.yellow(truckCompany.name)}`,
     );
   }
 
   return true;
 };
 
-export const archiveContract = (state: IWorldState, contract: IContract) => {
+// .. DELETE
+
+const archiveContract = (state: IWorldState, contract: IContract) => {
+  if (notificationConfig.logContractNotifications) {
+    logInfo(` - Contract archived`);
+  }
+
   state.contractHistory.push(contract);
   state.contracts = state.contracts.filter((c) => c.id !== contract.id);
 };
@@ -255,18 +270,13 @@ export const archiveContract = (state: IWorldState, contract: IContract) => {
 export const completeContract = (state: IWorldState, contract: IContract) => {
   if (notificationConfig.logContractNotifications) {
     logInfo(
-      `[CONTRACT] Trying to complete ${contract.resourceType} contract...`,
+      `[CONTRACT] Trying to complete a ${contract.resourceType} contract...`,
     );
   }
 
   const destination = getLocationById(state, contract.destinationId);
 
-  if (!destination) {
-    logError(` - ERROR: No destination found - completion not possible`);
-    return false;
-  }
-
-  if (!contract.shipperId) {
+  if (!contract.truckId) {
     logError(` - ERROR: No shipper found - completion not possible`);
     return false;
   }
@@ -288,16 +298,82 @@ export const completeContract = (state: IWorldState, contract: IContract) => {
     logSuccess(` - SUCCESS: All requirements met. Contract will be voided.`);
   }
 
-  const shipper = getTruckById(state, contract.shipperId);
-  const shipperCompany = getCompanyById(state, shipper.companyId);
+  const truck = getTruckById(state, contract.truckId);
+  const truckCompany = getCompanyById(state, truck.companyId);
 
-  const contractOwner = getLocationById(state, contract.destinationId);
-  const contractOwnerCompany = getCompanyById(state, contractOwner.companyId);
+  const contractDestination = getLocationById(state, contract.destinationId);
+  const contractDestinationCompany = getCompanyById(
+    state,
+    contractDestination.companyId,
+  );
 
-  transferFunds(contractOwnerCompany, shipperCompany, contract.payment);
+  transferCompanyFunds(
+    contractDestinationCompany,
+    truckCompany,
+    contract.payment,
+  );
 
   contract.deliveredTick = state.currentTick;
   archiveContract(state, contract);
 
   return true;
+};
+
+export enum CONTRACT_BREAK_TYPE {
+  SUPPLIER,
+  DESTINATION,
+  SHIPPER,
+}
+
+export const breakContract = (
+  state: IWorldState,
+  contract: IContract,
+  breakType: CONTRACT_BREAK_TYPE,
+) => {
+  const contractSupplier = getLocationById(state, contract.supplierId);
+  const contractDestination = getLocationById(state, contract.destinationId);
+  const contractDestinationCompany = getCompanyById(
+    state,
+    contractDestination.companyId,
+  );
+
+  if (notificationConfig.logContractNotifications) {
+    logWarning(
+      `[CONTRACT] Contract between ${contractSupplier.name} and ${contractDestination.name} was broken by the ${breakType}`,
+    );
+  }
+
+  if (breakType !== CONTRACT_BREAK_TYPE.SHIPPER) {
+    if (contract.truckId) {
+      const contractTruck = getTruckById(state, contract.truckId);
+      const truckCompany = getCompanyById(state, contractTruck.companyId);
+      transferCompanyFunds(
+        contractDestinationCompany,
+        truckCompany,
+        contract.payment,
+      );
+    }
+
+    if (breakType === CONTRACT_BREAK_TYPE.SUPPLIER) {
+      const allLocationsExceptContractParties = state
+        .getLocations()
+        .filter(
+          (l) =>
+            l.id !== contract.destinationId && l.id !== contract.supplierId,
+        );
+      const alternateSupplier = allLocationsExceptContractParties.find(
+        (l) => getResourceStorage(contract.resourceType, l.storage).length > 0,
+      );
+
+      if (alternateSupplier) {
+        contract.supplierId = alternateSupplier.id;
+      } else {
+        archiveContract(state, contract);
+      }
+    } else if (breakType === CONTRACT_BREAK_TYPE.DESTINATION) {
+      archiveContract(state, contract);
+    }
+  } else {
+    contract.truckId = undefined;
+  }
 };
