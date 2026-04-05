@@ -24,6 +24,11 @@ const geographyConfig = loadGeographyConfig();
 const notificationConfig = loadNotificationConfig();
 const townConfig = loadTownConfig();
 
+export enum COMPANY_OP_RESULT {
+  SUCCESS,
+  INSUFFICIENT_FUNDS,
+}
+
 // .. CREATE
 export const createCompany = (
   state: IWorldState,
@@ -79,8 +84,8 @@ export const transferFunds = (
   fromCompany: ICompany,
   toCompany: ICompany,
   amount: number,
-) => {
-  if (fromCompany.money > 0) {
+): COMPANY_OP_RESULT => {
+  if (fromCompany.money >= amount) {
     if (!fromCompany.options.hasUnlimitedMoney) {
       fromCompany.money -= Math.abs(amount);
     }
@@ -96,6 +101,10 @@ export const transferFunds = (
     if (notificationConfig.logCompanyNotifications) {
       logInfo(`${transferString} and has ${moneyString} left`);
     }
+
+    return COMPANY_OP_RESULT.SUCCESS;
+  } else {
+    return COMPANY_OP_RESULT.INSUFFICIENT_FUNDS;
   }
 };
 
@@ -111,9 +120,14 @@ export const transferFunds = (
  *
  * State-controlled companies are exempt (infinite funds).
  */
-export const transferFundsToState = (fromCompany: ICompany, amount: number) => {
-  if (!fromCompany.options.hasUnlimitedMoney && fromCompany.money > 0) {
-    fromCompany.money -= Math.abs(amount);
+export const transferFundsToState = (
+  fromCompany: ICompany,
+  amount: number,
+): COMPANY_OP_RESULT => {
+  if (fromCompany.money >= amount) {
+    if (!fromCompany.options.hasUnlimitedMoney) {
+      fromCompany.money -= Math.abs(amount);
+    }
 
     const transferString = `${highlight.yellow(fromCompany.name)} transferred ${highlight.yellow("$" + amount)} to ${highlight.yellow("The State")}`;
     const moneyString =
@@ -124,6 +138,10 @@ export const transferFundsToState = (fromCompany: ICompany, amount: number) => {
     if (notificationConfig.logCompanyNotifications) {
       logInfo(`${transferString} and has ${moneyString} left`);
     }
+
+    return COMPANY_OP_RESULT.SUCCESS;
+  } else {
+    return COMPANY_OP_RESULT.INSUFFICIENT_FUNDS;
   }
 };
 

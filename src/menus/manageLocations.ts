@@ -1,6 +1,6 @@
 import { ITown } from "../entities/locations/consumer";
 import { LOCATION_TYPE } from "../entities/locations/location";
-import { logWarning, logError, highlight } from "../utils/logUtils";
+import { highlight } from "../utils/logUtils";
 import { getLocationString } from "../world/locations/locations";
 import { IWorld } from "../world/world";
 import { IMenuPage, IMenuAction, MenuItemType } from "./menu";
@@ -12,14 +12,16 @@ export const createManageLocationsPage = (world: IWorld): IMenuPage => {
     type: MenuItemType.Action,
     action: (args: string[] = []) => {
       if (args.length === 0) {
-        logError("You need to select a location");
+        console.log(highlight.error("You need to select a location"));
         return false;
       }
 
       const locationChoice = parseInt(args[0]);
 
       if (isNaN(locationChoice)) {
-        logError("You must enter a number to select a location");
+        console.log(
+          highlight.error("You must enter a number to select a location"),
+        );
         return false;
       }
 
@@ -27,7 +29,9 @@ export const createManageLocationsPage = (world: IWorld): IMenuPage => {
       const location = availableLocations.find((_, i) => i === locationChoice);
 
       if (!location) {
-        logError(`Location ${locationChoice} doesn't exist`);
+        console.log(
+          highlight.error(`Location ${locationChoice} doesn't exist`),
+        );
         return false;
       }
 
@@ -121,7 +125,7 @@ export const createManageLocationsPage = (world: IWorld): IMenuPage => {
       const availableLocations = world.getLocations();
 
       if (availableLocations.length === 0) {
-        logWarning(` - There are no locations available`);
+        console.log(highlight.warning(` - There are no locations available`));
         return;
       }
 

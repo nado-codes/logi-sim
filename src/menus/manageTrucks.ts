@@ -1,5 +1,12 @@
+import { randomUUID } from "node:crypto";
+import { RESOURCE_TYPE } from "../entities/storage";
+import { ISession } from "../session";
 import { highlight, logSuccess, logWarning } from "../utils/logUtils";
-import { transferFundsFromState } from "../world/companies";
+import {
+  COMPANY_OP_RESULT,
+  transferFundsFromState,
+  transferFundsToState,
+} from "../world/companies";
 import { loadTruckConfig } from "../world/trucks";
 import { IWorld } from "../world/world";
 import { IMenuAction, IMenuPage, logError, MenuItemType } from "./menu";
@@ -7,7 +14,10 @@ import { createPage } from "./pages";
 
 const truckConfig = loadTruckConfig();
 
-export const createManageTrucksPage = (world: IWorld): IMenuPage => {
+export const createManageTrucksPage = (
+  world: IWorld,
+  userSession: ISession,
+): IMenuPage => {
   const createViewTruckAction = (): IMenuAction => ({
     title: "View Truck",
     type: MenuItemType.Action,
@@ -60,53 +70,87 @@ export const createManageTrucksPage = (world: IWorld): IMenuPage => {
   });
 
   const createBuyTruckAction = (): IMenuAction => ({
-    title: "View Truck",
+    title: "Buy Truck",
     type: MenuItemType.Action,
     action: (args: string[] = []) => {
-      if (args.length === 0) {
-        logError("You need to select a truck");
-        return false;
-      }
+      const availableResourceTypes = Object.keys(RESOURCE_TYPE);
 
-      const choice = parseInt(args[0]);
+      const createSelectResourceTypeAction = (): IMenuAction => ({
+        title: "Select Resource Type",
+        type: MenuItemType.Action,
+        action: (args: string[] = []) => {
+          if (args.length === 0) {
+            logError("You need to select a resource type");
+            return false;
+          }
 
-      if (isNaN(choice)) {
-        logError("You must enter a number to select a truck");
-        return false;
-      }
+          const resourceChoice = parseInt(args[0]);
 
-      const truck = world.getTrucks().find((_, i) => i === choice);
+          if (isNaN(resourceChoice)) {
+            logError("You must enter a number to select a resource type");
+            return false;
+          }
 
-      if (!truck) {
-        logError(`Truck ${choice} doesn't exist`);
-        return false;
-      }
+          const resourceType = availableResourceTypes.find(
+            (_, i) => i === resourceChoice,
+          );
 
-      return createPage(`${truck.name}`, false, [], () => {
-        console.log(
-          `  - Storage: ${highlight.yellow(truck.storage.resourceType)} | Stored: ${highlight.yellow(truck.storage.resourceCount + "")} | Capacity: ${highlight.yellow(truck.storage.resourceCapacity + "")}`,
-        );
+          if (!resourceType) {
+            logError(`Resource ${resourceChoice} doesn't exist`);
+            return false;
+          }
 
-        const activeContracts = world
-          .getContracts()
-          .filter((c) => c.shipperId === truck.id);
+          const playerCompany = world.getCompanyById(userSession.companyId);
+          const result = transferFundsToState(
+            playerCompany,
+            truckConfig.baseSalePrice,
+          );
 
-        console.log(" - Active Contracts: ");
+          if (result === COMPANY_OP_RESULT.SUCCESS) {
+            world.createTruck(
+              `Truck ${randomUUID()}`,
+              playerCompany.id,
+              resourceType as RESOURCE_TYPE,
+              100,
+              0,
+              2,
+            );
 
-        if (activeContracts.length <= 0) {
-          console.log(`  - ${highlight.yellow("None")}`);
-        } else {
-          activeContracts.forEach((c) => {
-            const contractSupplier = world.getLocationById(c.supplierId);
-            const contractDestination = world.getLocationById(c.destinationId);
+            logSuccess(
+              `${highlight.yellow(playerCompany.name)} purchased a ${highlight.yellow(resourceType)} for ${highlight.yellow(`$${truckConfig.baseSalePrice}`)}`,
+            );
+
+            console.log(highlight.success(`Truck purchased`));
             console.log(
-              `  - Delivering ${highlight.yellow(c.totalAmount + " " + c.resourceType)} to ${highlight.yellow(contractDestination.name)} from ${highlight.yellow(contractSupplier.name)}`,
+              ` - You spent ${highlight.yellow(`$${truckConfig.baseSalePrice}`)}`,
+            );
+            console.log(
+              ` - Your new ${highlight.yellow(resourceType)} truck is at position ${highlight.yellow(`0`)}`,
+            );
+          } else if (result === COMPANY_OP_RESULT.INSUFFICIENT_FUNDS) {
+            console.log(highlight.error(`Insufficient funds`));
+            console.log(
+              ` - You have ${highlight.yellow(`$${playerCompany.money}`)} - you need ${highlight.yellow(`$${truckConfig.baseSalePrice}`)}`,
+            );
+          }
+          console.log();
+        },
+      });
+
+      return createPage(
+        `Buy Truck`,
+        false,
+        [createSelectResourceTypeAction()],
+        () => {
+          console.log(`\nSelect the resource that your truck will hold: `);
+
+          availableResourceTypes.forEach((resource, i) => {
+            console.log(
+              ` - [${i}] ${resource} ${highlight.yellow(`[$${truckConfig.baseSalePrice}]`)}`,
             );
           });
-        }
-
-        // .. show info about the location
-      });
+        },
+      );
     },
   });
 
@@ -133,13 +177,37 @@ export const createManageTrucksPage = (world: IWorld): IMenuPage => {
         return false;
       }
 
-      const truckCompany = world.getCompanyById(truck.companyId);
+      const createConfirmSellTruckAction = (): IMenuAction => ({
+        title: "Confirm",
+        type: MenuItemType.Action,
+        action: (args: string[] = []) => {
+          const truckCompany = world.getCompanyById(truck.companyId);
 
-      transferFundsFromState(truckCompany, truckConfig.baseSalePrice);
-      world.deleteTruck(truck);
+          transferFundsFromState(truckCompany, truckConfig.baseSalePrice);
 
-      logSuccess(`Truck sold`);
-      console.log();
+          logSuccess(
+            `${highlight.yellow(truckCompany.name)} sold a ${highlight.yellow(truck.storage.resourceType)} truck for ${highlight.yellow(`$${truckConfig.baseSalePrice}`)}`,
+          );
+          console.log(highlight.success(`Truck sold`));
+          console.log(
+            ` - You sold a ${highlight.yellow(truck.storage.resourceType)} truck for ${highlight.yellow(`$${truckConfig.baseSalePrice}`)}`,
+          );
+          console.log();
+
+          world.deleteTruck(truck);
+        },
+      });
+
+      return createPage(
+        `Are you sure?`,
+        false,
+        [createConfirmSellTruckAction()],
+        () => {
+          console.log(
+            `You're about to sell a ${highlight.yellow(truck.storage.resourceType)} truck for ${highlight.yellow(`$${truckConfig.baseSalePrice}`)}`,
+          );
+        },
+      );
     },
   });
 

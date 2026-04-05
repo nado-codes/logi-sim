@@ -55,7 +55,7 @@ export const createMenu = (
 
   const mainMenu: IMenuPage = createPage("Main Menu", true, [
     createManageContractsPage(world),
-    createManageTrucksPage(world),
+    createManageTrucksPage(world, userSession),
     createManageLocationsPage(world),
     createManageCompaniesPage(world),
     createViewLogsPage(),
@@ -72,6 +72,7 @@ export const createMenu = (
     console.clear();
 
     callback();
+    activePage = mainMenu;
     renderPage(activePage);
     waitForInput();
   };

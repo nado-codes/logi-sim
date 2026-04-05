@@ -55,4 +55,7 @@ export const highlight = {
   brightGreen: (text: string) => `\x1b[92m${text}\x1b[0m`,
 
   custom: (text: string, color: Color) => `\x1b[${color}${text}\x1b[0m`,
+  success: (text: string) => highlight.green(text),
+  error: (text: string) => highlight.red(text),
+  warning: (text: string) => highlight.yellow(text),
 } as const;
