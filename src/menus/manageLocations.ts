@@ -13,11 +13,16 @@ import {
   loadLocationConfig,
 } from "../world/locations/locations";
 import { IWorld } from "../world/world";
-import { IMenuPage, IMenuAction, MenuItemType, logError } from "./menu";
+import { IMenuPage, IMenuAction, MenuItemType, logMenuError } from "./menu";
 import { createPage } from "./pages";
 import { IUserSession } from "../session";
 
 const locationConfig = loadLocationConfig();
+
+enum IndustryType {
+  Farm = "Farm",
+  FlourMill = "Flour Mill",
+}
 
 export const createManageLocationsPage = (
   world: IWorld,
@@ -141,80 +146,118 @@ export const createManageLocationsPage = (
         title: "Buy Industry",
         type: MenuItemType.Action,
         action: (args: string[] = []) => {
-          const availableIndustryTypes = ["Farm", "Flour Mill"];
-
           const createSelectIndustryAction = (): IMenuAction => ({
             title: "Select Industry",
             type: MenuItemType.Action,
             action: (args: string[] = []) => {
               if (args.length === 0) {
-                logError("You need to select an industry");
+                logMenuError("You need to select an industry");
                 return false;
               }
 
               const industryChoice = parseInt(args[0]);
 
               if (isNaN(industryChoice)) {
-                logError("You must enter a number to select an industry");
+                logMenuError("You must enter a number to select an industry");
                 return false;
               }
 
-              const industry = availableIndustryTypes.find(
-                (_, i) => i === industryChoice,
-              );
+              const industry = Object.values(IndustryType)[industryChoice];
 
               if (!industry) {
-                logError(`Industry ${industryChoice} doesn't exist`);
+                logMenuError(`Industry ${industryChoice} doesn't exist`);
                 return false;
               }
 
-              const playerCompany = world.getCompanyById(userSession.companyId);
+              const createSelectPositionAction = (): IMenuAction => ({
+                title: "Select Position",
+                type: MenuItemType.Action,
+                action: (args: string[] = []) => {
+                  if (args.length == 0) {
+                    logMenuError("You need to select a position");
+                    return false;
+                  }
 
-              if (playerCompany.money < locationConfig.baseSalePrice) {
-                console.log(highlight.error(`Insufficient funds`));
-                console.log(
-                  ` - You have ${highlight.yellow(`$${playerCompany.money}`)} - you need ${highlight.yellow(`$${locationConfig.baseSalePrice}`)}`,
-                );
-                return false;
-              }
+                  const positionChoice = parseInt(args[0]);
 
-              // TODO: need to allow the player to select the position of the industry visually on the map
-              // e.g. "Left 10, Right 15, Set Position 20" ... and the map updates by refreshing the menu on the current page
-              // ... once position is selected, spawn in the industry
+                  if (isNaN(positionChoice)) {
+                    logMenuError(
+                      "You must enter a number to select a position",
+                    );
+                    return false;
+                  }
 
-              const result = transferCompanyFundsToState(
-                playerCompany,
-                locationConfig.baseSalePrice,
+                  const worldLocations = world.getLocations();
+                  const entityAtPos = worldLocations.find(
+                    (l) => l.position === positionChoice,
+                  );
+
+                  if (entityAtPos) {
+                    logMenuError(
+                      `That position is already occupied by ${entityAtPos.name}. Please select another`,
+                    );
+                    return false;
+                  }
+
+                  const playerCompany = world.getCompanyById(
+                    userSession.companyId,
+                  );
+                  const result = transferCompanyFundsToState(
+                    playerCompany,
+                    locationConfig.baseSalePrice,
+                  );
+
+                  if (result === COMPANY_OP_RESULT.SUCCESS) {
+                    switch (industry) {
+                      case IndustryType.Farm:
+                        world.createProducer(
+                          `Grain Farm ${worldLocations.length}`,
+                          playerCompany.id,
+                          positionChoice,
+                          RESOURCE_TYPE.Grain,
+                          25,
+                        );
+                        break;
+                      case IndustryType.FlourMill:
+                        world.createProcessor(
+                          `Flour Mill ${worldLocations.length}`,
+                          playerCompany.id,
+                          positionChoice,
+                          { inputs: { Grain: 6 }, outputs: { Flour: 3 } },
+                        );
+                        break;
+                    }
+
+                    logSuccess(
+                      `${highlight.yellow(playerCompany.name)} purchased a ${highlight.yellow(industry)} for ${highlight.yellow(`$${locationConfig.baseSalePrice}`)}`,
+                    );
+
+                    console.log(highlight.success(`Industry purchased`));
+                    console.log(
+                      ` - You spent ${highlight.yellow(`$${locationConfig.baseSalePrice}`)}`,
+                    );
+                    console.log(
+                      ` - Your new ${highlight.yellow(industry)} is at position ${highlight.yellow(positionChoice)}`,
+                    );
+                  } else if (result === COMPANY_OP_RESULT.INSUFFICIENT_FUNDS) {
+                    console.log(highlight.error(`Insufficient funds`));
+                    console.log(
+                      ` - You have ${highlight.yellow(`$${playerCompany.money}`)} - you need ${highlight.yellow(`$${locationConfig.baseSalePrice}`)}`,
+                    );
+                  }
+                },
+              });
+
+              return createPage(
+                `Select Position`,
+                false,
+                [createSelectPositionAction()],
+                () => {
+                  console.log(
+                    "Select a position on the map to spawn the industry",
+                  );
+                },
               );
-
-              if (result === COMPANY_OP_RESULT.SUCCESS) {
-                world.createTruck(
-                  `Truck ${randomUUID()}`,
-                  playerCompany.id,
-                  industry as RESOURCE_TYPE,
-                  100,
-                  0,
-                  2,
-                );
-
-                logSuccess(
-                  `${highlight.yellow(playerCompany.name)} purchased a ${highlight.yellow(industry)} for ${highlight.yellow(`$${locationConfig.baseSalePrice}`)}`,
-                );
-
-                console.log(highlight.success(`Truck purchased`));
-                console.log(
-                  ` - You spent ${highlight.yellow(`$${locationConfig.baseSalePrice}`)}`,
-                );
-                console.log(
-                  ` - Your new ${highlight.yellow(industry)} truck is at position ${highlight.yellow(`0`)}`,
-                );
-              } else if (result === COMPANY_OP_RESULT.INSUFFICIENT_FUNDS) {
-                console.log(highlight.error(`Insufficient funds`));
-                console.log(
-                  ` - You have ${highlight.yellow(`$${playerCompany.money}`)} - you need ${highlight.yellow(`$${locationConfig.baseSalePrice}`)}`,
-                );
-              }
-              console.log();
             },
           });
 
@@ -225,7 +268,7 @@ export const createManageLocationsPage = (
             () => {
               console.log(`\nSelect the industry that you'd like to purchase:`);
 
-              availableIndustryTypes.forEach((industry, i) => {
+              Object.values(IndustryType).forEach((industry, i) => {
                 console.log(
                   ` - [${i}] ${industry} ${highlight.yellow(`[$${locationConfig.baseSalePrice}]`)}`,
                 );
@@ -244,21 +287,21 @@ export const createManageLocationsPage = (
         type: MenuItemType.Action,
         action: (args: string[] = []) => {
           if (args.length === 0) {
-            logError("You need to select an industry");
+            logMenuError("You need to select an industry");
             return false;
           }
 
           const choice = parseInt(args[0]);
 
           if (isNaN(choice)) {
-            logError("You must enter a number to select an industry");
+            logMenuError("You must enter a number to select an industry");
             return false;
           }
 
           const industry = allIndustries.find((_, i) => i === choice);
 
           if (!industry) {
-            logError(`Industry ${choice} doesn't exist`);
+            logMenuError(`Industry ${choice} doesn't exist`);
             return false;
           }
 
@@ -314,6 +357,7 @@ export const createManageLocationsPage = (
             false,
             [createConfirmSellIndustryAction()],
             () => {
+              logMenuError(`industry=${industry?.name}`);
               console.log(
                 `You're about to sell a ${highlight.yellow(industry.name)} for ${highlight.yellow(`$${locationConfig.baseSalePrice}`)}`,
               );

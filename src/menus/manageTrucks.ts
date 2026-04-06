@@ -9,7 +9,7 @@ import {
 } from "../world/companies";
 import { loadTruckConfig } from "../world/trucks";
 import { IWorld } from "../world/world";
-import { IMenuAction, IMenuPage, logError, MenuItemType } from "./menu";
+import { IMenuAction, IMenuPage, logMenuError, MenuItemType } from "./menu";
 import { createPage } from "./pages";
 
 const truckConfig = loadTruckConfig();
@@ -23,21 +23,21 @@ export const createManageTrucksPage = (
     type: MenuItemType.Action,
     action: (args: string[] = []) => {
       if (args.length === 0) {
-        logError("You need to select a truck");
+        logMenuError("You need to select a truck");
         return false;
       }
 
       const choice = parseInt(args[0]);
 
       if (isNaN(choice)) {
-        logError("You must enter a number to select a truck");
+        logMenuError("You must enter a number to select a truck");
         return false;
       }
 
       const truck = world.getTrucks().find((_, i) => i === choice);
 
       if (!truck) {
-        logError(`Truck ${choice} doesn't exist`);
+        logMenuError(`Truck ${choice} doesn't exist`);
         return false;
       }
 
@@ -80,14 +80,14 @@ export const createManageTrucksPage = (
         type: MenuItemType.Action,
         action: (args: string[] = []) => {
           if (args.length === 0) {
-            logError("You need to select a resource type");
+            logMenuError("You need to select a resource type");
             return false;
           }
 
           const resourceChoice = parseInt(args[0]);
 
           if (isNaN(resourceChoice)) {
-            logError("You must enter a number to select a resource type");
+            logMenuError("You must enter a number to select a resource type");
             return false;
           }
 
@@ -96,7 +96,7 @@ export const createManageTrucksPage = (
           );
 
           if (!resourceType) {
-            logError(`Resource ${resourceChoice} doesn't exist`);
+            logMenuError(`Resource ${resourceChoice} doesn't exist`);
             return false;
           }
 
@@ -133,7 +133,6 @@ export const createManageTrucksPage = (
               ` - You have ${highlight.yellow(`$${playerCompany.money}`)} - you need ${highlight.yellow(`$${truckConfig.baseSalePrice}`)}`,
             );
           }
-          console.log();
         },
       });
 
@@ -159,21 +158,21 @@ export const createManageTrucksPage = (
     type: MenuItemType.Action,
     action: (args: string[] = []) => {
       if (args.length === 0) {
-        logError("You need to select a truck");
+        logMenuError("You need to select a truck");
         return false;
       }
 
       const choice = parseInt(args[0]);
 
       if (isNaN(choice)) {
-        logError("You must enter a number to select a truck");
+        logMenuError("You must enter a number to select a truck");
         return false;
       }
 
       const truck = world.getTrucks().find((_, i) => i === choice);
 
       if (!truck) {
-        logError(`Truck ${choice} doesn't exist`);
+        logMenuError(`Truck ${choice} doesn't exist`);
         return false;
       }
 

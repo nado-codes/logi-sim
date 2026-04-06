@@ -14,6 +14,7 @@ import { highlight } from "../utils/logUtils";
 import { createManageTrucksPage } from "./manageTrucks";
 import { Session as Session } from "inspector";
 import { IUserSession } from "../session";
+import { LOCATION_TYPE } from "../entities/locations/location";
 
 export enum MenuItemType {
   Page,
@@ -38,9 +39,8 @@ export interface IMenuAction extends IMenuItemBase {
 
 export type IMenuItem = IMenuPage | IMenuAction;
 
-export const logError = (errorMessage: string) => {
+export const logMenuError = (errorMessage: string) => {
   console.log(`\x1b[31m${errorMessage}\x1b[0m`);
-  console.log();
 };
 
 export const createMenu = (
@@ -70,9 +70,9 @@ export const createMenu = (
 
   const finish = () => {
     console.clear();
+    navHistory = [mainMenu];
 
     callback();
-    activePage = mainMenu;
     renderPage(activePage);
     waitForInput();
   };
@@ -86,6 +86,7 @@ export const createMenu = (
     }
 
     renderPage(activePage);
+    waitForInput();
   };
 
   const renderPage = (page: IMenuPage, errorMessage?: string) => {
@@ -120,8 +121,14 @@ export const createMenu = (
     console.log();
 
     if (errorMessage) {
-      logError(errorMessage);
+      logMenuError(errorMessage);
     }
+
+    console.log(
+      highlight.cyan(
+        `PROCESSORS: ${world.getLocations().filter((l) => l.locationType === LOCATION_TYPE.Processor).length}`,
+      ),
+    );
 
     console.log(
       "Enter a number corresponding to one of the above options or press enter to advance tick",
@@ -131,7 +138,6 @@ export const createMenu = (
   const executeAction = (action: IMenuAction, args: any) => {
     console.clear();
     console.log(`===${action.title.toUpperCase()}===`);
-    console.clear();
 
     const result = action.action(args);
 
@@ -142,12 +148,15 @@ export const createMenu = (
       waitForInput();
     } else if (result !== false) {
       // Action returned void - normal action behavior
+      activePage = mainMenu;
       console.log("\nPress any key to continue");
       pause();
     } else {
       console.log("\nPress any key to continue");
-      pause(renderPrevPage);
-      waitForInput();
+      pause(() => {
+        renderPage(activePage);
+        waitForInput();
+      });
     }
   };
 
@@ -173,7 +182,6 @@ export const createMenu = (
               finish();
             } else if (menuItem.title == "Back") {
               renderPrevPage();
-              waitForInput();
             } else {
               executeAction(menuItem as IMenuAction, args);
             }

@@ -12,6 +12,6 @@
     "costs": true
   },
   "logProductionNotifications": false,
-  "logLocationNotifications": false,
+  "logLocationNotifications": true,
   "logCompanyNotifications": true
 }

@@ -238,7 +238,7 @@ export const deleteLocation = (state: IWorldState, location: IBaseLocation) => {
   const locationContract = getContractByLocationIdOrNull(state, location.id);
 
   if (notificationConfig.logLocationNotifications) {
-    logSuccess(`[LOCATION] Deleted a ${highlight.yellow(location.name)}`);
+    logSuccess(`[LOCATION] Deleted a ${location.name}`);
   }
 
   if (locationContract) {
