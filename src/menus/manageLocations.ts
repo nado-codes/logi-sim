@@ -132,8 +132,6 @@ export const createManageLocationsPage = (
             }
           });
         }
-
-        // .. show info about the location
       });
     },
   });
@@ -357,7 +355,6 @@ export const createManageLocationsPage = (
             false,
             [createConfirmSellIndustryAction()],
             () => {
-              logMenuError(`industry=${industry?.name}`);
               console.log(
                 `You're about to sell a ${highlight.yellow(industry.name)} for ${highlight.yellow(`$${locationConfig.baseSalePrice}`)}`,
               );

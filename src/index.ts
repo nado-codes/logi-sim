@@ -8,7 +8,7 @@ import { Color, highlight, logError, logInfo } from "./utils/logUtils";
 export const world = createWorld();
 
 logInfo("Logi sim starting...");
-logInfo("LogiSim v0.6.0");
+logInfo("LogiSim v0.6.1");
 
 const stateCompany = world.createCompany("State", 1000000000, Color.Magenta, {
   isAiEnabled: true,

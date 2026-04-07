@@ -16,7 +16,6 @@ import {
 import {
   getContractByResource,
   createContract,
-  getContractByIdOrNull,
   breakContract,
   CONTRACT_BREAK_TYPE,
   getContractByLocationIdOrNull,
@@ -246,6 +245,7 @@ export const deleteLocation = (state: IWorldState, location: IBaseLocation) => {
       location.id === locationContract.supplierId
         ? CONTRACT_BREAK_TYPE.SUPPLIER
         : CONTRACT_BREAK_TYPE.DESTINATION;
+
     breakContract(state, locationContract, breakType);
   }
 

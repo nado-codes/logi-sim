@@ -7,12 +7,10 @@ import {
   createViewLogsPage,
 } from "./pages";
 import { createManageContractsPage } from "./manageContracts";
-import { ICompany } from "../entities/company";
 import { getCompanyString } from "../world/companies";
 import { createManageLocationsPage } from "./manageLocations";
 import { highlight } from "../utils/logUtils";
 import { createManageTrucksPage } from "./manageTrucks";
-import { Session as Session } from "inspector";
 import { IUserSession } from "../session";
 import { LOCATION_TYPE } from "../entities/locations/location";
 
@@ -125,12 +123,6 @@ export const createMenu = (
     }
 
     console.log(
-      highlight.cyan(
-        `PROCESSORS: ${world.getLocations().filter((l) => l.locationType === LOCATION_TYPE.Processor).length}`,
-      ),
-    );
-
-    console.log(
       "Enter a number corresponding to one of the above options or press enter to advance tick",
     );
   };
@@ -148,9 +140,13 @@ export const createMenu = (
       waitForInput();
     } else if (result !== false) {
       // Action returned void - normal action behavior
+      console.log("\nPress any key to continue");
       activePage = mainMenu;
       console.log("\nPress any key to continue");
-      pause();
+      pause(() => {
+        renderPage(activePage);
+        waitForInput();
+      });
     } else {
       console.log("\nPress any key to continue");
       pause(() => {

@@ -160,7 +160,7 @@ export interface IWorld {
 }
 
 const createInitialState = (): IWorldState => {
-  const state = {
+  const state: IWorldState = {
     currentTick: 0,
     producers: [],
     processors: [],
@@ -170,16 +170,16 @@ const createInitialState = (): IWorldState => {
     trucks: [],
     companies: [],
     geographies: [],
+    getLocations: () => [],
   };
 
-  return {
-    ...state,
-    getLocations: () => [
-      ...state.producers,
-      ...state.processors,
-      ...state.towns,
-    ],
-  };
+  state.getLocations = () => [
+    ...state.producers,
+    ...state.processors,
+    ...state.towns,
+  ];
+
+  return state;
 };
 
 export const createWorld = (): IWorld => {

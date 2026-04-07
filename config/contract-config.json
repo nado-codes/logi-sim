@@ -1,5 +1,5 @@
 {
-  "perUnitRate": 5,
+  "perUnitRate": 10,
   "distanceRate": 2,
   "urgencyMultipliers": {
     "critical": {
