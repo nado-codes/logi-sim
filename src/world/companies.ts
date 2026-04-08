@@ -13,21 +13,41 @@ import {
   logWarning,
 } from "../utils/logUtils";
 import { IWorldState } from "../entities/world";
-import { GEOGRAPHY_TYPE, IResourceDeposit } from "../entities/geography";
+import { GEOGRAPHY_TYPE } from "../entities/geography";
 import { loadGeographyConfig } from "./geographies";
 import { world } from "..";
 import { randomUUID } from "node:crypto";
 import { loadNotificationConfig } from "../notifications";
 import { loadTownConfig } from "./locations/consumers/towns";
+import { getLocationById } from "./locations/locations";
+import { assignContract } from "./contracts";
+import { getTruckById, loadTruckConfig } from "./trucks";
+import { loadConfig } from "../utils/configUtils";
+import { sum } from "../utils/mathUtils";
 
 const geographyConfig = loadGeographyConfig();
 const notificationConfig = loadNotificationConfig();
 const townConfig = loadTownConfig();
+const truckConfig = loadTruckConfig();
 
 export enum COMPANY_OP_RESULT {
   SUCCESS,
   INSUFFICIENT_FUNDS,
 }
+
+interface ICompanyConfig {
+  aiConfig: {
+    dispatchChance: number;
+  };
+}
+
+const defaultConfig: ICompanyConfig = {
+  aiConfig: {
+    dispatchChance: 0.1,
+  },
+};
+
+const companyConfig = loadConfig("company", defaultConfig);
 
 // .. CREATE
 export const createCompany = (
@@ -108,18 +128,6 @@ export const transferCompanyFunds = (
   }
 };
 
-/**
- * Transfer funds to state (economic sink).
- *
- * In Phase 2, this represents operating costs (fuel, maintenance)
- * going into "the void" since fuel stations/service providers
- * don't exist yet.
- *
- * In Phase 5+, replace with transferFunds(company, serviceProvider, amount)
- * to route money to actual economic actors.
- *
- * State-controlled companies are exempt (infinite funds).
- */
 export const transferCompanyFundsToState = (
   fromCompany: ICompany,
   amount: number,
@@ -162,9 +170,131 @@ export const transferCompanyFundsFromState = (
   }
 };
 
+const tryCreateTown = (state: IWorldState, company: ICompany) => {
+  logInfo(`[COMPANY] Trying to create a town...`);
+
+  // 1. Towns -> Near arable land & water & existing towns already at capacity
+  if (
+    state.towns.some(
+      (t) =>
+        t.population * townConfig.avgDwellingSize <
+        townConfig.townCatchmentRadius * 2,
+    )
+  ) {
+    if (notificationConfig.logCompanyNotifications) {
+      logWarning(
+        `[COMPANY] Existing towns not at capacity yet - skipping town creation`,
+      );
+    }
+    return;
+  }
+
+  const allWater = state.geographies.filter(
+    (g) => g.geographyType === GEOGRAPHY_TYPE.Water,
+  );
+
+  if (allWater.length === 0 && notificationConfig.logCompanyNotifications) {
+    logWarning(`[COMPANY] No water found - skipping town creation`);
+    return;
+  }
+
+  const allPositions = allWater
+    .map((w) =>
+      Array.from(
+        { length: 1 + geographyConfig.arableLandRadius * 2 },
+        (_, i) => w.position - geographyConfig.arableLandRadius + i,
+      ),
+    )
+    .reduce((a, c) => a.concat(c));
+  const allLocations = state.getLocations();
+
+  const spawnPos = allPositions.find(
+    (p) =>
+      !allLocations.some((l) => l.position === p) &&
+      !state.towns.some(
+        (t) => Math.abs(t.position - p) < townConfig.townCatchmentRadius,
+      ),
+  );
+
+  if (spawnPos) {
+    world.createTown(`Town ${randomUUID()}`, company.id, spawnPos, true);
+
+    if (notificationConfig.logCompanyNotifications) {
+      logSuccess(`[COMPANY] Created town`);
+    }
+  } else if (notificationConfig.logCompanyNotifications) {
+    logWarning(`[COMPANY] Unable to create town - no suitable position`);
+  }
+};
+
+const tryDispatchTrucks = (state: IWorldState, company: ICompany) => {
+  const dispatch = Math.random();
+  if (dispatch > companyConfig.aiConfig.dispatchChance) {
+    return;
+  }
+
+  const companyTrucks = state.trucks.filter((t) => t.companyId === company.id);
+  const companyContracts = state.contracts.filter((c) =>
+    companyTrucks.some((t) => c.truckId === t.id),
+  );
+  const commitmentsLedger = companyContracts.map((c) => {
+    const supplier = getLocationById(state, c.supplierId);
+    const destination = getLocationById(state, c.destinationId);
+    const totalTravelDistance = Math.abs(
+      destination.position - supplier.position,
+    );
+    const totalTravelCost = totalTravelDistance * truckConfig.baseOperatingCost;
+
+    return { payment: c.payment, totalCost: totalTravelCost };
+  });
+  let currentCompanyReceivables = sum(commitmentsLedger.map((l) => l.payment));
+  let currentCompanyPayables = sum(commitmentsLedger.map((l) => l.totalCost));
+
+  const availableContracts = state.contracts.filter((c) => !c.truckId);
+  availableContracts.forEach((c) => {
+    const supplier = getLocationById(state, c.supplierId);
+    const validIdleTrucks = companyTrucks.filter(
+      (t) => t.storage.resourceType === c.resourceType && !t.contractId,
+    );
+    if (validIdleTrucks.length === 0) {
+      return;
+    }
+
+    const nearestTruck = validIdleTrucks.reduce((closest, current) =>
+      Math.abs(current.position - supplier.position) <
+      Math.abs(closest.position - supplier.position)
+        ? current
+        : closest,
+    );
+
+    const destination = getLocationById(state, c.destinationId);
+    const totalTravelDistance =
+      Math.abs(destination.position - supplier.position) +
+      Math.abs(supplier.position - nearestTruck.position);
+    const contractDeliveryCost =
+      totalTravelDistance * truckConfig.baseOperatingCost;
+
+    const updatedCompanyPayables =
+      currentCompanyPayables + contractDeliveryCost;
+    const updatedRecievables = currentCompanyReceivables + c.payment;
+
+    if (updatedCompanyPayables > updatedRecievables + company.money) {
+      return;
+    }
+
+    assignContract(state, c, nearestTruck);
+    currentCompanyReceivables = updatedRecievables;
+    currentCompanyPayables = updatedCompanyPayables;
+  });
+};
+
 export const updateCompanies = (state: IWorldState) => {
   logInfo(`Updating companies...`);
   state.companies.forEach((company) => {
+    if (company.options.isGovernment) {
+      tryCreateTown(state, company);
+    }
+
     if (!company.options.isAiEnabled) {
       if (notificationConfig.logCompanyNotifications) {
         logWarning(`[COMPANY] AI behaviour for ${company.name} not enabled`);
@@ -176,59 +306,6 @@ export const updateCompanies = (state: IWorldState) => {
       logInfo(`[COMPANY] Running AI behaviour for ${company.name}...`);
     }
 
-    logInfo(`[COMPANY] Trying to create a town...`);
-
-    // 1. Towns -> Near arable land & water & existing towns already at capacity
-    if (
-      state.towns.some(
-        (t) =>
-          t.population * townConfig.avgDwellingSize <
-          townConfig.townCatchmentRadius * 2,
-      )
-    ) {
-      if (notificationConfig.logCompanyNotifications) {
-        logWarning(
-          `[COMPANY] Existing towns not at capacity yet - skipping town creation`,
-        );
-      }
-      return;
-    }
-
-    const allWater = state.geographies.filter(
-      (g) => g.geographyType === GEOGRAPHY_TYPE.Water,
-    );
-
-    if (allWater.length === 0 && notificationConfig.logCompanyNotifications) {
-      logWarning(`[COMPANY] No water found - skipping town creation`);
-      return;
-    }
-
-    const allPositions = allWater
-      .map((w) =>
-        Array.from(
-          { length: 1 + geographyConfig.arableLandRadius * 2 },
-          (_, i) => w.position - geographyConfig.arableLandRadius + i,
-        ),
-      )
-      .reduce((a, c) => a.concat(c));
-    const allLocations = state.getLocations();
-
-    const spawnPos = allPositions.find(
-      (p) =>
-        !allLocations.some((l) => l.position === p) &&
-        !state.towns.some(
-          (t) => Math.abs(t.position - p) < townConfig.townCatchmentRadius,
-        ),
-    );
-
-    if (spawnPos) {
-      world.createTown(`Town ${randomUUID()}`, company.id, spawnPos, true);
-
-      if (notificationConfig.logCompanyNotifications) {
-        logSuccess(`[COMPANY] Created town`);
-      }
-    } else if (notificationConfig.logCompanyNotifications) {
-      logWarning(`[COMPANY] Unable to create town - no suitable position`);
-    }
+    tryDispatchTrucks(state, company);
   });
 };

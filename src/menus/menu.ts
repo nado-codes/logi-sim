@@ -1,18 +1,14 @@
 // menu.ts
 import readline from "readline";
 import { createWorld } from "../world/world";
-import {
-  createPage,
-  createManageCompaniesPage,
-  createViewLogsPage,
-} from "./pages";
-import { createManageContractsPage } from "./manageContracts";
+import { createViewLogsPage } from "./pages/viewLogs";
+import { createManageContractsPage } from "./pages/manageContracts";
 import { getCompanyString } from "../world/companies";
-import { createManageLocationsPage } from "./manageLocations";
+import { createManageLocationsPage } from "./pages/manageLocations";
 import { highlight } from "../utils/logUtils";
-import { createManageTrucksPage } from "./manageTrucks";
+import { createManageTrucksPage } from "./pages/manageTrucks";
 import { IUserSession } from "../session";
-import { LOCATION_TYPE } from "../entities/locations/location";
+import { createManageCompaniesPage } from "./pages/manageCompanies";
 
 export enum MenuItemType {
   Page,
@@ -41,6 +37,42 @@ export const logMenuError = (errorMessage: string) => {
   console.log(`\x1b[31m${errorMessage}\x1b[0m`);
 };
 
+export const createMenuPage = (
+  title: string,
+  isRoot: boolean,
+  items: IMenuItem[],
+  customRender?: () => void,
+): IMenuPage => {
+  let _items = items;
+
+  if (!isRoot) {
+    _items.push({
+      title: "Back",
+      type: MenuItemType.Action,
+      action: () => true,
+    });
+  }
+
+  return {
+    title,
+    type: MenuItemType.Page,
+    items: _items,
+    isRoot,
+    customRender,
+  };
+};
+
+export const createMenuAction = (
+  title: string,
+  action: (args: string[] | undefined) => any,
+): IMenuAction => {
+  return {
+    title,
+    type: MenuItemType.Action,
+    action,
+  };
+};
+
 export const createMenu = (
   callback: () => void,
   world: ReturnType<typeof createWorld>,
@@ -51,7 +83,7 @@ export const createMenu = (
     output: process.stdout,
   });
 
-  const mainMenu: IMenuPage = createPage("Main Menu", true, [
+  const mainMenu: IMenuPage = createMenuPage("Main Menu", true, [
     createManageContractsPage(world),
     createManageTrucksPage(world, userSession),
     createManageLocationsPage(world, userSession),
@@ -103,6 +135,14 @@ export const createMenu = (
     const playerCompany = world.getCompanyById(userSession.companyId);
     console.log(`YOUR COMPANY:`);
     console.log(getCompanyString(playerCompany));
+    console.log();
+    console.log(`RIVAL COMPANIES:`);
+    world
+      .getCompanies()
+      .filter((c) => c !== playerCompany && !c.options.isGovernment)
+      .forEach((c) => {
+        console.log(` - ${getCompanyString(c)}`);
+      });
     console.log();
 
     console.log(`===${page.title.toUpperCase()}===`);

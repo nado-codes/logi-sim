@@ -13,21 +13,24 @@ logInfo("LogiSim v0.6.1");
 const stateCompany = world.createCompany("State", 1000000000, Color.Magenta, {
   isAiEnabled: true,
   hasUnlimitedMoney: true,
+  isGovernment: true,
 });
 const playerCompany = world.createCompany(
   "NadoCo Logistics",
   100000,
   Color.Cyan,
 );
+const competitorCompany = world.createCompany("RivalCo", 1000, Color.Red, {
+  isAiEnabled: true,
+});
 
 world.createCoastline(0);
-world.createWater(20);
-world.createMountain(24, 5, 10);
-world.createResourceDeposit(25, RESOURCE_TYPE.Grain);
-world.createWater(60);
+world.createWater(40);
+//world.createMountain(30, 5, 10);
+//world.createResourceDeposit(35, RESOURCE_TYPE.Grain);
 
-world.createProducer("Farm", stateCompany.id, 26, RESOURCE_TYPE.Grain, 25);
-world.createProcessor("Flour Mill", stateCompany.id, 27, {
+world.createProducer("Farm", stateCompany.id, 20, RESOURCE_TYPE.Grain, 25);
+world.createProcessor("Flour Mill", stateCompany.id, 25, {
   inputs: {
     [RESOURCE_TYPE.Grain]: 6,
   },
@@ -35,6 +38,7 @@ world.createProcessor("Flour Mill", stateCompany.id, 27, {
     [RESOURCE_TYPE.Flour]: 300,
   }, //
 });
+
 world.createTruck(
   "Truck 1",
   playerCompany.id,
@@ -46,6 +50,25 @@ world.createTruck(
 world.createTruck(
   "Truck 2",
   playerCompany.id,
+  RESOURCE_TYPE.Flour,
+  1000000,
+  15,
+  2,
+);
+
+// .. TODO: disable per-truck contract acceptance and instead create "dispatcher" behaviour at company
+// level to auto-assign trucks to applicable contracts
+world.createTruck(
+  "Truck 3",
+  competitorCompany.id,
+  RESOURCE_TYPE.Grain,
+  1000000,
+  15,
+  2,
+);
+world.createTruck(
+  "Truck 4",
+  competitorCompany.id,
   RESOURCE_TYPE.Flour,
   1000000,
   15,

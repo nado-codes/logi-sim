@@ -1,21 +1,25 @@
-import { randomUUID } from "crypto";
-import { ITown } from "../entities/locations/consumer";
-import { LOCATION_TYPE } from "../entities/locations/location";
-import { RESOURCE_TYPE } from "../entities/storage";
-import { highlight, logSuccess } from "../utils/logUtils";
+import { ITown } from "../../entities/locations/consumer";
+import { LOCATION_TYPE } from "../../entities/locations/location";
+import { RESOURCE_TYPE } from "../../entities/storage";
+import { highlight, logSuccess } from "../../utils/logUtils";
 import {
   transferCompanyFundsToState,
   COMPANY_OP_RESULT,
   transferCompanyFundsFromState,
-} from "../world/companies";
+} from "../../world/companies";
 import {
   getLocationString,
   loadLocationConfig,
-} from "../world/locations/locations";
-import { IWorld } from "../world/world";
-import { IMenuPage, IMenuAction, MenuItemType, logMenuError } from "./menu";
-import { createPage } from "./pages";
-import { IUserSession } from "../session";
+} from "../../world/locations/locations";
+import { IWorld } from "../../world/world";
+import {
+  IMenuPage,
+  IMenuAction,
+  MenuItemType,
+  logMenuError,
+  createMenuPage,
+} from "../menu";
+import { IUserSession } from "../../session";
 
 const locationConfig = loadLocationConfig();
 
@@ -33,16 +37,14 @@ export const createManageLocationsPage = (
     type: MenuItemType.Action,
     action: (args: string[] = []) => {
       if (args.length === 0) {
-        console.log(highlight.error("You need to select a location"));
+        logMenuError("You need to select a location");
         return false;
       }
 
       const locationChoice = parseInt(args[0]);
 
       if (isNaN(locationChoice)) {
-        console.log(
-          highlight.error("You must enter a number to select a location"),
-        );
+        logMenuError("You must enter a number to select a location");
         return false;
       }
 
@@ -50,13 +52,11 @@ export const createManageLocationsPage = (
       const location = availableLocations.find((_, i) => i === locationChoice);
 
       if (!location) {
-        console.log(
-          highlight.error(`Location ${locationChoice} doesn't exist`),
-        );
+        logMenuError(`Location ${locationChoice} doesn't exist`);
         return false;
       }
 
-      return createPage(`${location.name}`, false, [], () => {
+      return createMenuPage(`${location.name}`, false, [], () => {
         if (location.locationType === LOCATION_TYPE.Town) {
           const town = location as ITown;
           console.log(
@@ -246,7 +246,7 @@ export const createManageLocationsPage = (
                 },
               });
 
-              return createPage(
+              return createMenuPage(
                 `Select Position`,
                 false,
                 [createSelectPositionAction()],
@@ -259,7 +259,7 @@ export const createManageLocationsPage = (
             },
           });
 
-          return createPage(
+          return createMenuPage(
             `Buy Industry`,
             false,
             [createSelectIndustryAction()],
@@ -350,7 +350,7 @@ export const createManageLocationsPage = (
             },
           });
 
-          return createPage(
+          return createMenuPage(
             `Are you sure?`,
             false,
             [createConfirmSellIndustryAction()],
@@ -380,7 +380,7 @@ export const createManageLocationsPage = (
         },
       });
 
-      return createPage(
+      return createMenuPage(
         "Manage Industries",
         false,
         [createBuyIndustryAction(), createSellIndustryAction()],
@@ -401,7 +401,7 @@ export const createManageLocationsPage = (
     },
   });
 
-  return createPage(
+  return createMenuPage(
     "Manage Locations",
     false,
     [createViewLocationAction(), createManageIndustriesAction()],

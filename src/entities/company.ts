@@ -9,12 +9,14 @@ export interface ICompany extends INamedEntity {
 
 export type ICreateCompanyOptions = {
   isAiEnabled: boolean;
+  isGovernment: boolean;
   hasUnlimitedMoney: boolean;
 };
 
 export const defaultCompanyOptions: ICreateCompanyOptions = {
   isAiEnabled: false,
   hasUnlimitedMoney: false,
+  isGovernment: false,
 };
 
 export interface ICompanyEntity extends IBaseEntity {

@@ -1,8 +1,12 @@
-import { highlight } from "../utils/logUtils";
-import { assignContract } from "../world/contracts";
-import { IWorld } from "../world/world";
-import { IMenuPage, IMenuAction, MenuItemType } from "./menu";
-import { createPage } from "./pages";
+import { highlight } from "../../utils/logUtils";
+import { IWorld } from "../../world/world";
+import {
+  IMenuPage,
+  IMenuAction,
+  MenuItemType,
+  createMenuPage,
+  logMenuError,
+} from "../menu";
 
 export const createManageContractsPage = (world: IWorld): IMenuPage => {
   const createAcceptContractAction = (): IMenuAction => ({
@@ -17,9 +21,7 @@ export const createManageContractsPage = (world: IWorld): IMenuPage => {
       const contractChoice = parseInt(args[0]);
 
       if (isNaN(contractChoice)) {
-        console.log(
-          highlight.error("You must enter a number to select a contract"),
-        );
+        logMenuError("You must enter a number to select a contract");
         return false;
       }
 
@@ -53,9 +55,7 @@ export const createManageContractsPage = (world: IWorld): IMenuPage => {
           const truckChoice = parseInt(args[0]);
 
           if (isNaN(truckChoice)) {
-            console.log(
-              highlight.error("You must enter a number to select a truck"),
-            );
+            logMenuError("You must enter a number to select a truck");
             return false;
           }
 
@@ -90,7 +90,7 @@ export const createManageContractsPage = (world: IWorld): IMenuPage => {
         },
       });
 
-      return createPage(
+      return createMenuPage(
         "Select A Truck",
         false,
         [createSelectTruckAction()],
@@ -129,7 +129,7 @@ export const createManageContractsPage = (world: IWorld): IMenuPage => {
   });
 
   const createViewContractsInProgressPage = (world: IWorld): IMenuPage => {
-    return createPage("Contracts In Progress", false, [], () => {
+    return createMenuPage("Contracts In Progress", false, [], () => {
       const contractsInProgress = world.getContracts().filter((c) => c.truckId);
 
       if (contractsInProgress.length === 0) {
@@ -144,7 +144,7 @@ export const createManageContractsPage = (world: IWorld): IMenuPage => {
     });
   };
 
-  return createPage(
+  return createMenuPage(
     "Manage Contracts",
     false,
     [createAcceptContractAction(), createViewContractsInProgressPage(world)],

@@ -1,16 +1,21 @@
 import { randomUUID } from "node:crypto";
-import { RESOURCE_TYPE } from "../entities/storage";
-import { IUserSession } from "../session";
-import { highlight, logSuccess, logWarning } from "../utils/logUtils";
+import { RESOURCE_TYPE } from "../../entities/storage";
+import { IUserSession } from "../../session";
+import { highlight, logSuccess, logWarning } from "../../utils/logUtils";
 import {
   COMPANY_OP_RESULT,
   transferCompanyFundsFromState,
   transferCompanyFundsToState,
-} from "../world/companies";
-import { loadTruckConfig } from "../world/trucks";
-import { IWorld } from "../world/world";
-import { IMenuAction, IMenuPage, logMenuError, MenuItemType } from "./menu";
-import { createPage } from "./pages";
+} from "../../world/companies";
+import { loadTruckConfig } from "../../world/trucks";
+import { IWorld } from "../../world/world";
+import {
+  createMenuPage,
+  IMenuAction,
+  IMenuPage,
+  logMenuError,
+  MenuItemType,
+} from "../menu";
 
 const truckConfig = loadTruckConfig();
 
@@ -41,7 +46,7 @@ export const createManageTrucksPage = (
         return false;
       }
 
-      return createPage(`${truck.name}`, false, [], () => {
+      return createMenuPage(`${truck.name}`, false, [], () => {
         console.log(
           `  - Storage: ${highlight.yellow(truck.storage.resourceType)} | Stored: ${highlight.yellow(truck.storage.resourceCount + "")} | Capacity: ${highlight.yellow(truck.storage.resourceCapacity + "")}`,
         );
@@ -136,7 +141,7 @@ export const createManageTrucksPage = (
         },
       });
 
-      return createPage(
+      return createMenuPage(
         `Buy Truck`,
         false,
         [createSelectResourceTypeAction()],
@@ -212,7 +217,7 @@ export const createManageTrucksPage = (
         },
       });
 
-      return createPage(
+      return createMenuPage(
         `Are you sure?`,
         false,
         [createConfirmSellTruckAction()],
@@ -231,7 +236,7 @@ export const createManageTrucksPage = (
     },
   });
 
-  return createPage(
+  return createMenuPage(
     "Manage Trucks",
     false,
     [createViewTruckAction(), createBuyTruckAction(), createSellTruckAction()],

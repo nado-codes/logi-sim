@@ -3,13 +3,12 @@ import { WorldEntityType } from "../entities/entity";
 import { ITruck, VEHICLE_TYPE } from "../entities/truck";
 import { loadNotificationConfig } from "../notifications";
 import {
-  assignContract,
   breakContract,
   completeContract,
   CONTRACT_BREAK_TYPE,
   getContractByIdOrNull,
 } from "./contracts";
-import { logSuccess, logInfo, highlight } from "../utils/logUtils";
+import { logSuccess, logInfo, highlight, logWarning } from "../utils/logUtils";
 import {
   createCompanyEntity,
   getCompanyById,
@@ -31,9 +30,10 @@ const defaultConfig: ITruckConfig = {
   baseSalePrice: 10000,
 };
 
-const notificationConfig = loadNotificationConfig();
 export const loadTruckConfig = () => loadConfig("truck", defaultConfig);
+
 const truckConfig = loadTruckConfig();
+const notificationConfig = loadNotificationConfig();
 
 // .. CREATE
 export const createTruck = (
@@ -230,9 +230,7 @@ export const updateTrucks = (state: IWorldState) => {
             truck.debugMessage = "LD-WT";
           }
         }
-      }
-
-      if (truck.position === contractDestination.position) {
+      } else if (truck.position === contractDestination.position) {
         const unloadResult = transferResources(
           state,
           truck.storage.resourceCount,
@@ -265,8 +263,6 @@ export const updateTrucks = (state: IWorldState) => {
               state.currentTick - truckContract.acceptedAtTick;
             const operatingCost = deliveryTime * truckConfig.baseOperatingCost;
 
-            // ..nowhere to pay funds to yet (e.g. petrol station, driver's bank account)
-            // so we'll just transfer to the state (the void)
             transferCompanyFundsToState(truckCompany, operatingCost);
 
             if (
@@ -299,37 +295,8 @@ export const updateTrucks = (state: IWorldState) => {
             truck.debugMessage = "CT-ST";
           }
         }
-      }
-    } else {
-      const validContract = state.contracts.find(
-        (c) => c.resourceType === truck.storage.resourceType,
-      );
-
-      if (validContract) {
-        if (assignContract(state, validContract, truck)) {
-          truck.destinationId = validContract.supplierId;
-
-          if (
-            notificationConfig.logTruckNotifications.all ||
-            notificationConfig.logTruckNotifications.movement
-          ) {
-            truck.debugMessage = "CT-ST";
-          }
-        } else {
-          if (
-            notificationConfig.logTruckNotifications.all ||
-            notificationConfig.logTruckNotifications.movement
-          ) {
-            truck.debugMessage = "CT-FL";
-          }
-        }
-      } else {
-        if (
-          notificationConfig.logTruckNotifications.all ||
-          notificationConfig.logTruckNotifications.movement
-        ) {
-          truck.debugMessage = "N-CT";
-        }
+      } else if (!truck.destinationId) {
+        truck.destinationId = truckContract.supplierId;
       }
     }
   });

@@ -18,11 +18,7 @@ import { getLocationById } from "./locations/locations";
 import { getTruckById, setTruckContract } from "./trucks";
 import { Nullable } from "../entities/entity";
 import { IWorldState } from "../entities/world";
-import {
-  getOutputStorage,
-  getResourceCount,
-  getResourceStorage,
-} from "./storages";
+import { getResourceCount, getResourceStorage } from "./storages";
 import { loadConfig } from "../utils/configUtils";
 import { world } from "..";
 
@@ -62,7 +58,7 @@ const defaultConfig: IContractConfig = {
   },
 };
 
-const contractConfig = loadConfig("contract", defaultConfig);
+export const contractConfig = loadConfig("contract", defaultConfig);
 
 // .. CREATE
 
@@ -243,6 +239,7 @@ export const assignContract = (
   }
 
   setTruckContract(truck, contract);
+  contract.shipperId = truck.companyId;
   contract.truckId = truck.id;
   contract.acceptedAtTick = world.getCurrentTick();
 
