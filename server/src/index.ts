@@ -2,6 +2,7 @@ import { RESOURCE_TYPE } from "./entities/storage";
 import { createWorld } from "./world/world";
 import { createMenu } from "./menus/menu";
 import { Color, highlight, logError, logInfo } from "./utils/logUtils";
+import express from "express";
 
 // .. CREATE
 
@@ -124,14 +125,23 @@ while (world.getCurrentTick() < simTarget) {
     break;
   }
 }
-if (simTarget > 0) {
-  console.log(highlight.green(`- Success! Press any key to start playing`));
-}
 
-const menu = createMenu(update, world, { companyId: playerCompany.id });
+const app = express();
+
+app.use(express.json());
+
+// GET /api/state — Read the current world snapshot
+// Useful for a future web UI to poll and render the map
+app.get("/api/test", (req, res) => {
+  res.send("Hello, world!");
+});
+
+const PORT = process.env.PORT || 3001;
+
+app.listen(PORT, () => {
+  console.log(`LogiSim API running on http://localhost:${PORT}`);
+});
 
 if (simTarget > 0) {
-  menu.pause(menu.show);
-} else {
-  menu.show();
+  console.log(highlight.green(`- Success! Press any key to start the server`));
 }
