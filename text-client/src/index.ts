@@ -3,7 +3,10 @@
 
 const test = 2;
 
-console.log("client started");
+// TODO: Phase 6 — replace with proper user→company lookup after login
+const TEMP_PLAYER_COMPANY_NAME = "NadoCo Logistics";
+
+console.log("client started ");
 
 // .. connect to the server and fetch player information
 

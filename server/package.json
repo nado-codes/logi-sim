@@ -1,12 +1,10 @@
 {
   "name": "logi-sim",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "A text-based logistics simulator grounded in reality, and implements real market demand and freight transport mechanics",
   "main": "index.js",
   "scripts": {
-    "dev:server": "nodemon --watch src --ignore src/text-client --ext ts,json --exec ts-node src/index.ts",
-    "dev:client": "nodemon --watch text-client --ext ts,json --exec ts-node text-client/index.ts",
-    "dev": "npm run dev:server",
+    "dev": "nodemon --watch src --ext ts,json --exec ts-node src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js"
   },

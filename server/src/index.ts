@@ -1,8 +1,7 @@
 import { RESOURCE_TYPE } from "./entities/storage";
 import { createWorld } from "./world/world";
-import { createMenu } from "./menus/menu";
 import { Color, highlight, logError, logInfo } from "./utils/logUtils";
-import express from "express";
+import { logisimApi } from "./api";
 
 // .. CREATE
 
@@ -126,22 +125,5 @@ while (world.getCurrentTick() < simTarget) {
   }
 }
 
-const app = express();
-
-app.use(express.json());
-
-// GET /api/state — Read the current world snapshot
-// Useful for a future web UI to poll and render the map
-app.get("/api/test", (req, res) => {
-  res.send("Hello, world!");
-});
-
-const PORT = process.env.PORT || 3001;
-
-app.listen(PORT, () => {
-  console.log(`LogiSim API running on http://localhost:${PORT}`);
-});
-
-if (simTarget > 0) {
-  console.log(highlight.green(`- Success! Press any key to start the server`));
-}
+const api = logisimApi(world);
+api.start();

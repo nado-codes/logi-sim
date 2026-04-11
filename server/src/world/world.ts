@@ -1,5 +1,5 @@
 import { IContract } from "../entities/contract";
-import { IBaseLocation, LOCATION_TYPE } from "../entities/locations/location";
+import { IBaseLocation } from "../entities/locations/location";
 import { IRecipe, RESOURCE_TYPE } from "../entities/storage";
 import { ITruck } from "../entities/truck";
 import {
@@ -35,9 +35,10 @@ import {
   createCompany,
   getCompanyById,
   getCompanyByIdOrNull,
+  getCompanyByName,
   updateCompanies,
 } from "./companies";
-import { Color, highlight } from "../utils/logUtils";
+import { Color } from "../utils/logUtils";
 import { IWorldEntity, Nullable } from "../entities/entity";
 import { createTown, updateTowns } from "./locations/consumers/towns";
 import { IWorldState } from "../entities/world";
@@ -55,6 +56,7 @@ import {
 } from "./geographies";
 import { getMap } from "./map";
 import { getWorldEntityByPositionOrNull } from "./entities";
+import { IUserSession } from "../userSession";
 
 export interface IWorld {
   advanceTick: () => void;
@@ -67,7 +69,6 @@ export interface IWorld {
 
   getMap: () => void;
   getCurrentTick: () => number;
-
   getWorldEntityByPositionOrNull: (position: number) => Nullable<IWorldEntity>;
 
   getContracts: () => IContract[];
@@ -89,6 +90,7 @@ export interface IWorld {
   getCompanies: () => ICompany[];
   getCompanyById: (id: string) => ICompany;
   getCompanyByIdOrNull: (id: string) => Nullable<ICompany>;
+  getCompanyByName: (name: string) => ICompany;
 
   createCoastline: (position: number) => ICoastline;
   createWater: (position: number) => IWater;
@@ -196,7 +198,6 @@ export const createWorld = (): IWorld => {
 
     getMap: () => getMap(state),
     getCurrentTick: () => state.currentTick,
-
     getWorldEntityByPositionOrNull: (position: number) =>
       getWorldEntityByPositionOrNull(state, position),
 
@@ -222,6 +223,7 @@ export const createWorld = (): IWorld => {
     getCompanies: () => state.companies,
     getCompanyById: (id: string) => getCompanyById(state, id),
     getCompanyByIdOrNull: (id: string) => getCompanyByIdOrNull(state, id),
+    getCompanyByName: (name: string) => getCompanyByName(state, name),
 
     createCoastline: (position: number) => createCoastline(state, position),
     createWater: (position: number) => createWater(state, position),

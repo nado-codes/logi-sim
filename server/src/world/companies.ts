@@ -64,6 +64,12 @@ export const createCompany = (
     options: { ...defaultCompanyOptions, ...options },
   };
 
+  if (notificationConfig.logCompanyNotifications) {
+    logSuccess(
+      `Created a Company ${highlight.yellow(JSON.stringify(newCompany))}`,
+    );
+  }
+
   state.companies.push(newCompany);
 
   return newCompany;
@@ -90,6 +96,16 @@ export const getCompanyById = (state: IWorldState, id: string) => {
 
 export const getCompanyByIdOrNull = (state: IWorldState, id: string) => {
   const company = state.companies.find((cm) => cm.id === id);
+
+  return company;
+};
+
+export const getCompanyByName = (state: IWorldState, name: string) => {
+  const company = state.companies.find((cm) => cm.name === name);
+
+  if (!company) {
+    throw Error(`Company with name ${name} doesn't exist`);
+  }
 
   return company;
 };

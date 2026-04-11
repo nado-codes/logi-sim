@@ -7,7 +7,7 @@ import { getCompanyString } from "../world/companies";
 import { createManageLocationsPage } from "./pages/manageLocations";
 import { highlight } from "../utils/logUtils";
 import { createManageTrucksPage } from "./pages/manageTrucks";
-import { IUserSession } from "../session";
+import { IUserSession } from "../userSession";
 import { createManageCompaniesPage } from "./pages/manageCompanies";
 
 export enum MenuItemType {

@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { RESOURCE_TYPE } from "../../entities/storage";
-import { IUserSession } from "../../session";
+import { IUserSession } from "../../userSession";
 import { highlight, logSuccess, logWarning } from "../../utils/logUtils";
 import {
   COMPANY_OP_RESULT,

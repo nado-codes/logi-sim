@@ -13,5 +13,6 @@
   },
   "logProductionNotifications": false,
   "logLocationNotifications": true,
-  "logCompanyNotifications": true
+  "logCompanyNotifications": true,
+  "printLogs": true
 }

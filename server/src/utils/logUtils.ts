@@ -1,27 +1,36 @@
 import { world } from "..";
+import { loadNotificationConfig } from "../notifications";
 
 interface LogEntry {
   tick: number;
   entry: string;
 }
 
+const notificationsConfig = loadNotificationConfig();
+
 export const logEntries: LogEntry[] = [];
 
+const log = (entry: string) => {
+  if (notificationsConfig.printLogs) {
+    console.log(entry);
+  }
+  logEntries.push({ tick: world.getCurrentTick(), entry });
+};
 export const logError = (text: string | number) => {
   const entry = `\x1b[31m${text}\x1b[0m`; // red
-  logEntries.push({ tick: world.getCurrentTick(), entry });
+  log(entry);
 };
 export const logWarning = (text: string | number) => {
   const entry = `\x1b[33m${text}\x1b[0m`; // yellow
-  logEntries.push({ tick: world.getCurrentTick(), entry });
+  log(entry);
 };
 export const logInfo = (text: string | number) => {
   const entry = `\x1b[36m${text}\x1b[0m`; // cyan
-  logEntries.push({ tick: world.getCurrentTick(), entry });
+  log(entry);
 };
 export const logSuccess = (text: string | number) => {
   const entry = `\x1b[32m${text}\x1b[0m`; // green
-  logEntries.push({ tick: world.getCurrentTick(), entry });
+  log(entry);
 };
 
 export enum Color {

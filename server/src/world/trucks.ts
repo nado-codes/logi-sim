@@ -64,7 +64,7 @@ export const createTruck = (
     vehicleType: VEHICLE_TYPE.Truck,
   };
 
-  if (notificationConfig.logTruckNotifications) {
+  if (notificationConfig.logTruckNotifications.all) {
     logSuccess(
       `[TRUCK] Created a ${highlight.yellow(resourceType)} truck at position ${highlight.yellow(position)}`,
     );

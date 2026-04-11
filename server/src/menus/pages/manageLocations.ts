@@ -19,7 +19,7 @@ import {
   logMenuError,
   createMenuPage,
 } from "../menu";
-import { IUserSession } from "../../session";
+import { IUserSession } from "../../userSession";
 
 const locationConfig = loadLocationConfig();
 

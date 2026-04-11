@@ -18,6 +18,7 @@ export interface INotificationConfig {
   logProductionNotifications: boolean;
   logLocationNotifications: boolean;
   logCompanyNotifications: boolean;
+  printLogs: boolean;
 }
 
 const defaultConfig: INotificationConfig = {
@@ -36,6 +37,7 @@ const defaultConfig: INotificationConfig = {
   logProductionNotifications: false,
   logLocationNotifications: false,
   logCompanyNotifications: false,
+  printLogs: false,
 };
 
 export const loadNotificationConfig = () =>
