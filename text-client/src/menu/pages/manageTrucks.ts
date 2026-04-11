@@ -1,14 +1,18 @@
 import { randomUUID } from "node:crypto";
-import { RESOURCE_TYPE } from "../../entities/storage";
-import { IUserSession } from "../../userSession";
-import { highlight, logSuccess, logWarning } from "../../utils/logUtils";
+import { RESOURCE_TYPE } from "../../../../server/src/entities/storage";
+import { IUserSession } from "../../../../server/src/userSession";
+import {
+  highlight,
+  logSuccess,
+  logWarning,
+} from "../../../../lib/utils/logUtils";
 import {
   COMPANY_OP_RESULT,
   transferCompanyFundsFromState,
   transferCompanyFundsToState,
-} from "../../world/companies";
-import { loadTruckConfig } from "../../world/trucks";
-import { IWorld } from "../../world/world";
+} from "../../../../server/src/world/companies";
+import { loadTruckConfig } from "../../../../server/src/world/trucks";
+import { IWorld } from "../../../../server/src/world/world";
 import {
   createMenuPage,
   IMenuAction,

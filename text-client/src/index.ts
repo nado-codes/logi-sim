@@ -1,19 +1,41 @@
 //import { world } from "..";
 //import { createMenu } from "../menus/menu";
+import axios from "axios";
+import { world } from "../../server/src";
+import { createMenu } from "./menu/menu";
 
-const test = 2;
+const apiBaseUrl = `http://localhost:3001/api`;
+const main = async () => {
+  console.log("client started ");
 
-// TODO: Phase 6 — replace with proper user→company lookup after login
-const TEMP_PLAYER_COMPANY_NAME = "NadoCo Logistics";
+  console.log("fetching player company...");
+  // TODO: Phase 6 — replace with proper user→company lookup after login
+  const TEMP_PLAYER_COMPANY_NAME = "NadoCo Logistics";
+  try {
+    const playerCompanyResp = await axios.get(
+      `${apiBaseUrl}/company/name/${TEMP_PLAYER_COMPANY_NAME}`,
+    );
 
-console.log("client started ");
+    if (!playerCompanyResp) {
+      throw Error(`Failed to fetch player company`);
+    }
 
-// .. connect to the server and fetch player information
+    const playerCompany = playerCompanyResp.data;
 
-/*const menu = createMenu(update, world, { companyId: playerCompany.id });
+    console.log("fetched player company:", playerCompanyResp.data);
 
-if (simTarget > 0) {
-  menu.pause(menu.show);
-} else {
-  menu.show();
-}*/
+    const menu = createMenu(
+      () => {
+        menu.show();
+      },
+      world,
+      { companyId: playerCompany.id },
+    );
+    menu.show();
+  } catch (error) {
+    console.error(error);
+  }
+
+  // .. connect to the server and fetch player information
+};
+main();

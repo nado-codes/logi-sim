@@ -12,7 +12,7 @@ import {
   logError,
   highlight,
   logSuccess,
-} from "../../utils/logUtils";
+} from "../../../../lib/utils/logUtils";
 import {
   getContractByResource,
   createContract,
@@ -27,7 +27,7 @@ import {
   createRecipeStorage,
   getResourceStorage,
 } from "../storages";
-import { loadConfig } from "../../utils/configUtils";
+import { loadConfig } from "../../../../lib/utils/configUtils";
 
 interface ILocationConfig {
   baseSalePrice: number;
@@ -222,9 +222,11 @@ export const checkInputStorage = (
             );
           }
         } else if (!contract.truckId) {
-          logError(
-            `- ${location.name} was unable to create a contract because one already exists and is NOT being shipped`,
-          );
+          if (notificationConfig.logLocationNotifications) {
+            logError(
+              `- ${location.name} was unable to create a contract because one already exists and is NOT being shipped`,
+            );
+          }
         }
       }
     },

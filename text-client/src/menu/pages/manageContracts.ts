@@ -1,5 +1,5 @@
-import { highlight } from "../../utils/logUtils";
-import { IWorld } from "../../world/world";
+import { highlight } from "../../../../lib/utils/logUtils";
+import { IWorld } from "../../../../server/src/world/world";
 import {
   IMenuPage,
   IMenuAction,

@@ -4,8 +4,8 @@ import { RESOURCE_TYPE, ResourceMap } from "../../../entities/storage";
 import { IWorldState } from "../../../entities/world";
 import { getContractByLocationIdOrNull } from "../../contracts";
 import { createBaseConsumer, updateBaseConsumer } from "./consumers";
-import { loadConfig } from "../../../utils/configUtils";
-import { clamp } from "../../../utils/mathUtils";
+import { loadConfig } from "../../../../../lib/utils/configUtils";
+import { clamp } from "../../../../../lib/utils/mathUtils";
 import { getInputStorage, loadStorageConfig } from "../../storages";
 
 interface ITownConfig {

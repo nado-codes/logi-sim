@@ -9,10 +9,10 @@
     "loading": false,
     "unloading": false,
     "movement": false,
-    "costs": true
+    "costs": false
   },
   "logProductionNotifications": false,
-  "logLocationNotifications": true,
-  "logCompanyNotifications": true,
+  "logLocationNotifications": false,
+  "logCompanyNotifications": false,
   "printLogs": true
 }

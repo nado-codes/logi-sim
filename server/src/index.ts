@@ -1,6 +1,6 @@
 import { RESOURCE_TYPE } from "./entities/storage";
 import { createWorld } from "./world/world";
-import { Color, highlight, logError, logInfo } from "./utils/logUtils";
+import { Color, highlight, logError, logInfo } from "../../lib/utils/logUtils";
 import { logisimApi } from "./api";
 
 // .. CREATE
@@ -79,6 +79,7 @@ const simTarget = 0;
 const checkpointFactor = simTarget / 10;
 
 const update = () => {
+  console.log("Updated world at ", Date.now());
   world.advanceTick();
 
   world.updateCompanies();
@@ -127,3 +128,4 @@ while (world.getCurrentTick() < simTarget) {
 
 const api = logisimApi(world);
 api.start();
+setInterval(update, 1000);

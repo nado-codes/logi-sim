@@ -3,7 +3,7 @@ import { IRecipe, RESOURCE_TYPE } from "../../entities/storage";
 import { createBaseLocation, checkInputStorage } from "./locations";
 import { getContractByResource } from "../contracts";
 import { loadNotificationConfig } from "../../notifications";
-import { logWarning, logSuccess } from "../../utils/logUtils";
+import { logWarning, logSuccess } from "../../../../lib/utils/logUtils";
 import { IWorldState } from "../../entities/world";
 import {
   getResourceStorage,

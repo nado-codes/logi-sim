@@ -1,4 +1,4 @@
-import { Color } from "../utils/logUtils";
+import { Color } from "../../../lib/utils/logUtils";
 import { IWorldEntity } from "./entity";
 import { RESOURCE_TYPE } from "./storage";
 

@@ -1,17 +1,17 @@
-import { ITown } from "../../entities/locations/consumer";
-import { LOCATION_TYPE } from "../../entities/locations/location";
-import { RESOURCE_TYPE } from "../../entities/storage";
-import { highlight, logSuccess } from "../../utils/logUtils";
+import { ITown } from "../../../../server/src/entities/locations/consumer";
+import { LOCATION_TYPE } from "../../../../server/src/entities/locations/location";
+import { RESOURCE_TYPE } from "../../../../server/src/entities/storage";
+import { highlight, logSuccess } from "../../../../lib/utils/logUtils";
 import {
   transferCompanyFundsToState,
   COMPANY_OP_RESULT,
   transferCompanyFundsFromState,
-} from "../../world/companies";
+} from "../../../../server/src/world/companies";
 import {
   getLocationString,
   loadLocationConfig,
-} from "../../world/locations/locations";
-import { IWorld } from "../../world/world";
+} from "../../../../server/src/world/locations/locations";
+import { IWorld } from "../../../../server/src/world/world";
 import {
   IMenuPage,
   IMenuAction,
@@ -19,7 +19,7 @@ import {
   logMenuError,
   createMenuPage,
 } from "../menu";
-import { IUserSession } from "../../userSession";
+import { IUserSession } from "../../../../server/src/userSession";
 
 const locationConfig = loadLocationConfig();
 

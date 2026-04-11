@@ -11,7 +11,7 @@ import {
   logInfo,
   logSuccess,
   logWarning,
-} from "../utils/logUtils";
+} from "../../../lib/utils/logUtils";
 import { IWorldState } from "../entities/world";
 import { GEOGRAPHY_TYPE } from "../entities/geography";
 import { loadGeographyConfig } from "./geographies";
@@ -22,8 +22,8 @@ import { loadTownConfig } from "./locations/consumers/towns";
 import { getLocationById } from "./locations/locations";
 import { assignContract } from "./contracts";
 import { getTruckById, loadTruckConfig } from "./trucks";
-import { loadConfig } from "../utils/configUtils";
-import { sum } from "../utils/mathUtils";
+import { loadConfig } from "../../../lib/utils/configUtils";
+import { sum } from "../../../lib/utils/mathUtils";
 
 const geographyConfig = loadGeographyConfig();
 const notificationConfig = loadNotificationConfig();
@@ -187,7 +187,9 @@ export const transferCompanyFundsFromState = (
 };
 
 const tryCreateTown = (state: IWorldState, company: ICompany) => {
-  logInfo(`[COMPANY] Trying to create a town...`);
+  if (notificationConfig.logCompanyNotifications) {
+    logInfo(`[COMPANY] Trying to create a town...`);
+  }
 
   // 1. Towns -> Near arable land & water & existing towns already at capacity
   if (
@@ -305,7 +307,9 @@ const tryDispatchTrucks = (state: IWorldState, company: ICompany) => {
 };
 
 export const updateCompanies = (state: IWorldState) => {
-  logInfo(`Updating companies...`);
+  if (notificationConfig.logCompanyNotifications) {
+    logInfo(`Updating companies...`);
+  }
   state.companies.forEach((company) => {
     if (company.options.isGovernment) {
       tryCreateTown(state, company);

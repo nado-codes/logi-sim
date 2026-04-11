@@ -6,7 +6,7 @@ import {
   logSuccess,
   logError,
   logInfo,
-} from "../../utils/logUtils";
+} from "../../../../lib/utils/logUtils";
 import { createBaseLocation } from "./locations";
 import { IWorldState } from "../../entities/world";
 import {
@@ -97,13 +97,15 @@ export const updateProducers = (state: IWorldState) => {
             );
           }
         } else {
-          logError(
-            `[PRODUCER ERROR] ${producer.name} was unable to produce anything due to an unknown error`,
-          );
-          logInfo(
-            ` - Output Storage has ${outputStorageCount} ${resourceType}`,
-          );
-          logInfo(` - Output Storage can store ${outputStorageCapacity}`);
+          if (notificationConfig.logProducerNotifications) {
+            logError(
+              `[PRODUCER ERROR] ${producer.name} was unable to produce anything due to an unknown error`,
+            );
+            logInfo(
+              ` - Output Storage has ${outputStorageCount} ${resourceType}`,
+            );
+            logInfo(` - Output Storage can store ${outputStorageCapacity}`);
+          }
         }
       }
     }

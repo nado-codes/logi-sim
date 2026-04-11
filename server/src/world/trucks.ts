@@ -8,7 +8,12 @@ import {
   CONTRACT_BREAK_TYPE,
   getContractByIdOrNull,
 } from "./contracts";
-import { logSuccess, logInfo, highlight, logWarning } from "../utils/logUtils";
+import {
+  logSuccess,
+  logInfo,
+  highlight,
+  logWarning,
+} from "../../../lib/utils/logUtils";
 import {
   createCompanyEntity,
   getCompanyById,
@@ -17,7 +22,7 @@ import {
 import { getLocationById, getLocationByIdOrNull } from "./locations/locations";
 import { IWorldState } from "../entities/world";
 import { createAndGetStorage, transferResources } from "./storages";
-import { loadConfig } from "../utils/configUtils";
+import { loadConfig } from "../../../lib/utils/configUtils";
 import { IContract } from "../entities/contract";
 
 interface ITruckConfig {

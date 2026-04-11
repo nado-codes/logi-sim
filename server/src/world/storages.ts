@@ -6,9 +6,9 @@ import {
 } from "../entities/storage";
 import { IWorldState } from "../entities/world";
 import { loadNotificationConfig } from "../notifications";
-import { loadConfig } from "../utils/configUtils";
-import { logInfo, logWarning, logSuccess } from "../utils/logUtils";
-import { clamp } from "../utils/mathUtils";
+import { loadConfig } from "../../../lib/utils/configUtils";
+import { logInfo, logWarning, logSuccess } from "../../../lib/utils/logUtils";
+import { clamp } from "../../../lib/utils/mathUtils";
 
 const notificationConfig = loadNotificationConfig();
 

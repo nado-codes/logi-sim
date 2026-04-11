@@ -1,13 +1,13 @@
 // menu.ts
 import readline from "readline";
-import { createWorld } from "../world/world";
+import { createWorld } from "../../../server/src/world/world";
 import { createViewLogsPage } from "./pages/viewLogs";
 import { createManageContractsPage } from "./pages/manageContracts";
-import { getCompanyString } from "../world/companies";
+import { getCompanyString } from "../../../server/src/world/companies";
 import { createManageLocationsPage } from "./pages/manageLocations";
-import { highlight } from "../utils/logUtils";
+import { highlight } from "../../../lib/utils/logUtils";
 import { createManageTrucksPage } from "./pages/manageTrucks";
-import { IUserSession } from "../userSession";
+import { IUserSession } from "../../../server/src/userSession";
 import { createManageCompaniesPage } from "./pages/manageCompanies";
 
 export enum MenuItemType {

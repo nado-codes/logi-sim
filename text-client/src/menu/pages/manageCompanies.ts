@@ -1,10 +1,12 @@
-import { highlight, logWarning } from "../../utils/logUtils";
-import { sum } from "../../utils/mathUtils";
-import { getCompanyString } from "../../world/companies";
-import { loadTruckConfig } from "../../world/trucks";
-import { IWorld } from "../../world/world";
+import { highlight, logWarning } from "../../../../lib/utils/logUtils";
+import { sum } from "../../../../lib/utils/mathUtils";
 import { createMenuPage, IMenuPage, logMenuError } from "../menu";
 import { createEntitySelectorAction } from "../menuAction";
+
+// .. THESE SHOULD BE SERVED VIA API
+import { getCompanyString } from "../../../../server/src/world/companies";
+import { loadTruckConfig } from "../../../../server/src/world/trucks";
+import { IWorld } from "../../../../server/src/world/world";
 
 const truckConfig = loadTruckConfig();
 

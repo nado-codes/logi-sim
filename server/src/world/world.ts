@@ -38,7 +38,7 @@ import {
   getCompanyByName,
   updateCompanies,
 } from "./companies";
-import { Color } from "../utils/logUtils";
+import { Color } from "../../../lib/utils/logUtils";
 import { IWorldEntity, Nullable } from "../entities/entity";
 import { createTown, updateTowns } from "./locations/consumers/towns";
 import { IWorldState } from "../entities/world";
