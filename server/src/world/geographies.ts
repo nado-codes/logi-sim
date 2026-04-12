@@ -1,15 +1,15 @@
-import { createWorldEntity } from "../entities";
-import { WorldEntityType } from "../entities/entity";
 import {
+  WorldEntityType,
   GEOGRAPHY_TYPE,
   ICoastline,
   IGeographicEntity,
   IMountain,
   IResourceDeposit,
   IWater,
-} from "../entities/geography";
-import { RESOURCE_TYPE } from "../entities/storage";
-import { IWorldState } from "../entities/world";
+  RESOURCE_TYPE,
+  IWorldState,
+} from "@logisim/lib";
+import { createWorldEntity } from "../entities";
 import { loadConfig } from "../utils/configUtils";
 
 interface IGeographyConfig {

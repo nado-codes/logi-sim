@@ -1,19 +1,18 @@
 import {
   defaultCompanyOptions,
-  ICompany,
   ICompanyEntity,
   ICreateCompanyOptions,
-} from "../entities/company";
-import { createBaseEntity, createNamedEntity } from "../entities";
-import {
+  ICompany,
+  IWorldState,
+  GEOGRAPHY_TYPE,
   Color,
   highlight,
   logInfo,
   logSuccess,
   logWarning,
-} from "../../../lib/utils/logUtils";
-import { IWorldState } from "../entities/world";
-import { GEOGRAPHY_TYPE } from "../entities/geography";
+  sum,
+} from "@logisim/lib";
+import { createBaseEntity, createNamedEntity } from "../entities";
 import { loadGeographyConfig } from "./geographies";
 import { world } from "..";
 import { randomUUID } from "node:crypto";
@@ -21,9 +20,8 @@ import { loadNotificationConfig } from "../notifications";
 import { loadTownConfig } from "./locations/consumers/towns";
 import { getLocationById } from "./locations/locations";
 import { assignContract } from "./contracts";
-import { getTruckById, loadTruckConfig } from "./trucks";
+import { loadTruckConfig } from "./trucks";
 import { loadConfig } from "../utils/configUtils";
-import { sum } from "../../../lib/utils/mathUtils";
 
 const geographyConfig = loadGeographyConfig();
 const notificationConfig = loadNotificationConfig();

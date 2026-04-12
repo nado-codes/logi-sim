@@ -19,6 +19,7 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "@logisim/lib": "file:../lib",
     "express": "^5.2.1"
   }
 }

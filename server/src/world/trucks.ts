@@ -1,6 +1,16 @@
-import { RESOURCE_TYPE, StorageTransferResult } from "../entities/storage";
-import { WorldEntityType } from "../entities/entity";
-import { ITruck, VEHICLE_TYPE } from "../entities/truck";
+import {
+  RESOURCE_TYPE,
+  StorageTransferResult,
+  WorldEntityType,
+  ITruck,
+  VEHICLE_TYPE,
+  IWorldState,
+  IContract,
+  logSuccess,
+  logInfo,
+  highlight,
+  logWarning,
+} from "@logisim/lib";
 import { loadNotificationConfig } from "../notifications";
 import {
   breakContract,
@@ -9,21 +19,13 @@ import {
   getContractByIdOrNull,
 } from "./contracts";
 import {
-  logSuccess,
-  logInfo,
-  highlight,
-  logWarning,
-} from "../../../lib/utils/logUtils";
-import {
   createCompanyEntity,
   getCompanyById,
   transferCompanyFundsToState,
 } from "./companies";
 import { getLocationById, getLocationByIdOrNull } from "./locations/locations";
-import { IWorldState } from "../entities/world";
 import { createAndGetStorage, transferResources } from "./storages";
 import { loadConfig } from "../utils/configUtils";
-import { IContract } from "../entities/contract";
 
 interface ITruckConfig {
   baseOperatingCost: number;

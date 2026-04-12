@@ -1,7 +1,7 @@
-import { IBaseConsumer } from "../../../entities/locations/consumer";
-import { LOCATION_TYPE } from "../../../entities/locations/location";
-import { ResourceMap } from "../../../entities/storage";
-import { IWorldState } from "../../../entities/world";
+import { IBaseConsumer } from "@logisim/lib";
+import { LOCATION_TYPE } from "@logisim/lib";
+import { ResourceMap } from "@logisim/lib";
+import { IWorldState } from "@logisim/lib";
 import { processRecipe } from "../../storages";
 import { createBaseLocation, checkInputStorage } from "../locations";
 

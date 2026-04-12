@@ -1,7 +1,13 @@
-import { IContract } from "../entities/contract";
-import { IBaseLocation } from "../entities/locations/location";
-import { IRecipe, RESOURCE_TYPE } from "../entities/storage";
-import { ITruck } from "../entities/truck";
+import {
+  IContract,
+  IBaseLocation,
+  IRecipe,
+  RESOURCE_TYPE,
+  ITruck,
+  defaultCompanyOptions,
+  ICompany,
+  ICreateCompanyOptions,
+} from "@logisim/lib";
 import {
   assignContract,
   createContract,
@@ -27,10 +33,15 @@ import {
   updateTrucks,
 } from "./trucks";
 import {
-  defaultCompanyOptions,
-  ICompany,
-  ICreateCompanyOptions,
-} from "../entities/company";
+  IWorldEntity,
+  Nullable,
+  Color,
+  IWorldState,
+  ICoastline,
+  IMountain,
+  IResourceDeposit,
+  IWater,
+} from "@logisim/lib";
 import {
   createCompany,
   getCompanyById,
@@ -38,16 +49,7 @@ import {
   getCompanyByName,
   updateCompanies,
 } from "./companies";
-import { Color } from "../../../lib/utils/logUtils";
-import { IWorldEntity, Nullable } from "../entities/entity";
 import { createTown, updateTowns } from "./locations/consumers/towns";
-import { IWorldState } from "../entities/world";
-import {
-  ICoastline,
-  IMountain,
-  IResourceDeposit,
-  IWater,
-} from "../entities/geography";
 import {
   createCoastline,
   createMountain,

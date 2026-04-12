@@ -3,12 +3,14 @@ import {
   IStorage,
   IRecipe,
   StorageTransferResult,
-} from "../entities/storage";
-import { IWorldState } from "../entities/world";
+  IWorldState,
+  logInfo,
+  logWarning,
+  logSuccess,
+  clamp,
+} from "@logisim/lib";
 import { loadNotificationConfig } from "../notifications";
 import { loadConfig } from "../utils/configUtils";
-import { logInfo, logWarning, logSuccess } from "../../../lib/utils/logUtils";
-import { clamp } from "../../../lib/utils/mathUtils";
 
 const notificationConfig = loadNotificationConfig();
 

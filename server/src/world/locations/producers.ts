@@ -1,14 +1,15 @@
-import { LOCATION_TYPE } from "../../entities/locations/location";
-import { IRecipe, RESOURCE_TYPE } from "../../entities/storage";
-import { loadNotificationConfig } from "../../notifications";
 import {
+  LOCATION_TYPE,
+  IRecipe,
+  RESOURCE_TYPE,
   logWarning,
   logSuccess,
   logError,
   logInfo,
-} from "../../../../lib/utils/logUtils";
+} from "@logisim/lib";
+import { loadNotificationConfig } from "../../notifications";
 import { createBaseLocation } from "./locations";
-import { IWorldState } from "../../entities/world";
+import { IWorldState } from "@logisim/lib";
 import {
   getOutputStorage,
   getResourceCapacity,

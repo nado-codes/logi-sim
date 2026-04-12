@@ -1,11 +1,13 @@
-import { ITown } from "../../../entities/locations/consumer";
-import { LOCATION_TYPE } from "../../../entities/locations/location";
-import { RESOURCE_TYPE, ResourceMap } from "../../../entities/storage";
-import { IWorldState } from "../../../entities/world";
-import { getContractByLocationIdOrNull } from "../../contracts";
+import {
+  ITown,
+  LOCATION_TYPE,
+  RESOURCE_TYPE,
+  ResourceMap,
+  IWorldState,
+  clamp,
+} from "@logisim/lib";
 import { createBaseConsumer, updateBaseConsumer } from "./consumers";
 import { loadConfig } from "../../../utils/configUtils";
-import { clamp } from "../../../../../lib/utils/mathUtils";
 import { getInputStorage, loadStorageConfig } from "../../storages";
 
 interface ITownConfig {

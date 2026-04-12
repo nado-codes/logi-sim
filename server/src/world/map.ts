@@ -1,12 +1,18 @@
-import { ICompanyEntity } from "../entities/company";
-import { WorldEntityType } from "../entities/entity";
-import { GEOGRAPHY_TYPE, IGeographicEntity } from "../entities/geography";
-import { CONSUMER_TYPE } from "../entities/locations/consumer";
-import { IBaseLocation, LOCATION_TYPE } from "../entities/locations/location";
-import { IVehicle, VEHICLE_TYPE } from "../entities/truck";
-import { IWorldState } from "../entities/world";
+import {
+  ICompanyEntity,
+  WorldEntityType,
+  GEOGRAPHY_TYPE,
+  IGeographicEntity,
+  CONSUMER_TYPE,
+  IBaseLocation,
+  LOCATION_TYPE,
+  IVehicle,
+  VEHICLE_TYPE,
+  IWorldState,
+  Color,
+  highlight,
+} from "@logisim/lib";
 import { loadConfig } from "../utils/configUtils";
-import { Color, highlight } from "../../../lib/utils/logUtils";
 import { getCompanyByIdOrNull } from "./companies";
 import { getContractByLocationIdOrNull } from "./contracts";
 import { getWorldEntityByPositionOrNull } from "./entities";

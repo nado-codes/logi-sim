@@ -1,4 +1,4 @@
-import { IWorldState } from "../entities/world";
+import { IWorldState } from "@logisim/lib";
 
 export const getWorldEntityByPositionOrNull = (
   state: IWorldState,

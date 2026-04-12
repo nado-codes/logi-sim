@@ -1,18 +1,17 @@
-import { createWorldEntity } from "../../entities";
-import { Nullable, WorldEntityType } from "../../entities/entity";
 import {
+  Nullable,
+  WorldEntityType,
   IBaseLocation,
   LOCATION_TYPE,
-} from "../../entities/locations/location";
-import { IRecipe, RESOURCE_TYPE } from "../../entities/storage";
-import { loadNotificationConfig } from "../../notifications";
-import {
+  IRecipe,
+  RESOURCE_TYPE,
   logWarning,
   logInfo,
   logError,
   highlight,
   logSuccess,
-} from "../../../../lib/utils/logUtils";
+} from "@logisim/lib";
+import { loadNotificationConfig } from "../../notifications";
 import {
   getContractByResource,
   createContract,
@@ -21,13 +20,14 @@ import {
   getContractByLocationIdOrNull,
 } from "../contracts";
 import { IWorld } from "../world";
-import { IWorldState } from "../../entities/world";
+import { IWorldState } from "@logisim/lib";
 import {
   loadStorageConfig,
   createRecipeStorage,
   getResourceStorage,
 } from "../storages";
 import { loadConfig } from "../../utils/configUtils";
+import { createWorldEntity } from "../../entities";
 
 interface ILocationConfig {
   baseSalePrice: number;

@@ -9,12 +9,6 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": [
-    "src/**/*",
-    "../text-client/src/menu/pages",
-    "../text-client/src/menu/menu.ts",
-    "../text-client/src/menu/menuAction.ts",
-    "../lib/utils"
-  ],
+  "include": ["src/**/*"],
   "exclude": ["node_modules"]
 }

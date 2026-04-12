@@ -1,14 +1,16 @@
-import { IContract } from "../entities/contract";
-import { RESOURCE_TYPE } from "../entities/storage";
-import { loadNotificationConfig } from "../notifications";
-import { ITruck } from "../entities/truck";
 import {
+  IContract,
+  RESOURCE_TYPE,
+  ITruck,
+  Nullable,
+  IWorldState,
   logSuccess,
   logWarning,
   logInfo,
   logError,
   highlight,
-} from "../../../lib/utils/logUtils";
+} from "@logisim/lib";
+import { loadNotificationConfig } from "../notifications";
 import {
   createCompanyEntity,
   getCompanyById,
@@ -16,8 +18,6 @@ import {
 } from "./companies";
 import { getLocationById } from "./locations/locations";
 import { getTruckById, setTruckContract } from "./trucks";
-import { Nullable } from "../entities/entity";
-import { IWorldState } from "../entities/world";
 import { getResourceCount, getResourceStorage } from "./storages";
 import { loadConfig } from "../utils/configUtils";
 import { world } from "..";

@@ -4,7 +4,7 @@ import {
   INamedEntity,
   IWorldEntity,
   WorldEntityType,
-} from "./entities/entity";
+} from "@logisim/lib";
 
 export const generateId = () => randomUUID();
 
