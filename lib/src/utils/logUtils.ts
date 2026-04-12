@@ -1,5 +1,5 @@
-import { world } from "../../server/src";
-import { loadNotificationConfig } from "../../server/src/notifications";
+import { world } from "../../../server/src";
+import { loadNotificationConfig } from "../../../server/src/notifications";
 
 interface LogEntry {
   tick: number;
