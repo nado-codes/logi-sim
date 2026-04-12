@@ -5,7 +5,7 @@ import { CONSUMER_TYPE } from "../entities/locations/consumer";
 import { IBaseLocation, LOCATION_TYPE } from "../entities/locations/location";
 import { IVehicle, VEHICLE_TYPE } from "../entities/truck";
 import { IWorldState } from "../entities/world";
-import { loadConfig } from "../../../lib/utils/configUtils";
+import { loadConfig } from "../utils/configUtils";
 import { Color, highlight } from "../../../lib/utils/logUtils";
 import { getCompanyByIdOrNull } from "./companies";
 import { getContractByLocationIdOrNull } from "./contracts";

@@ -6,7 +6,7 @@ import {
 } from "../entities/storage";
 import { IWorldState } from "../entities/world";
 import { loadNotificationConfig } from "../notifications";
-import { loadConfig } from "../../../lib/utils/configUtils";
+import { loadConfig } from "../utils/configUtils";
 import { logInfo, logWarning, logSuccess } from "../../../lib/utils/logUtils";
 import { clamp } from "../../../lib/utils/mathUtils";
 

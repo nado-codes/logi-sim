@@ -10,7 +10,7 @@ import {
 } from "../entities/geography";
 import { RESOURCE_TYPE } from "../entities/storage";
 import { IWorldState } from "../entities/world";
-import { loadConfig } from "../../../lib/utils/configUtils";
+import { loadConfig } from "../utils/configUtils";
 
 interface IGeographyConfig {
   arableLandRadius: number;

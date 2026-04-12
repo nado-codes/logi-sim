@@ -19,7 +19,7 @@ import { getTruckById, setTruckContract } from "./trucks";
 import { Nullable } from "../entities/entity";
 import { IWorldState } from "../entities/world";
 import { getResourceCount, getResourceStorage } from "./storages";
-import { loadConfig } from "../../../lib/utils/configUtils";
+import { loadConfig } from "../utils/configUtils";
 import { world } from "..";
 
 const notificationConfig = loadNotificationConfig();

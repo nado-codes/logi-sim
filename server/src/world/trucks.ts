@@ -22,7 +22,7 @@ import {
 import { getLocationById, getLocationByIdOrNull } from "./locations/locations";
 import { IWorldState } from "../entities/world";
 import { createAndGetStorage, transferResources } from "./storages";
-import { loadConfig } from "../../../lib/utils/configUtils";
+import { loadConfig } from "../utils/configUtils";
 import { IContract } from "../entities/contract";
 
 interface ITruckConfig {

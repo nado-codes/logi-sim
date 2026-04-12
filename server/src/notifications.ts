@@ -1,4 +1,4 @@
-import { loadConfig } from "../../lib/utils/configUtils";
+import { loadConfig } from "./utils/configUtils";
 
 type TruckNotifications = {
   all: boolean;

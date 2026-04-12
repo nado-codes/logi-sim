@@ -27,7 +27,7 @@ import {
   createRecipeStorage,
   getResourceStorage,
 } from "../storages";
-import { loadConfig } from "../../../../lib/utils/configUtils";
+import { loadConfig } from "../../utils/configUtils";
 
 interface ILocationConfig {
   baseSalePrice: number;

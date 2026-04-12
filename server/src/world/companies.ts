@@ -22,7 +22,7 @@ import { loadTownConfig } from "./locations/consumers/towns";
 import { getLocationById } from "./locations/locations";
 import { assignContract } from "./contracts";
 import { getTruckById, loadTruckConfig } from "./trucks";
-import { loadConfig } from "../../../lib/utils/configUtils";
+import { loadConfig } from "../utils/configUtils";
 import { sum } from "../../../lib/utils/mathUtils";
 
 const geographyConfig = loadGeographyConfig();
