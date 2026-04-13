@@ -1,4 +1,3 @@
-import { Color } from "../../../server/src/utils/logUtils";
 import { IWorldEntity } from "./entity";
 import { RESOURCE_TYPE } from "./storage";
 
