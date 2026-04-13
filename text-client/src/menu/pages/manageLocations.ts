@@ -1,17 +1,5 @@
-import { ITown } from "../../../../server/src/entities/locations/consumer";
-import { LOCATION_TYPE } from "../../../../server/src/entities/locations/location";
-import { RESOURCE_TYPE } from "../../../../server/src/entities/storage";
-import { highlight, logSuccess } from "../../../../lib/src/utils/logUtils";
-import {
-  transferCompanyFundsToState,
-  COMPANY_OP_RESULT,
-  transferCompanyFundsFromState,
-} from "../../../../server/src/world/companies";
-import {
-  getLocationString,
-  loadLocationConfig,
-} from "../../../../server/src/world/locations/locations";
-import { IWorld } from "../../../../server/src/world/world";
+import axios from "axios";
+
 import {
   IMenuPage,
   IMenuAction,
@@ -19,9 +7,11 @@ import {
   logMenuError,
   createMenuPage,
 } from "../menu";
-import { IUserSession } from "../../../../server/src/userSession";
+import { IUserSession } from "@logisim/lib";
+import { LOCATION_TYPE, RESOURCE_TYPE } from "@logisim/lib/entities";
+import { highlight, logSuccess } from "@logisim/lib/utils";
 
-const locationConfig = loadLocationConfig();
+const locationSalePrice = 100000; // Base location sale price
 
 enum IndustryType {
   Farm = "Farm",
@@ -29,13 +19,13 @@ enum IndustryType {
 }
 
 export const createManageLocationsPage = (
-  world: IWorld,
+  apiBaseUrl: string,
   userSession: IUserSession,
 ): IMenuPage => {
   const createViewLocationAction = (): IMenuAction => ({
     title: "View Location",
     type: MenuItemType.Action,
-    action: (args: string[] = []) => {
+    action: async (args: string[] = []) => {
       if (args.length === 0) {
         logMenuError("You need to select a location");
         return false;
@@ -48,106 +38,147 @@ export const createManageLocationsPage = (
         return false;
       }
 
-      const availableLocations = world.getLocations();
-      const location = availableLocations.find((_, i) => i === locationChoice);
+      try {
+        const locations = (await axios.get(`${apiBaseUrl}/world/locations`))
+          .data;
+        const location = locations[locationChoice];
 
-      if (!location) {
-        logMenuError(`Location ${locationChoice} doesn't exist`);
+        if (!location) {
+          logMenuError(`Location ${locationChoice} doesn't exist`);
+          return false;
+        }
+
+        return createMenuPage(`${location.name}`, false, [], async () => {
+          try {
+            const contracts = (await axios.get(`${apiBaseUrl}/world/contracts`))
+              .data;
+
+            // Location type specific info
+            if (location.locationType === LOCATION_TYPE.Town) {
+              console.log(
+                ` - Population: ${highlight.yellow(location.population + "")}`,
+              );
+              console.log(
+                ` - Confidence: ${highlight.yellow(location.confidence + "")}`,
+              );
+            }
+
+            const inputStrings = Object.entries(
+              location.recipe?.inputs ?? {},
+            ).map(([k, v]) => `${v} ${k}`);
+            const outputStrings = Object.entries(
+              location.recipe?.outputs ?? {},
+            ).map(([k, v]) => `${v} ${k}`);
+            console.log(
+              ` - Recipe: ${highlight.yellow(inputStrings.length > 0 ? inputStrings.join(",") : "∞")} -> ${highlight.yellow(outputStrings.length > 0 ? outputStrings.join(",") : "∞")}`,
+            );
+
+            console.log(" - Storage: ");
+
+            location.storage.forEach((s: any) => {
+              console.log(
+                `  - Type: ${highlight.yellow(s.resourceType)} | Stored: ${highlight.yellow(s.resourceCount + "")} | Capacity: ${highlight.yellow(s.resourceCapacity + "")}`,
+              );
+            });
+
+            const activeContracts = contracts.filter(
+              (c: any) =>
+                c.supplierId === location.id || c.destinationId === location.id,
+            );
+
+            console.log(" - Active Contracts: ");
+
+            if (activeContracts.length <= 0) {
+              console.log(`  - ${highlight.yellow("None")}`);
+            } else {
+              activeContracts.forEach(async (c: any) => {
+                const contractDestination = locations.find(
+                  (l: any) => l.id === c.destinationId,
+                );
+                const contractSupplier = locations.find(
+                  (l: any) => l.id === c.supplierId,
+                );
+
+                if (c.supplierId === location.id) {
+                  if (c.truckId) {
+                    try {
+                      const trucks = (
+                        await axios.get(`${apiBaseUrl}/world/trucks`)
+                      ).data;
+                      const companies = (
+                        await axios.get(`${apiBaseUrl}/world/companies`)
+                      ).data;
+                      const shipper = trucks.find(
+                        (t: any) => t.id === c.truckId,
+                      );
+                      const shipperCompany = companies.find(
+                        (comp: any) => comp.id === shipper?.companyId,
+                      );
+                      console.log(
+                        `  - Supplying ${highlight.yellow(c.totalAmount + " " + c.resourceType)} to ${highlight.yellow(contractDestination?.name)} with ${highlight.yellow(shipperCompany?.name)}`,
+                      );
+                    } catch (e) {
+                      // Ignore error
+                    }
+                  } else {
+                    console.log(
+                      `  - Supplying ${highlight.yellow(c.totalAmount + " " + c.resourceType)} to ${highlight.yellow(contractDestination?.name)} - waiting for shipper`,
+                    );
+                  }
+                } else if (c.destinationId === location.id) {
+                  if (c.truckId) {
+                    try {
+                      const trucks = (
+                        await axios.get(`${apiBaseUrl}/world/trucks`)
+                      ).data;
+                      const companies = (
+                        await axios.get(`${apiBaseUrl}/world/companies`)
+                      ).data;
+                      const shipper = trucks.find(
+                        (t: any) => t.id === c.truckId,
+                      );
+                      const shipperCompany = companies.find(
+                        (comp: any) => comp.id === shipper?.companyId,
+                      );
+                      console.log(
+                        `  - Awaiting delivery of ${highlight.yellow(c.totalAmount + " " + c.resourceType)} from ${highlight.yellow(contractSupplier?.name)} by ${highlight.yellow(shipperCompany?.name)}`,
+                      );
+                    } catch (e) {
+                      // Ignore error
+                    }
+                  } else {
+                    console.log(
+                      `  - Awaiting delivery of ${highlight.yellow(c.totalAmount + " " + c.resourceType)} from ${highlight.yellow(contractSupplier?.name)} - waiting for shipper`,
+                    );
+                  }
+                }
+              });
+            }
+          } catch (error) {
+            console.log(
+              highlight.error(`Failed to load location details: ${error}`),
+            );
+          }
+        });
+      } catch (error) {
+        logMenuError(`Failed to load locations: ${error}`);
         return false;
       }
-
-      return createMenuPage(`${location.name}`, false, [], () => {
-        if (location.locationType === LOCATION_TYPE.Town) {
-          const town = location as ITown;
-          console.log(
-            ` - Population: ${highlight.yellow(town.population + "")}`,
-          );
-
-          console.log(
-            ` - Confidence: ${highlight.yellow(town.confidence + "")}`,
-          );
-        }
-
-        const inputStrings = Object.entries(location.recipe?.inputs ?? []).map(
-          ([k, v]) => `${v} ${k}`,
-        );
-        const outputStrings = Object.entries(
-          location.recipe?.outputs ?? [],
-        ).map(([k, v]) => `${v} ${k}`);
-        console.log(
-          ` - Recipe: ${highlight.yellow(inputStrings.length > 0 ? inputStrings.join(",") : "∞")} -> ${highlight.yellow(outputStrings.length > 0 ? outputStrings.join(",") : "∞")}`,
-        );
-
-        console.log(" - Storage: ");
-
-        location.storage.forEach((s) => {
-          console.log(
-            `  - Type: ${highlight.yellow(s.resourceType)} | Stored: ${highlight.yellow(s.resourceCount + "")} | Capacity: ${highlight.yellow(s.resourceCapacity + "")}`,
-          );
-        });
-
-        const activeContracts = world
-          .getContracts()
-          .filter(
-            (c) =>
-              c.supplierId === location.id || c.destinationId === location.id,
-          );
-
-        console.log(" - Active Contracts: ");
-
-        if (activeContracts.length <= 0) {
-          console.log(`  - ${highlight.yellow("None")}`);
-        } else {
-          activeContracts.forEach((c) => {
-            if (c.supplierId === location.id) {
-              const contractDestination = world.getLocationById(
-                c.destinationId,
-              );
-
-              if (c.truckId) {
-                const shipper = world.getTruckById(c.truckId);
-                const shipperCompany = world.getCompanyById(shipper.companyId);
-                console.log(
-                  `  - Supplying ${highlight.yellow(c.totalAmount + " " + c.resourceType)} to ${highlight.yellow(contractDestination.name)} with ${highlight.yellow(shipperCompany.name)}`,
-                );
-              } else {
-                console.log(
-                  `  - Supplying ${highlight.yellow(c.totalAmount + " " + c.resourceType)} to ${highlight.yellow(contractDestination.name)} - waiting for shipper`,
-                );
-              }
-            } else if (c.destinationId === location.id) {
-              const contractSupplier = world.getLocationById(c.supplierId);
-
-              if (c.truckId) {
-                const shipper = world.getTruckById(c.truckId);
-                const shipperCompany = world.getCompanyById(shipper.companyId);
-                console.log(
-                  `  - Awaiting delivery of ${highlight.yellow(c.totalAmount + " " + c.resourceType)} from ${highlight.yellow(contractSupplier.name)} by ${highlight.yellow(shipperCompany.name)}`,
-                );
-              } else {
-                console.log(
-                  `  - Awaiting delivery of ${highlight.yellow(c.totalAmount + " " + c.resourceType)} from ${highlight.yellow(contractSupplier.name)} - waiting for shipper`,
-                );
-              }
-            }
-          });
-        }
-      });
     },
   });
 
   const createManageIndustriesAction = (): IMenuAction => ({
     title: "Manage Industries",
     type: MenuItemType.Action,
-    action: (args: string[] = []) => {
+    action: async (args: string[] = []) => {
       const createBuyIndustryAction = (): IMenuAction => ({
         title: "Buy Industry",
         type: MenuItemType.Action,
-        action: (args: string[] = []) => {
+        action: async (args: string[] = []) => {
           const createSelectIndustryAction = (): IMenuAction => ({
             title: "Select Industry",
             type: MenuItemType.Action,
-            action: (args: string[] = []) => {
+            action: async (args: string[] = []) => {
               if (args.length === 0) {
                 logMenuError("You need to select an industry");
                 return false;
@@ -170,7 +201,7 @@ export const createManageLocationsPage = (
               const createSelectPositionAction = (): IMenuAction => ({
                 title: "Select Position",
                 type: MenuItemType.Action,
-                action: (args: string[] = []) => {
+                action: async (args: string[] = []) => {
                   if (args.length == 0) {
                     logMenuError("You need to select a position");
                     return false;
@@ -185,63 +216,88 @@ export const createManageLocationsPage = (
                     return false;
                   }
 
-                  const worldLocations = world.getLocations();
-                  const entityAtPos = worldLocations.find(
-                    (l) => l.position === positionChoice,
-                  );
-
-                  if (entityAtPos) {
-                    logMenuError(
-                      `That position is already occupied by ${entityAtPos.name}. Please select another`,
+                  try {
+                    const locations = (
+                      await axios.get(`${apiBaseUrl}/world/locations`)
+                    ).data;
+                    const entityAtPos = locations.find(
+                      (l: any) => l.position === positionChoice,
                     );
-                    return false;
-                  }
 
-                  const playerCompany = world.getCompanyById(
-                    userSession.companyId,
-                  );
-                  const result = transferCompanyFundsToState(
-                    playerCompany,
-                    locationConfig.baseSalePrice,
-                  );
+                    if (entityAtPos) {
+                      logMenuError(
+                        `That position is already occupied by ${entityAtPos.name}. Please select another`,
+                      );
+                      return false;
+                    }
 
-                  if (result === COMPANY_OP_RESULT.SUCCESS) {
-                    switch (industry) {
-                      case IndustryType.Farm:
-                        world.createProducer(
-                          `Grain Farm ${worldLocations.length}`,
-                          playerCompany.id,
-                          positionChoice,
-                          RESOURCE_TYPE.Grain,
-                          25,
+                    // Transfer funds to state for purchasing
+                    const transferRes = await axios.post(
+                      `${apiBaseUrl}/company/transfer-to-state`,
+                      {
+                        companyId: userSession.companyId,
+                        amount: locationSalePrice,
+                      },
+                    );
+
+                    if (!transferRes.data.success) {
+                      console.log(highlight.error(`Insufficient funds`));
+                      try {
+                        const company = (
+                          await axios.get(
+                            `${apiBaseUrl}/company/id/${userSession.companyId}`,
+                          )
+                        ).data;
+                        console.log(
+                          ` - You have ${highlight.yellow(`$${company.money}`)} - you need ${highlight.yellow(`$${locationSalePrice}`)}`,
                         );
-                        break;
-                      case IndustryType.FlourMill:
-                        world.createProcessor(
-                          `Flour Mill ${worldLocations.length}`,
-                          playerCompany.id,
-                          positionChoice,
-                          { inputs: { Grain: 6 }, outputs: { Flour: 3 } },
-                        );
-                        break;
+                      } catch (e) {
+                        // Ignore
+                      }
+                      return false;
+                    }
+
+                    // Create the industry
+                    if (industry === IndustryType.Farm) {
+                      await axios.post(
+                        `${apiBaseUrl}/location/create-producer`,
+                        {
+                          name: `Grain Farm ${locations.length}`,
+                          companyId: userSession.companyId,
+                          position: positionChoice,
+                          resourceType: RESOURCE_TYPE.Grain,
+                          productionRate: 25,
+                        },
+                      );
+                    } else if (industry === IndustryType.FlourMill) {
+                      await axios.post(
+                        `${apiBaseUrl}/location/create-processor`,
+                        {
+                          name: `Flour Mill ${locations.length}`,
+                          companyId: userSession.companyId,
+                          position: positionChoice,
+                          recipe: {
+                            inputs: { Grain: 6 },
+                            outputs: { Flour: 3 },
+                          },
+                        },
+                      );
                     }
 
                     logSuccess(
-                      `${highlight.yellow(playerCompany.name)} purchased a ${highlight.yellow(industry)} for ${highlight.yellow(`$${locationConfig.baseSalePrice}`)}`,
+                      `Industry purchased for ${highlight.yellow(`$${locationSalePrice}`)}`,
                     );
 
                     console.log(highlight.success(`Industry purchased`));
                     console.log(
-                      ` - You spent ${highlight.yellow(`$${locationConfig.baseSalePrice}`)}`,
+                      ` - You spent ${highlight.yellow(`$${locationSalePrice}`)}`,
                     );
                     console.log(
                       ` - Your new ${highlight.yellow(industry)} is at position ${highlight.yellow(positionChoice)}`,
                     );
-                  } else if (result === COMPANY_OP_RESULT.INSUFFICIENT_FUNDS) {
-                    console.log(highlight.error(`Insufficient funds`));
-                    console.log(
-                      ` - You have ${highlight.yellow(`$${playerCompany.money}`)} - you need ${highlight.yellow(`$${locationConfig.baseSalePrice}`)}`,
-                    );
+                  } catch (error) {
+                    logMenuError(`Failed to purchase industry: ${error}`);
+                    return false;
                   }
                 },
               });
@@ -268,7 +324,7 @@ export const createManageLocationsPage = (
 
               Object.values(IndustryType).forEach((industry, i) => {
                 console.log(
-                  ` - [${i}] ${industry} ${highlight.yellow(`[$${locationConfig.baseSalePrice}]`)}`,
+                  ` - [${i}] ${industry} ${highlight.yellow(`[$${locationSalePrice}]`)}`,
                 );
               });
             },
@@ -276,128 +332,162 @@ export const createManageLocationsPage = (
         },
       });
 
-      const allIndustries = world
-        .getLocations()
-        .filter((l) => l.locationType !== LOCATION_TYPE.Town);
+      try {
+        const locations = (await axios.get(`${apiBaseUrl}/world/locations`))
+          .data;
+        const allIndustries = locations.filter(
+          (l: any) => l.locationType !== LOCATION_TYPE.Town,
+        );
 
-      const createSellIndustryAction = (): IMenuAction => ({
-        title: "Sell Industry",
-        type: MenuItemType.Action,
-        action: (args: string[] = []) => {
-          if (args.length === 0) {
-            logMenuError("You need to select an industry");
-            return false;
-          }
+        const createSellIndustryAction = (): IMenuAction => ({
+          title: "Sell Industry",
+          type: MenuItemType.Action,
+          action: async (args: string[] = []) => {
+            if (args.length === 0) {
+              logMenuError("You need to select an industry");
+              return false;
+            }
 
-          const choice = parseInt(args[0]);
+            const choice = parseInt(args[0]);
 
-          if (isNaN(choice)) {
-            logMenuError("You must enter a number to select an industry");
-            return false;
-          }
+            if (isNaN(choice)) {
+              logMenuError("You must enter a number to select an industry");
+              return false;
+            }
 
-          const industry = allIndustries.find((_, i) => i === choice);
+            const industry = allIndustries[choice];
 
-          if (!industry) {
-            logMenuError(`Industry ${choice} doesn't exist`);
-            return false;
-          }
+            if (!industry) {
+              logMenuError(`Industry ${choice} doesn't exist`);
+              return false;
+            }
 
-          const industryContracts = world
-            .getContracts()
-            .filter(
-              (c) =>
-                c.destinationId === industry.id || c.supplierId === industry.id,
-            );
-
-          const createConfirmSellIndustryAction = (): IMenuAction => ({
-            title: "Confirm",
-            type: MenuItemType.Action,
-            action: (args: string[] = []) => {
-              const industryCompany = world.getCompanyById(industry.companyId);
-
-              transferCompanyFundsFromState(
-                industryCompany,
-                locationConfig.baseSalePrice,
+            try {
+              const contracts = (
+                await axios.get(`${apiBaseUrl}/world/contracts`)
+              ).data;
+              const industryContracts = contracts.filter(
+                (c: any) =>
+                  c.destinationId === industry.id ||
+                  c.supplierId === industry.id,
               );
 
-              logSuccess(
-                `${highlight.yellow(industryCompany.name)} sold a ${highlight.yellow(industry.name)} for ${highlight.yellow(`$${locationConfig.baseSalePrice}`)}`,
-              );
-              console.log(highlight.success(`Industry sold`));
-              console.log(
-                ` - You sold a ${highlight.yellow(industry.name)} for ${highlight.yellow(`$${locationConfig.baseSalePrice}`)}`,
-              );
+              const createConfirmSellIndustryAction = (): IMenuAction => ({
+                title: "Confirm",
+                type: MenuItemType.Action,
+                action: async (args: string[] = []) => {
+                  try {
+                    // Transfer funds from state for selling
+                    await axios.post(
+                      `${apiBaseUrl}/company/transfer-from-state`,
+                      {
+                        companyId: userSession.companyId,
+                        amount: locationSalePrice,
+                      },
+                    );
 
-              if (industryContracts.length > 0) {
-                console.log(
-                  ` - ${highlight.yellow(industryContracts.length)} contracts were voided - shippers will be paid out immediately`,
-                );
-                const industryTrucks = world
-                  .getTrucks()
-                  .filter((t) =>
-                    industryContracts.some((c) => c.truckId === t.id),
-                  );
+                    // Delete the location
+                    await axios.post(`${apiBaseUrl}/location/delete`, {
+                      locationId: industry.id,
+                    });
 
-                if (industryTrucks.length > 0) {
+                    logSuccess(
+                      `Industry sold for ${highlight.yellow(`$${locationSalePrice}`)}`,
+                    );
+                    console.log(highlight.success(`Industry sold`));
+                    console.log(
+                      ` - You sold a ${highlight.yellow(industry.name)} for ${highlight.yellow(`$${locationSalePrice}`)}`,
+                    );
+
+                    if (industryContracts.length > 0) {
+                      console.log(
+                        ` - ${highlight.yellow(industryContracts.length)} contracts were voided - shippers will be paid out immediately`,
+                      );
+                      const trucks = (
+                        await axios.get(`${apiBaseUrl}/world/trucks`)
+                      ).data;
+                      const industryTrucks = trucks.filter((t: any) =>
+                        industryContracts.some((c: any) => c.truckId === t.id),
+                      );
+
+                      if (industryTrucks.length > 0) {
+                        console.log(
+                          ` - ${highlight.yellow(industryTrucks.length)} trucks have stopped moving`,
+                        );
+                      }
+                    }
+                  } catch (error) {
+                    logMenuError(`Failed to sell industry: ${error}`);
+                  }
+                },
+              });
+
+              return createMenuPage(
+                `Are you sure?`,
+                false,
+                [createConfirmSellIndustryAction()],
+                () => {
                   console.log(
-                    ` - ${highlight.yellow(industryTrucks.length)} trucks have stopped moving`,
+                    `You're about to sell a ${highlight.yellow(industry.name)} for ${highlight.yellow(`$${locationSalePrice}`)}`,
                   );
-                }
-              }
 
-              world.deleteLocation(industry);
-            },
-          });
+                  if (industryContracts.length > 0) {
+                    console.log(
+                      ` - ${highlight.yellow(industryContracts.length)} contracts will be voided (shippers will be paid out immediately)`,
+                    );
+                    (async () => {
+                      try {
+                        const trucks = (
+                          await axios.get(`${apiBaseUrl}/world/trucks`)
+                        ).data;
+                        const industryTrucks = trucks.filter((t: any) =>
+                          industryContracts.some(
+                            (c: any) => c.truckId === t.id,
+                          ),
+                        );
 
-          return createMenuPage(
-            `Are you sure?`,
-            false,
-            [createConfirmSellIndustryAction()],
-            () => {
-              console.log(
-                `You're about to sell a ${highlight.yellow(industry.name)} for ${highlight.yellow(`$${locationConfig.baseSalePrice}`)}`,
+                        if (industryTrucks.length > 0) {
+                          console.log(
+                            ` - ${highlight.yellow(industryTrucks.length)} trucks will stop moving`,
+                          );
+                        }
+                      } catch (e) {
+                        // Ignore
+                      }
+                    })();
+                  }
+                },
               );
+            } catch (error) {
+              logMenuError(`Failed to load industry data: ${error}`);
+              return false;
+            }
+          },
+        });
 
-              if (industryContracts.length > 0) {
-                console.log(
-                  ` - ${highlight.yellow(industryContracts.length)} contracts will be voided (shippers will be paid out immediately)`,
-                );
-                const industryTrucks = world
-                  .getTrucks()
-                  .filter((t) =>
-                    industryContracts.some((c) => c.truckId === t.id),
-                  );
+        return createMenuPage(
+          "Manage Industries",
+          false,
+          [createBuyIndustryAction(), createSellIndustryAction()],
+          () => {
+            if (allIndustries.length === 0) {
+              console.log(
+                highlight.warning(` - There are no industries available`),
+              );
+              return;
+            }
 
-                if (industryTrucks.length > 0) {
-                  console.log(
-                    ` - ${highlight.yellow(industryTrucks.length)} trucks will stop moving`,
-                  );
-                }
-              }
-            },
-          );
-        },
-      });
-
-      return createMenuPage(
-        "Manage Industries",
-        false,
-        [createBuyIndustryAction(), createSellIndustryAction()],
-        () => {
-          if (allIndustries.length === 0) {
-            console.log(
-              highlight.warning(` - There are no industries available`),
-            );
-            return;
-          }
-
-          console.log(`\nAvailable industries: ${allIndustries.length}`);
-          allIndustries.forEach((l, i) => {
-            console.log(` - [${i}] ${getLocationString(world, l)}`);
-          });
-        },
-      );
+            console.log(`\nAvailable industries: ${allIndustries.length}`);
+            allIndustries.forEach((l: any, i: number) => {
+              const locationString = `${l.name} at position ${l.position}`;
+              console.log(` - [${i}] ${locationString}`);
+            });
+          },
+        );
+      } catch (error) {
+        logMenuError(`Failed to load locations: ${error}`);
+        return false;
+      }
     },
   });
 
@@ -405,18 +495,24 @@ export const createManageLocationsPage = (
     "Manage Locations",
     false,
     [createViewLocationAction(), createManageIndustriesAction()],
-    () => {
-      const availableLocations = world.getLocations();
+    async () => {
+      try {
+        const locations = (await axios.get(`${apiBaseUrl}/world/locations`))
+          .data;
 
-      if (availableLocations.length === 0) {
-        console.log(highlight.warning(` - There are no locations available`));
-        return;
+        if (locations.length === 0) {
+          console.log(highlight.warning(` - There are no locations available`));
+          return;
+        }
+
+        console.log(`\nAvailable locations: ${locations.length}`);
+        locations.forEach((l: any, i: number) => {
+          const locationString = `${l.name} at position ${l.position}`;
+          console.log(` - [${i}] ${locationString}`);
+        });
+      } catch (error) {
+        console.log(highlight.error(`Failed to load locations: ${error}`));
       }
-
-      console.log(`\nAvailable locations: ${availableLocations.length}`);
-      availableLocations.forEach((l, i) => {
-        console.log(` - [${i}] ${getLocationString(world, l)}`);
-      });
     },
   );
 };

@@ -19,7 +19,7 @@ export const createEntitySelectorAction = (
   return {
     title,
     type: MenuItemType.Action,
-    action: (args: string[] | undefined = []) => {
+    action: async (args: string[] | undefined = []) => {
       if (args.length === 0) {
         logMenuError(`You must select a ${entityName}`);
         return false;

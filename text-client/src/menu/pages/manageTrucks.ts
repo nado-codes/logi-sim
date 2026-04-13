@@ -1,18 +1,5 @@
-import { randomUUID } from "node:crypto";
-import { RESOURCE_TYPE } from "../../../../server/src/entities/storage";
-import { IUserSession } from "../../../../server/src/userSession";
-import {
-  highlight,
-  logSuccess,
-  logWarning,
-} from "../../../../lib/src/utils/logUtils";
-import {
-  COMPANY_OP_RESULT,
-  transferCompanyFundsFromState,
-  transferCompanyFundsToState,
-} from "../../../../server/src/world/companies";
-import { loadTruckConfig } from "../../../../server/src/world/trucks";
-import { IWorld } from "../../../../server/src/world/world";
+import axios from "axios";
+
 import {
   createMenuPage,
   IMenuAction,
@@ -20,17 +7,20 @@ import {
   logMenuError,
   MenuItemType,
 } from "../menu";
-
-const truckConfig = loadTruckConfig();
+import { IUserSession } from "@logisim/lib";
+import { RESOURCE_TYPE } from "@logisim/lib/entities";
+import { highlight, logSuccess } from "@logisim/lib/utils";
+import { randomUUID } from "node:crypto";
 
 export const createManageTrucksPage = (
-  world: IWorld,
+  apiBaseUrl: string,
   userSession: IUserSession,
 ): IMenuPage => {
+  const truckSalePrice = 50000; // Base truck sale price
   const createViewTruckAction = (): IMenuAction => ({
     title: "View Truck",
     type: MenuItemType.Action,
-    action: (args: string[] = []) => {
+    action: async (args: string[] = []) => {
       if (args.length === 0) {
         logMenuError("You need to select a truck");
         return false;
@@ -43,51 +33,68 @@ export const createManageTrucksPage = (
         return false;
       }
 
-      const truck = world.getTrucks().find((_, i) => i === choice);
+      try {
+        const trucks = (await axios.get(`${apiBaseUrl}/world/trucks`)).data;
+        const truck = trucks[choice];
 
-      if (!truck) {
-        logMenuError(`Truck ${choice} doesn't exist`);
-        return false;
-      }
-
-      return createMenuPage(`${truck.name}`, false, [], () => {
-        console.log(
-          `  - Storage: ${highlight.yellow(truck.storage.resourceType)} | Stored: ${highlight.yellow(truck.storage.resourceCount + "")} | Capacity: ${highlight.yellow(truck.storage.resourceCapacity + "")}`,
-        );
-
-        const activeContracts = world
-          .getContracts()
-          .filter((c) => c.truckId === truck.id);
-
-        console.log(" - Active Contracts: ");
-
-        if (activeContracts.length <= 0) {
-          console.log(`  - ${highlight.yellow("None")}`);
-        } else {
-          activeContracts.forEach((c) => {
-            const contractSupplier = world.getLocationById(c.supplierId);
-            const contractDestination = world.getLocationById(c.destinationId);
-            console.log(
-              `  - Delivering ${highlight.yellow(c.totalAmount + " " + c.resourceType)} to ${highlight.yellow(contractDestination.name)} from ${highlight.yellow(contractSupplier.name)}`,
-            );
-          });
+        if (!truck) {
+          logMenuError(`Truck ${choice} doesn't exist`);
+          return false;
         }
 
-        // .. show info about the location
-      });
+        return createMenuPage(`${truck.name}`, false, [], async () => {
+          try {
+            const contracts = (await axios.get(`${apiBaseUrl}/world/contracts`))
+              .data;
+            const locations = (await axios.get(`${apiBaseUrl}/world/locations`))
+              .data;
+
+            console.log(
+              `  - Storage: ${highlight.yellow(truck.storage.resourceType)} | Stored: ${highlight.yellow(truck.storage.resourceCount + "")} | Capacity: ${highlight.yellow(truck.storage.resourceCapacity + "")}`,
+            );
+
+            const activeContracts = contracts.filter(
+              (c: any) => c.truckId === truck.id,
+            );
+
+            console.log(" - Active Contracts: ");
+
+            if (activeContracts.length <= 0) {
+              console.log(`  - ${highlight.yellow("None")}`);
+            } else {
+              activeContracts.forEach((c: any) => {
+                const contractSupplier = locations.find(
+                  (l: any) => l.id === c.supplierId,
+                );
+                const contractDestination = locations.find(
+                  (l: any) => l.id === c.destinationId,
+                );
+                console.log(
+                  `  - Delivering ${highlight.yellow(c.totalAmount + " " + c.resourceType)} to ${highlight.yellow(contractDestination.name)} from ${highlight.yellow(contractSupplier.name)}`,
+                );
+              });
+            }
+          } catch (error) {
+            console.log(highlight.error(`Failed to load truck data: ${error}`));
+          }
+        });
+      } catch (error) {
+        logMenuError(`Failed to load trucks: ${error}`);
+        return false;
+      }
     },
   });
 
   const createBuyTruckAction = (): IMenuAction => ({
     title: "Buy Truck",
     type: MenuItemType.Action,
-    action: (args: string[] = []) => {
+    action: async (args: string[] = []) => {
       const availableResourceTypes = Object.keys(RESOURCE_TYPE);
 
       const createSelectResourceTypeAction = (): IMenuAction => ({
         title: "Select Resource Type",
         type: MenuItemType.Action,
-        action: (args: string[] = []) => {
+        action: async (args: string[] = []) => {
           if (args.length === 0) {
             logMenuError("You need to select a resource type");
             return false;
@@ -100,47 +107,63 @@ export const createManageTrucksPage = (
             return false;
           }
 
-          const resourceType = availableResourceTypes.find(
-            (_, i) => i === resourceChoice,
-          );
+          const resourceType = availableResourceTypes[resourceChoice];
 
           if (!resourceType) {
             logMenuError(`Resource ${resourceChoice} doesn't exist`);
             return false;
           }
 
-          const playerCompany = world.getCompanyById(userSession.companyId);
-          const result = transferCompanyFundsToState(
-            playerCompany,
-            truckConfig.baseSalePrice,
-          );
-
-          if (result === COMPANY_OP_RESULT.SUCCESS) {
-            world.createTruck(
-              `Truck ${randomUUID()}`,
-              playerCompany.id,
-              resourceType as RESOURCE_TYPE,
-              100,
-              0,
-              2,
+          try {
+            // Transfer funds to state first
+            const transferRes = await axios.post(
+              `${apiBaseUrl}/company/transfer-to-state`,
+              {
+                companyId: userSession.companyId,
+                amount: truckSalePrice,
+              },
             );
+
+            if (!transferRes.data.success) {
+              console.log(highlight.error(`Insufficient funds`));
+              try {
+                const company = (
+                  await axios.get(
+                    `${apiBaseUrl}/company/id/${userSession.companyId}`,
+                  )
+                ).data;
+                console.log(
+                  ` - You have ${highlight.yellow(`$${company.money}`)} - you need ${highlight.yellow(`$${truckSalePrice}`)}`,
+                );
+              } catch (e) {
+                // Ignore error
+              }
+              return false;
+            }
+
+            // Create the truck
+            await axios.post(`${apiBaseUrl}/truck/create`, {
+              name: `Truck ${randomUUID()}`,
+              companyId: userSession.companyId,
+              resourceType: resourceType as RESOURCE_TYPE,
+              resourceCapacity: 100,
+              position: 0,
+              speed: 2,
+            });
 
             logSuccess(
-              `${highlight.yellow(playerCompany.name)} purchased a ${highlight.yellow(resourceType)} for ${highlight.yellow(`$${truckConfig.baseSalePrice}`)}`,
+              `Truck purchased for ${highlight.yellow(`$${truckSalePrice}`)}`,
             );
-
             console.log(highlight.success(`Truck purchased`));
             console.log(
-              ` - You spent ${highlight.yellow(`$${truckConfig.baseSalePrice}`)}`,
+              ` - You spent ${highlight.yellow(`$${truckSalePrice}`)}`,
             );
             console.log(
               ` - Your new ${highlight.yellow(resourceType)} truck is at position ${highlight.yellow(`0`)}`,
             );
-          } else if (result === COMPANY_OP_RESULT.INSUFFICIENT_FUNDS) {
-            console.log(highlight.error(`Insufficient funds`));
-            console.log(
-              ` - You have ${highlight.yellow(`$${playerCompany.money}`)} - you need ${highlight.yellow(`$${truckConfig.baseSalePrice}`)}`,
-            );
+          } catch (error) {
+            logMenuError(`Failed to purchase truck: ${error}`);
+            return false;
           }
         },
       });
@@ -154,7 +177,7 @@ export const createManageTrucksPage = (
 
           availableResourceTypes.forEach((resource, i) => {
             console.log(
-              ` - [${i}] ${resource} ${highlight.yellow(`[$${truckConfig.baseSalePrice}]`)}`,
+              ` - [${i}] ${resource} ${highlight.yellow(`[$${truckSalePrice}]`)}`,
             );
           });
         },
@@ -165,7 +188,7 @@ export const createManageTrucksPage = (
   const createSellTruckAction = (): IMenuAction => ({
     title: "Sell Truck",
     type: MenuItemType.Action,
-    action: (args: string[] = []) => {
+    action: async (args: string[] = []) => {
       if (args.length === 0) {
         logMenuError("You need to select a truck");
         return false;
@@ -178,65 +201,84 @@ export const createManageTrucksPage = (
         return false;
       }
 
-      const truck = world.getTrucks().find((_, i) => i === choice);
+      try {
+        const trucks = (await axios.get(`${apiBaseUrl}/world/trucks`)).data;
+        const truck = trucks[choice];
 
-      if (!truck) {
-        logMenuError(`Truck ${choice} doesn't exist`);
+        if (!truck) {
+          logMenuError(`Truck ${choice} doesn't exist`);
+          return false;
+        }
+
+        const contracts = (await axios.get(`${apiBaseUrl}/world/contracts`))
+          .data;
+        const locations = (await axios.get(`${apiBaseUrl}/world/locations`))
+          .data;
+
+        const truckContract = contracts.find(
+          (c: any) => c.id === truck.contractId,
+        );
+        const contractSupplier = truckContract
+          ? locations.find((l: any) => l.id === truckContract.supplierId)
+          : null;
+        const contractDestination = truckContract
+          ? locations.find((l: any) => l.id === truckContract.destinationId)
+          : null;
+
+        const createConfirmSellTruckAction = (): IMenuAction => ({
+          title: "Confirm",
+          type: MenuItemType.Action,
+          action: async (args: string[] = []) => {
+            try {
+              // Transfer funds from state for selling
+              await axios.post(`${apiBaseUrl}/company/transfer-from-state`, {
+                companyId: userSession.companyId,
+                amount: truckSalePrice,
+              });
+
+              // Delete the truck
+              await axios.post(`${apiBaseUrl}/truck/delete`, {
+                truckId: truck.id,
+              });
+
+              logSuccess(
+                `Truck sold for ${highlight.yellow(`$${truckSalePrice}`)}`,
+              );
+              console.log(highlight.success(`Truck sold`));
+              console.log(
+                ` - You sold a ${highlight.yellow(truck.storage.resourceType)} truck for ${highlight.yellow(`$${truckSalePrice}`)}`,
+              );
+              if (contractSupplier && contractDestination) {
+                console.log(
+                  ` - The contract between ${highlight.yellow(contractSupplier.name)} and ${highlight.yellow(contractDestination.name)} was broken, forfeiting payment`,
+                );
+              }
+            } catch (error) {
+              logMenuError(`Failed to sell truck: ${error}`);
+            }
+          },
+        });
+
+        return createMenuPage(
+          `Are you sure?`,
+          false,
+          [createConfirmSellTruckAction()],
+          () => {
+            console.log(
+              `You're about to sell a ${highlight.yellow(truck.storage.resourceType)} truck for ${highlight.yellow(`$${truckSalePrice}`)}`,
+            );
+
+            if (contractSupplier && contractDestination) {
+              console.log(
+                ` - This will break a contract between ${highlight.yellow(contractSupplier.name)} and ${highlight.yellow(contractDestination.name)}, and will forfeit payment`,
+              );
+            }
+          },
+        );
+      } catch (error) {
+        logMenuError(`Failed to load truck data: ${error}`);
         return false;
       }
-
-      const truckContract = world.getContractByIdOrNull(truck.contractId);
-      const contractSupplier = world.getLocationByIdOrNull(
-        truckContract?.supplierId,
-      );
-      const contractDestination = world.getLocationByIdOrNull(
-        truckContract?.destinationId,
-      );
-
-      const createConfirmSellTruckAction = (): IMenuAction => ({
-        title: "Confirm",
-        type: MenuItemType.Action,
-        action: (args: string[] = []) => {
-          const truckCompany = world.getCompanyById(truck.companyId);
-
-          transferCompanyFundsFromState(
-            truckCompany,
-            truckConfig.baseSalePrice,
-          );
-
-          logSuccess(
-            `${highlight.yellow(truckCompany.name)} sold a ${highlight.yellow(truck.storage.resourceType)} truck for ${highlight.yellow(`$${truckConfig.baseSalePrice}`)}`,
-          );
-          console.log(highlight.success(`Truck sold`));
-          console.log(
-            ` - You sold a ${highlight.yellow(truck.storage.resourceType)} truck for ${highlight.yellow(`$${truckConfig.baseSalePrice}`)}`,
-          );
-          if (contractSupplier && contractDestination) {
-            console.log(
-              ` - The contract between ${highlight.yellow(contractSupplier.name)} and ${highlight.yellow(contractDestination.name)} was broken, forfeiting payment`,
-            );
-          }
-
-          world.deleteTruck(truck);
-        },
-      });
-
-      return createMenuPage(
-        `Are you sure?`,
-        false,
-        [createConfirmSellTruckAction()],
-        () => {
-          console.log(
-            `You're about to sell a ${highlight.yellow(truck.storage.resourceType)} truck for ${highlight.yellow(`$${truckConfig.baseSalePrice}`)}`,
-          );
-
-          if (contractSupplier && contractDestination) {
-            console.log(
-              ` - This will break a contract between ${highlight.yellow(contractSupplier.name)} and ${highlight.yellow(contractDestination.name)}, and will forfeit payment`,
-            );
-          }
-        },
-      );
     },
   });
 
@@ -244,18 +286,23 @@ export const createManageTrucksPage = (
     "Manage Trucks",
     false,
     [createViewTruckAction(), createBuyTruckAction(), createSellTruckAction()],
-    () => {
-      const availableTrucks = world.getTrucks();
+    async () => {
+      try {
+        const trucks = (await axios.get(`${apiBaseUrl}/world/trucks`)).data;
 
-      if (availableTrucks.length === 0) {
-        console.log(highlight.warning(` - There are no trucks available`));
-        return;
+        if (trucks.length === 0) {
+          console.log(highlight.warning(` - There are no trucks available`));
+          return;
+        }
+
+        console.log(`\nAvailable trucks: ${trucks.length}`);
+        trucks.forEach((t: any, i: number) => {
+          const truckString = `Truck ${t.id} at position ${t.position}`;
+          console.log(` - [${i}] ${truckString}`);
+        });
+      } catch (error) {
+        console.log(highlight.error(`Failed to load trucks: ${error}`));
       }
-
-      console.log(`\nAvailable trucks: ${availableTrucks.length}`);
-      availableTrucks.forEach((t, i) => {
-        console.log(` - [${i}] ${world.getTruckString(t)}`);
-      });
     },
   );
 };

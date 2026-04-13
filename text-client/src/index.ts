@@ -1,7 +1,6 @@
 //import { world } from "..";
 //import { createMenu } from "../menus/menu";
 import axios from "axios";
-import { world } from "../../server/src";
 import { createMenu } from "./menu/menu";
 
 const apiBaseUrl = `http://localhost:3001/api`;
@@ -28,7 +27,6 @@ const main = async () => {
       () => {
         menu.show();
       },
-      world,
       { companyId: playerCompany.id },
     );
     menu.show();

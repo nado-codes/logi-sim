@@ -1,14 +1,13 @@
 // menu.ts
 import readline from "readline";
-import { createWorld } from "../../../server/src/world/world";
 import { createViewLogsPage } from "./pages/viewLogs";
 import { createManageContractsPage } from "./pages/manageContracts";
-import { getCompanyString } from "../../../server/src/world/companies";
 import { createManageLocationsPage } from "./pages/manageLocations";
-import { highlight } from "../../../lib/src/utils/logUtils";
 import { createManageTrucksPage } from "./pages/manageTrucks";
-import { IUserSession } from "../../../server/src/userSession";
 import { createManageCompaniesPage } from "./pages/manageCompanies";
+import axios from "axios";
+import { IUserSession } from "@logisim/lib";
+import { highlight } from "@logisim/lib/utils";
 
 export enum MenuItemType {
   Page,
@@ -24,7 +23,7 @@ export interface IMenuPage extends IMenuItemBase {
   title: string;
   items: IMenuItem[];
   isRoot: boolean;
-  customRender?: () => void;
+  customRender?: () => void | Promise<void>;
 }
 
 export interface IMenuAction extends IMenuItemBase {
@@ -36,6 +35,8 @@ export type IMenuItem = IMenuPage | IMenuAction;
 export const logMenuError = (errorMessage: string) => {
   console.log(`\x1b[31m${errorMessage}\x1b[0m`);
 };
+
+const apiBaseUrl = `http://localhost:3001/api`;
 
 export const createMenuPage = (
   title: string,
@@ -73,21 +74,17 @@ export const createMenuAction = (
   };
 };
 
-export const createMenu = (
-  callback: () => void,
-  world: ReturnType<typeof createWorld>,
-  userSession: IUserSession,
-) => {
+export const createMenu = (callback: () => void, userSession: IUserSession) => {
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
   });
 
   const mainMenu: IMenuPage = createMenuPage("Main Menu", true, [
-    createManageContractsPage(world),
-    createManageTrucksPage(world, userSession),
-    createManageLocationsPage(world, userSession),
-    createManageCompaniesPage(world),
+    createManageContractsPage(apiBaseUrl, userSession),
+    createManageTrucksPage(apiBaseUrl, userSession),
+    createManageLocationsPage(apiBaseUrl, userSession),
+    createManageCompaniesPage(apiBaseUrl),
     createViewLogsPage(),
   ]);
 
@@ -107,7 +104,7 @@ export const createMenu = (
     waitForInput();
   };
 
-  const renderPrevPage = () => {
+  const renderPrevPage = async () => {
     const prevPageIndex = navHistory.findIndex((p) => p === activePage) - 1;
     activePage = navHistory[prevPageIndex];
 
@@ -115,40 +112,46 @@ export const createMenu = (
       navHistory = [mainMenu];
     }
 
-    renderPage(activePage);
+    await renderPage(activePage);
     waitForInput();
   };
 
-  const renderPage = (page: IMenuPage, errorMessage?: string) => {
+  const renderPage = async (page: IMenuPage, errorMessage?: string) => {
     console.clear();
 
     if (!navHistory.find((p) => p === page)) {
       navHistory.push(page);
     }
 
-    console.log(
-      `WORLD MAP (Tick: ${highlight.yellow(world.getCurrentTick() + "")}):`,
-    );
-    console.log(world.getMap());
+    // .. TODO: fetch all world-related state via api
+
+    const worldTick = (await axios.get(`${apiBaseUrl}/world/tick`)).data;
+    console.log(`WORLD MAP (Tick: ${highlight.yellow(worldTick + "")}):`);
+    console.log((await axios.get(`${apiBaseUrl}/world/map`)).data);
     console.log();
 
-    const playerCompany = world.getCompanyById(userSession.companyId);
+    const playerCompany = (
+      await axios.get(`${apiBaseUrl}/company/id/${userSession.companyId}`)
+    ).data;
     console.log(`YOUR COMPANY:`);
-    console.log(getCompanyString(playerCompany));
+    const playerCompanyString = `Name: ${highlight.yellow(playerCompany.name)} | Money: ${highlight.yellow(playerCompany.money + "")}`;
+    console.log(playerCompanyString);
     console.log();
     console.log(`RIVAL COMPANIES:`);
-    world
-      .getCompanies()
-      .filter((c) => c !== playerCompany && !c.options.isGovernment)
-      .forEach((c) => {
-        console.log(` - ${getCompanyString(c)}`);
+    const rivalCompanies = (await axios.get(`${apiBaseUrl}/world/companies`))
+      .data;
+    rivalCompanies
+      .filter((c: any) => c !== playerCompany && !c.options.isGovernment)
+      .forEach((c: any) => {
+        const companyString = `Name: ${highlight.yellow(c.name)} | Money: ${highlight.yellow(c.money + "")}`;
+        console.log(` - ${companyString}`);
       });
     console.log();
 
     console.log(`===${page.title.toUpperCase()}===`);
 
     if (page.customRender !== undefined) {
-      page.customRender();
+      await page.customRender();
       console.log();
     }
 
@@ -167,16 +170,16 @@ export const createMenu = (
     );
   };
 
-  const executeAction = (action: IMenuAction, args: any) => {
+  const executeAction = async (action: IMenuAction, args: any) => {
     console.clear();
     console.log(`===${action.title.toUpperCase()}===`);
 
-    const result = action.action(args);
+    const result = await action.action(args);
 
     if (result && result.type === MenuItemType.Page) {
       // Action returned a page - navigate to it
       activePage = result;
-      renderPage(result);
+      await renderPage(result);
       waitForInput();
     } else if (result !== false) {
       // Action returned void - normal action behavior
