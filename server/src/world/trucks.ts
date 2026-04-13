@@ -6,10 +6,6 @@ import {
   VEHICLE_TYPE,
   IWorldState,
   IContract,
-  logSuccess,
-  logInfo,
-  highlight,
-  logWarning,
 } from "@logisim/lib";
 import { loadNotificationConfig } from "../notifications";
 import {
@@ -26,6 +22,7 @@ import {
 import { getLocationById, getLocationByIdOrNull } from "./locations/locations";
 import { createAndGetStorage, transferResources } from "./storages";
 import { loadConfig } from "../utils/configUtils";
+import { logSuccess, highlight, logInfo } from "../utils/logUtils";
 
 interface ITruckConfig {
   baseOperatingCost: number;

@@ -10,7 +10,6 @@ import {
   VEHICLE_TYPE,
   IWorldState,
   Color,
-  highlight,
 } from "@logisim/lib";
 import { loadConfig } from "../utils/configUtils";
 import { getCompanyByIdOrNull } from "./companies";
@@ -19,6 +18,7 @@ import { getWorldEntityByPositionOrNull } from "./entities";
 import { loadGeographyConfig } from "./geographies";
 import { loadTownConfig } from "./locations/consumers/towns";
 import { getLocationByIdOrNull } from "./locations/locations";
+import { highlight } from "../utils/logUtils";
 
 interface IMapConfig {
   highlightArableLand: boolean;

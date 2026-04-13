@@ -18,6 +18,7 @@
     "typescript": "^6.0.2"
   },
   "dependencies": {
+    "@logisim/lib": "file:../lib",
     "axios": "^1.15.0"
   }
 }

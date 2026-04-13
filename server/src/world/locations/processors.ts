@@ -1,21 +1,9 @@
-import {
-  IProcessor,
-  LOCATION_TYPE,
-  IRecipe,
-  RESOURCE_TYPE,
-  logWarning,
-  logSuccess,
-} from "@logisim/lib";
+import { IProcessor, LOCATION_TYPE, IRecipe } from "@logisim/lib";
 import { createBaseLocation, checkInputStorage } from "./locations";
-import { getContractByResource } from "../contracts";
 import { loadNotificationConfig } from "../../notifications";
 import { IWorldState } from "@logisim/lib";
-import {
-  getResourceStorage,
-  getOutputStorage,
-  getInputStorage,
-  processRecipe,
-} from "../storages";
+import { getOutputStorage, getInputStorage, processRecipe } from "../storages";
+import { logWarning, logSuccess } from "../../utils/logUtils";
 
 const notificationConfig = loadNotificationConfig();
 

@@ -4,13 +4,11 @@ import {
   IRecipe,
   StorageTransferResult,
   IWorldState,
-  logInfo,
-  logWarning,
-  logSuccess,
   clamp,
 } from "@logisim/lib";
 import { loadNotificationConfig } from "../notifications";
 import { loadConfig } from "../utils/configUtils";
+import { logInfo, logWarning, logSuccess } from "../utils/logUtils";
 
 const notificationConfig = loadNotificationConfig();
 

@@ -4,11 +4,6 @@ import {
   ITruck,
   Nullable,
   IWorldState,
-  logSuccess,
-  logWarning,
-  logInfo,
-  logError,
-  highlight,
 } from "@logisim/lib";
 import { loadNotificationConfig } from "../notifications";
 import {
@@ -21,6 +16,13 @@ import { getTruckById, setTruckContract } from "./trucks";
 import { getResourceCount, getResourceStorage } from "./storages";
 import { loadConfig } from "../utils/configUtils";
 import { world } from "..";
+import {
+  logInfo,
+  logSuccess,
+  highlight,
+  logWarning,
+  logError,
+} from "../utils/logUtils";
 
 const notificationConfig = loadNotificationConfig();
 

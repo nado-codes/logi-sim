@@ -5,11 +5,6 @@ import {
   LOCATION_TYPE,
   IRecipe,
   RESOURCE_TYPE,
-  logWarning,
-  logInfo,
-  logError,
-  highlight,
-  logSuccess,
 } from "@logisim/lib";
 import { loadNotificationConfig } from "../../notifications";
 import {
@@ -28,6 +23,13 @@ import {
 } from "../storages";
 import { loadConfig } from "../../utils/configUtils";
 import { createWorldEntity } from "../../entities";
+import {
+  highlight,
+  logWarning,
+  logInfo,
+  logError,
+  logSuccess,
+} from "../../utils/logUtils";
 
 interface ILocationConfig {
   baseSalePrice: number;

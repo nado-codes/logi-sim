@@ -8,3 +8,6 @@ export * from "./entities/truck";
 export * from "./entities/world";
 export * from "./entities/locations/location";
 export * from "./entities/locations/consumer";
+
+export * from "./utils/color";
+export * from "./utils/mathUtils";

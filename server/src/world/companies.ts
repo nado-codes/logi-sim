@@ -6,10 +6,6 @@ import {
   IWorldState,
   GEOGRAPHY_TYPE,
   Color,
-  highlight,
-  logInfo,
-  logSuccess,
-  logWarning,
   sum,
 } from "@logisim/lib";
 import { createBaseEntity, createNamedEntity } from "../entities";
@@ -22,6 +18,7 @@ import { getLocationById } from "./locations/locations";
 import { assignContract } from "./contracts";
 import { loadTruckConfig } from "./trucks";
 import { loadConfig } from "../utils/configUtils";
+import { logSuccess, highlight, logInfo, logWarning } from "../utils/logUtils";
 
 const geographyConfig = loadGeographyConfig();
 const notificationConfig = loadNotificationConfig();

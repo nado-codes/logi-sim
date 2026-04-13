@@ -1,7 +1,7 @@
-import { RESOURCE_TYPE } from "@logisim/lib";
+import { Color, RESOURCE_TYPE } from "@logisim/lib";
 import { createWorld } from "./world/world";
-import { Color, highlight, logError, logInfo } from "@logisim/lib";
 import { logisimApi } from "./api";
+import { logInfo, highlight, logError } from "./utils/logUtils";
 
 // .. CREATE
 
