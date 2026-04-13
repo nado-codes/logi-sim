@@ -1,21 +1,22 @@
-import { Color } from "@logisim/lib";
-import { world } from "..";
-import { loadNotificationConfig } from "../notifications";
+import { Color } from "./color";
 
 interface LogEntry {
-  tick: number;
+  timestamp: string;
   entry: string;
 }
-
-const notificationsConfig = loadNotificationConfig();
 
 export const logEntries: LogEntry[] = [];
 
 const log = (entry: string) => {
-  if (notificationsConfig.printLogs) {
-    console.log(entry);
-  }
-  logEntries.push({ tick: world.getCurrentTick(), entry });
+  console.log(entry);
+
+  const now = new Date(Date.now());
+
+  const hours = now.getHours(); // 0-23
+  const minutes = now.getMinutes(); // 0-59
+  const seconds = now.getSeconds(); // 0-59
+
+  logEntries.push({ timestamp: `${hours}:${minutes}:${seconds}`, entry });
 };
 export const logError = (text: string | number) => {
   const entry = `\x1b[31m${text}\x1b[0m`; // red

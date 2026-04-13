@@ -13,7 +13,7 @@ import {
   logSuccess,
   logError,
   logInfo,
-} from "../../utils/logUtils";
+} from "@logisim/lib/src/utils/logUtils";
 
 const notificationConfig = loadNotificationConfig();
 

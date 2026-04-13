@@ -8,7 +8,11 @@ import {
 } from "@logisim/lib";
 import { loadNotificationConfig } from "../notifications";
 import { loadConfig } from "../utils/configUtils";
-import { logInfo, logWarning, logSuccess } from "../utils/logUtils";
+import {
+  logInfo,
+  logWarning,
+  logSuccess,
+} from "@logisim/lib/src/utils/logUtils";
 
 const notificationConfig = loadNotificationConfig();
 

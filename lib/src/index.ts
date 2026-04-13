@@ -11,3 +11,4 @@ export * from "./entities/locations/consumer";
 
 export * from "./utils/color";
 export * from "./utils/mathUtils";
+export * from "./utils/logUtils";

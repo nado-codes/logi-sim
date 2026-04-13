@@ -22,7 +22,11 @@ import {
 import { getLocationById, getLocationByIdOrNull } from "./locations/locations";
 import { createAndGetStorage, transferResources } from "./storages";
 import { loadConfig } from "../utils/configUtils";
-import { logSuccess, highlight, logInfo } from "../utils/logUtils";
+import {
+  logSuccess,
+  highlight,
+  logInfo,
+} from "@logisim/lib/src/utils/logUtils";
 
 interface ITruckConfig {
   baseOperatingCost: number;
