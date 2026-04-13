@@ -1,10 +1,3 @@
-import {
-  IContract,
-  RESOURCE_TYPE,
-  ITruck,
-  Nullable,
-  IWorldState,
-} from "@logisim/lib";
 import { loadNotificationConfig } from "../notifications";
 import {
   createCompanyEntity,
@@ -22,7 +15,14 @@ import {
   highlight,
   logWarning,
   logError,
-} from "@logisim/lib";
+} from "@logisim/lib/utils";
+import {
+  IWorldState,
+  RESOURCE_TYPE,
+  IContract,
+  Nullable,
+  ITruck,
+} from "@logisim/lib/entities";
 
 const notificationConfig = loadNotificationConfig();
 

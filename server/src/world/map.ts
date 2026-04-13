@@ -1,16 +1,16 @@
 import {
-  ICompanyEntity,
-  WorldEntityType,
   GEOGRAPHY_TYPE,
-  IGeographicEntity,
-  CONSUMER_TYPE,
-  IBaseLocation,
   LOCATION_TYPE,
-  IVehicle,
+  CONSUMER_TYPE,
   VEHICLE_TYPE,
   IWorldState,
-  Color,
-} from "@logisim/lib";
+  WorldEntityType,
+  IGeographicEntity,
+  IBaseLocation,
+  IVehicle,
+  ICompanyEntity,
+} from "@logisim/lib/entities";
+import { Color, highlight } from "@logisim/lib/utils";
 import { loadConfig } from "../utils/configUtils";
 import { getCompanyByIdOrNull } from "./companies";
 import { getContractByLocationIdOrNull } from "./contracts";
@@ -18,7 +18,6 @@ import { getWorldEntityByPositionOrNull } from "./entities";
 import { loadGeographyConfig } from "./geographies";
 import { loadTownConfig } from "./locations/consumers/towns";
 import { getLocationByIdOrNull } from "./locations/locations";
-import { highlight } from "@logisim/lib";
 
 interface IMapConfig {
   highlightArableLand: boolean;

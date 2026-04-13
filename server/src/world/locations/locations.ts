@@ -1,11 +1,3 @@
-import {
-  Nullable,
-  WorldEntityType,
-  IBaseLocation,
-  LOCATION_TYPE,
-  IRecipe,
-  RESOURCE_TYPE,
-} from "@logisim/lib";
 import { loadNotificationConfig } from "../../notifications";
 import {
   getContractByResource,
@@ -15,7 +7,6 @@ import {
   getContractByLocationIdOrNull,
 } from "../contracts";
 import { IWorld } from "../world";
-import { IWorldState } from "@logisim/lib";
 import {
   loadStorageConfig,
   createRecipeStorage,
@@ -24,12 +15,21 @@ import {
 import { loadConfig } from "../../utils/configUtils";
 import { createWorldEntity } from "../../entities";
 import {
+  IRecipe,
+  LOCATION_TYPE,
+  IBaseLocation,
+  WorldEntityType,
+  IWorldState,
+  Nullable,
+  RESOURCE_TYPE,
+} from "@logisim/lib/entities";
+import {
   highlight,
   logWarning,
   logInfo,
   logError,
   logSuccess,
-} from "@logisim/lib";
+} from "@logisim/lib/utils";
 
 interface ILocationConfig {
   baseSalePrice: number;

@@ -1,12 +1,3 @@
-import {
-  RESOURCE_TYPE,
-  StorageTransferResult,
-  WorldEntityType,
-  ITruck,
-  VEHICLE_TYPE,
-  IWorldState,
-  IContract,
-} from "@logisim/lib";
 import { loadNotificationConfig } from "../notifications";
 import {
   breakContract,
@@ -22,7 +13,16 @@ import {
 import { getLocationById, getLocationByIdOrNull } from "./locations/locations";
 import { createAndGetStorage, transferResources } from "./storages";
 import { loadConfig } from "../utils/configUtils";
-import { logSuccess, highlight, logInfo } from "@logisim/lib";
+import {
+  IWorldState,
+  RESOURCE_TYPE,
+  ITruck,
+  WorldEntityType,
+  VEHICLE_TYPE,
+  StorageTransferResult,
+  IContract,
+} from "@logisim/lib/entities";
+import { logSuccess, highlight, logInfo } from "@logisim/lib/utils";
 
 interface ITruckConfig {
   baseOperatingCost: number;

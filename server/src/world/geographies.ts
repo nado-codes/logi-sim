@@ -1,14 +1,14 @@
 import {
-  WorldEntityType,
   GEOGRAPHY_TYPE,
-  ICoastline,
   IGeographicEntity,
-  IMountain,
-  IResourceDeposit,
-  IWater,
-  RESOURCE_TYPE,
+  WorldEntityType,
   IWorldState,
-} from "@logisim/lib";
+  ICoastline,
+  IWater,
+  IMountain,
+  RESOURCE_TYPE,
+  IResourceDeposit,
+} from "@logisim/lib/entities";
 import { createWorldEntity } from "../entities";
 import { loadConfig } from "../utils/configUtils";
 

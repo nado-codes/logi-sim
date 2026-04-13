@@ -1,14 +1,4 @@
 import {
-  IContract,
-  IBaseLocation,
-  IRecipe,
-  RESOURCE_TYPE,
-  ITruck,
-  defaultCompanyOptions,
-  ICompany,
-  ICreateCompanyOptions,
-} from "@logisim/lib";
-import {
   assignContract,
   createContract,
   getContractByIdOrNull,
@@ -33,16 +23,6 @@ import {
   updateTrucks,
 } from "./trucks";
 import {
-  IWorldEntity,
-  Nullable,
-  Color,
-  IWorldState,
-  ICoastline,
-  IMountain,
-  IResourceDeposit,
-  IWater,
-} from "@logisim/lib";
-import {
   createCompany,
   getCompanyById,
   getCompanyByIdOrNull,
@@ -58,7 +38,24 @@ import {
 } from "./geographies";
 import { getMap } from "./map";
 import { getWorldEntityByPositionOrNull } from "./entities";
-import { IUserSession } from "../userSession";
+import {
+  Nullable,
+  IWorldEntity,
+  IContract,
+  ITruck,
+  IBaseLocation,
+  ICompany,
+  ICoastline,
+  IWater,
+  IMountain,
+  RESOURCE_TYPE,
+  IResourceDeposit,
+  ICreateCompanyOptions,
+  IRecipe,
+  IWorldState,
+  defaultCompanyOptions,
+} from "@logisim/lib/entities";
+import { Color } from "@logisim/lib/utils";
 
 export interface IWorld {
   advanceTick: () => void;

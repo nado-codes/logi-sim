@@ -1,7 +1,9 @@
-import { IBaseConsumer } from "@logisim/lib";
-import { LOCATION_TYPE } from "@logisim/lib";
-import { ResourceMap } from "@logisim/lib";
-import { IWorldState } from "@logisim/lib";
+import {
+  ResourceMap,
+  LOCATION_TYPE,
+  IWorldState,
+  IBaseConsumer,
+} from "@logisim/lib/entities";
 import { processRecipe } from "../../storages";
 import { createBaseLocation, checkInputStorage } from "../locations";
 

@@ -1,10 +1,10 @@
-import { randomUUID } from "crypto";
 import {
   IBaseEntity,
   INamedEntity,
-  IWorldEntity,
   WorldEntityType,
-} from "@logisim/lib";
+  IWorldEntity,
+} from "@logisim/lib/entities";
+import { randomUUID } from "crypto";
 
 export const generateId = () => randomUUID();
 

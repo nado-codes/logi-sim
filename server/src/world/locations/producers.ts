@@ -1,14 +1,18 @@
-import { LOCATION_TYPE, IRecipe, RESOURCE_TYPE } from "@logisim/lib";
 import { loadNotificationConfig } from "../../notifications";
 import { createBaseLocation } from "./locations";
-import { IWorldState } from "@logisim/lib";
 import {
   getOutputStorage,
   getResourceCapacity,
   getResourceCount,
   processRecipe,
 } from "../storages";
-import { logWarning, logSuccess, logError, logInfo } from "@logisim/lib";
+import {
+  IWorldState,
+  RESOURCE_TYPE,
+  IRecipe,
+  LOCATION_TYPE,
+} from "@logisim/lib/entities";
+import { logWarning, logSuccess, logError, logInfo } from "@logisim/lib/utils";
 
 const notificationConfig = loadNotificationConfig();
 

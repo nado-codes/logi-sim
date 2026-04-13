@@ -1,14 +1,14 @@
-import {
-  ITown,
-  LOCATION_TYPE,
-  RESOURCE_TYPE,
-  ResourceMap,
-  IWorldState,
-  clamp,
-} from "@logisim/lib";
 import { createBaseConsumer, updateBaseConsumer } from "./consumers";
 import { loadConfig } from "../../../utils/configUtils";
 import { getInputStorage, loadStorageConfig } from "../../storages";
+import {
+  IWorldState,
+  ResourceMap,
+  LOCATION_TYPE,
+  ITown,
+  RESOURCE_TYPE,
+} from "@logisim/lib/entities";
+import { clamp } from "@logisim/lib/utils";
 
 interface ITownConfig {
   populationGrowthThreshold: number;

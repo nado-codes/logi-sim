@@ -2,13 +2,12 @@ import {
   RESOURCE_TYPE,
   IStorage,
   IRecipe,
-  StorageTransferResult,
   IWorldState,
-  clamp,
-} from "@logisim/lib";
+  StorageTransferResult,
+} from "@logisim/lib/entities";
+import { clamp, logInfo, logWarning, logSuccess } from "@logisim/lib/utils";
 import { loadNotificationConfig } from "../notifications";
 import { loadConfig } from "../utils/configUtils";
-import { logInfo, logWarning, logSuccess } from "@logisim/lib";
 
 const notificationConfig = loadNotificationConfig();
 

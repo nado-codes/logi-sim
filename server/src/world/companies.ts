@@ -1,13 +1,3 @@
-import {
-  defaultCompanyOptions,
-  ICompanyEntity,
-  ICreateCompanyOptions,
-  ICompany,
-  IWorldState,
-  GEOGRAPHY_TYPE,
-  Color,
-  sum,
-} from "@logisim/lib";
 import { createBaseEntity, createNamedEntity } from "../entities";
 import { loadGeographyConfig } from "./geographies";
 import { world } from "..";
@@ -18,7 +8,22 @@ import { getLocationById } from "./locations/locations";
 import { assignContract } from "./contracts";
 import { loadTruckConfig } from "./trucks";
 import { loadConfig } from "../utils/configUtils";
-import { logSuccess, highlight, logInfo, logWarning } from "@logisim/lib";
+import {
+  IWorldState,
+  ICreateCompanyOptions,
+  ICompany,
+  defaultCompanyOptions,
+  ICompanyEntity,
+  GEOGRAPHY_TYPE,
+} from "@logisim/lib/entities";
+import {
+  Color,
+  logSuccess,
+  highlight,
+  logInfo,
+  logWarning,
+  sum,
+} from "@logisim/lib/utils";
 
 const geographyConfig = loadGeographyConfig();
 const notificationConfig = loadNotificationConfig();
