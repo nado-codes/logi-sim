@@ -23,12 +23,7 @@ const main = async () => {
 
     console.log("fetched player company:", playerCompanyResp.data);
 
-    const menu = createMenu(
-      () => {
-        menu.show();
-      },
-      { companyId: playerCompany.id },
-    );
+    const menu = createMenu(() => {}, { companyId: playerCompany.id });
     menu.show();
   } catch (error) {
     console.error(error);

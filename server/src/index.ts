@@ -128,4 +128,4 @@ while (world.getCurrentTick() < simTarget) {
 
 const api = logisimApi(world);
 api.start();
-setInterval(update, 1000);
+setInterval(update, 100);

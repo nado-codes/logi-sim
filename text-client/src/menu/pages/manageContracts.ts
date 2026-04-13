@@ -206,7 +206,7 @@ export const createManageContractsPage = (
 
         console.log(`\nAvailable contracts: ${availableContracts.length}`);
         availableContracts.forEach((c: any, i: number) => {
-          console.log(` - [${i}] Contract ${c.id}`);
+          console.log(` - [${i}] Contract ${highlight.yellow(c.id)}`);
         });
 
         const availableTrucks = trucks.filter(

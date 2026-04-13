@@ -141,7 +141,7 @@ export const createMenu = (callback: () => void, userSession: IUserSession) => {
     const rivalCompanies = (await axios.get(`${apiBaseUrl}/world/companies`))
       .data;
     rivalCompanies
-      .filter((c: any) => c !== playerCompany && !c.options.isGovernment)
+      .filter((c: any) => c.id !== playerCompany.id && !c.options.isGovernment)
       .forEach((c: any) => {
         const companyString = `Name: ${highlight.yellow(c.name)} | Money: ${highlight.yellow(c.money + "")}`;
         console.log(` - ${companyString}`);
