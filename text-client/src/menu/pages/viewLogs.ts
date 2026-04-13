@@ -1,6 +1,6 @@
 import { createMenuPage, IMenuPage } from "../menu";
 
-import { highlight, logEntries } from "../../../../lib/utils/logUtils";
+import { highlight, logEntries } from "../../../../lib/src/utils/logUtils";
 
 export const createViewLogsPage = (): IMenuPage => {
   return createMenuPage("Logs", false, [], () => {

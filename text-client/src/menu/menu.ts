@@ -5,7 +5,7 @@ import { createViewLogsPage } from "./pages/viewLogs";
 import { createManageContractsPage } from "./pages/manageContracts";
 import { getCompanyString } from "../../../server/src/world/companies";
 import { createManageLocationsPage } from "./pages/manageLocations";
-import { highlight } from "../../../lib/utils/logUtils";
+import { highlight } from "../../../lib/src/utils/logUtils";
 import { createManageTrucksPage } from "./pages/manageTrucks";
 import { IUserSession } from "../../../server/src/userSession";
 import { createManageCompaniesPage } from "./pages/manageCompanies";

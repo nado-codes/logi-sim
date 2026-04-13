@@ -1,7 +1,7 @@
 import { ITown } from "../../../../server/src/entities/locations/consumer";
 import { LOCATION_TYPE } from "../../../../server/src/entities/locations/location";
 import { RESOURCE_TYPE } from "../../../../server/src/entities/storage";
-import { highlight, logSuccess } from "../../../../lib/utils/logUtils";
+import { highlight, logSuccess } from "../../../../lib/src/utils/logUtils";
 import {
   transferCompanyFundsToState,
   COMPANY_OP_RESULT,

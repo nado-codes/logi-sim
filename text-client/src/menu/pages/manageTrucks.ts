@@ -5,7 +5,7 @@ import {
   highlight,
   logSuccess,
   logWarning,
-} from "../../../../lib/utils/logUtils";
+} from "../../../../lib/src/utils/logUtils";
 import {
   COMPANY_OP_RESULT,
   transferCompanyFundsFromState,

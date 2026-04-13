@@ -1,5 +1,5 @@
-import { highlight, logWarning } from "../../../../lib/utils/logUtils";
-import { sum } from "../../../../lib/utils/mathUtils";
+import { highlight, logWarning } from "../../../../lib/src/utils/logUtils";
+import { sum } from "../../../../lib/src/utils/mathUtils";
 import { createMenuPage, IMenuPage, logMenuError } from "../menu";
 import { createEntitySelectorAction } from "../menuAction";
 

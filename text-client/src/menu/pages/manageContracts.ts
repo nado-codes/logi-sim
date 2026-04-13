@@ -1,4 +1,4 @@
-import { highlight } from "../../../../lib/utils/logUtils";
+import { highlight } from "../../../../lib/src/utils/logUtils";
 import { IWorld } from "../../../../server/src/world/world";
 import {
   IMenuPage,
