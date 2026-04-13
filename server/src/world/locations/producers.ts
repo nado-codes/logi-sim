@@ -8,12 +8,7 @@ import {
   getResourceCount,
   processRecipe,
 } from "../storages";
-import {
-  logWarning,
-  logSuccess,
-  logError,
-  logInfo,
-} from "@logisim/lib/src/utils/logUtils";
+import { logWarning, logSuccess, logError, logInfo } from "@logisim/lib";
 
 const notificationConfig = loadNotificationConfig();
 

@@ -18,12 +18,7 @@ import { getLocationById } from "./locations/locations";
 import { assignContract } from "./contracts";
 import { loadTruckConfig } from "./trucks";
 import { loadConfig } from "../utils/configUtils";
-import {
-  logSuccess,
-  highlight,
-  logInfo,
-  logWarning,
-} from "@logisim/lib/src/utils/logUtils";
+import { logSuccess, highlight, logInfo, logWarning } from "@logisim/lib";
 
 const geographyConfig = loadGeographyConfig();
 const notificationConfig = loadNotificationConfig();

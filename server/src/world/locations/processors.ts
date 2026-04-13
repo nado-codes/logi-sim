@@ -3,7 +3,7 @@ import { createBaseLocation, checkInputStorage } from "./locations";
 import { loadNotificationConfig } from "../../notifications";
 import { IWorldState } from "@logisim/lib";
 import { getOutputStorage, getInputStorage, processRecipe } from "../storages";
-import { logWarning, logSuccess } from "@logisim/lib/src/utils/logUtils";
+import { logWarning, logSuccess } from "@logisim/lib";
 
 const notificationConfig = loadNotificationConfig();
 

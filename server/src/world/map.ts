@@ -18,7 +18,7 @@ import { getWorldEntityByPositionOrNull } from "./entities";
 import { loadGeographyConfig } from "./geographies";
 import { loadTownConfig } from "./locations/consumers/towns";
 import { getLocationByIdOrNull } from "./locations/locations";
-import { highlight } from "@logisim/lib/src/utils/logUtils";
+import { highlight } from "@logisim/lib";
 
 interface IMapConfig {
   highlightArableLand: boolean;

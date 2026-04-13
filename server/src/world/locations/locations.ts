@@ -29,7 +29,7 @@ import {
   logInfo,
   logError,
   logSuccess,
-} from "@logisim/lib/src/utils/logUtils";
+} from "@logisim/lib";
 
 interface ILocationConfig {
   baseSalePrice: number;

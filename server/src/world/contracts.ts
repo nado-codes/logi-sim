@@ -22,7 +22,7 @@ import {
   highlight,
   logWarning,
   logError,
-} from "@logisim/lib/src/utils/logUtils";
+} from "@logisim/lib";
 
 const notificationConfig = loadNotificationConfig();
 
