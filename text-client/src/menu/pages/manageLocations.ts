@@ -479,7 +479,7 @@ export const createManageLocationsPage = (
 
             console.log(`\nAvailable industries: ${allIndustries.length}`);
             allIndustries.forEach((l: any, i: number) => {
-              const locationString = `${l.name} at position ${l.position}`;
+              const locationString = `${highlight.yellow(l.name)} at position ${highlight.yellow(l.position)}`;
               console.log(` - [${i}] ${locationString}`);
             });
           },
@@ -507,7 +507,7 @@ export const createManageLocationsPage = (
 
         console.log(`\nAvailable locations: ${locations.length}`);
         locations.forEach((l: any, i: number) => {
-          const locationString = `${l.name} at position ${l.position}`;
+          const locationString = `${highlight.yellow(l.name)} at position ${highlight.yellow(l.position)}`;
           console.log(` - [${i}] ${locationString}`);
         });
       } catch (error) {

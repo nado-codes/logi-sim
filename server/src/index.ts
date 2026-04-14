@@ -86,13 +86,14 @@ world.createTruck(
   2,
 );
 
-const simTarget = 500;
+const simTarget = 400;
 const checkpointFactor = simTarget / 10;
 
 const update = () => {
-  /*console.log(
-    `Updated world at ${Date.now()}ms (World Tick: ${world.getCurrentTick()})`,
-  );*/ //
+  console.log(
+    "Updated world state for tick ",
+    highlight.yellow(world.getCurrentTick()),
+  );
   world.advanceTick();
 
   world.updateCompanies();
@@ -174,4 +175,4 @@ while (world.getCurrentTick() < simTarget) {
 
 const api = logisimApi(world);
 api.start();
-//setInterval(update, 100);
+setInterval(update, 500);

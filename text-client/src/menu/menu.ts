@@ -107,6 +107,7 @@ export const createMenu = (callback: () => void, userSession: IUserSession) => {
   const renderPrevPage = async () => {
     const prevPageIndex = navHistory.findIndex((p) => p === activePage) - 1;
     activePage = navHistory[prevPageIndex];
+    navHistory.pop();
 
     if (activePage === mainMenu) {
       navHistory = [mainMenu];

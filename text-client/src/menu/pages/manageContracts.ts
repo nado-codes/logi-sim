@@ -141,7 +141,7 @@ export const createManageContractsPage = (
               const distance = contractDistance + supplierOwnerDistance;
               const distanceString = `Total Distance: ${highlight.yellow(distance + " units")}`;
 
-              const truckString = `Truck ${t.id} | ${distanceString}`;
+              const truckString = `Truck ${highlight.yellow(t.id)} | ${distanceString}`;
 
               console.log(
                 `${t.storage.resourceType === contract.resourceType ? `- [${i}] ${truckString}` : `- ${highlight.red(`[${i}] ${truckString}`)}`}`,
@@ -180,7 +180,7 @@ export const createManageContractsPage = (
 
         console.log(`\nContracts in progress: ${contractsInProgress.length}`);
         contractsInProgress.forEach((c: any, i: number) => {
-          console.log(` - [${i}] Contract ${c.id}`);
+          console.log(` - [${i}] Contract ${highlight.yellow(c.id)}`);
         });
       } catch (error) {
         console.log(highlight.error(`Failed to load contracts: ${error}`));
