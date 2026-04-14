@@ -1,7 +1,18 @@
 import { createWorld } from "./world/world";
 import { logisimApi } from "./api";
-import { RESOURCE_TYPE } from "@logisim/lib/entities";
-import { logInfo, Color, highlight, logError } from "@logisim/lib/utils";
+import { ITown, LOCATION_TYPE, RESOURCE_TYPE } from "@logisim/lib/entities";
+import {
+  logInfo,
+  Color,
+  highlight,
+  logError,
+  logSuccess,
+} from "@logisim/lib/utils";
+import {
+  getResourceCapacity,
+  getResourceCount,
+  getResourceStorage,
+} from "./world/storages";
 
 // .. CREATE
 
@@ -75,11 +86,13 @@ world.createTruck(
   2,
 );
 
-const simTarget = 0;
+const simTarget = 500;
 const checkpointFactor = simTarget / 10;
 
 const update = () => {
-  console.log("Updated world at ", Date.now());
+  /*console.log(
+    `Updated world at ${Date.now()}ms (World Tick: ${world.getCurrentTick()})`,
+  );*/ //
   world.advanceTick();
 
   world.updateCompanies();
@@ -114,18 +127,51 @@ if (simTarget > 0) {
   console.log(highlight.cyan(`Simulating...`));
 }
 
+let popStrikes = 0;
+const popStrikeLimit = 50;
+const popThreshold = 30;
+
 while (world.getCurrentTick() < simTarget) {
   trySnapshot();
   update();
 
-  if (playerCompany.money < 0) {
-    logError(
-      `[SYSTEM] Exiting auto-sim early because the player company ran out of money`,
+  const towns = world
+    .getLocations()
+    .filter((l) => l.locationType === LOCATION_TYPE.Town)
+    .map((t) => t as ITown);
+
+  function mean<T extends number>(arr: T[]) {
+    return arr.reduce((a, c) => a + c, 0) / arr.length;
+  }
+
+  if (towns.some((t) => t.population < popThreshold)) {
+    console.log(" - avg pop: ", mean(towns.map((t) => t.population)));
+    console.log(" - avg confidence: ", mean(towns.map((t) => t.confidence)));
+    const avgFlourStored = mean(
+      towns.map((t) => getResourceCount(RESOURCE_TYPE.Flour, t.storage)),
     );
-    break;
+    const avgFlourCapacity = mean(
+      towns.map((t) => getResourceCapacity(RESOURCE_TYPE.Flour, t.storage)),
+    );
+    console.log(
+      ` - avg flour: ${avgFlourStored}/${avgFlourCapacity} (${(avgFlourStored / avgFlourCapacity) * 100}%)`,
+    );
+    if (popStrikes < popStrikeLimit) {
+      popStrikes++;
+    } else {
+      logError(
+        `[SYSTEM] Exiting sim at tick ${world.getCurrentTick()} because a town had less than 50 pop for more than ${popStrikeLimit} ticks`,
+      );
+      break;
+    }
+  } else {
+    if (popStrikes > 0) {
+      popStrikes--;
+    }
+    //logSuccess(`[SYSTEM] Towns are all good`);
   }
 }
 
 const api = logisimApi(world);
 api.start();
-setInterval(update, 100);
+//setInterval(update, 100);

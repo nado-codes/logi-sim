@@ -23,7 +23,7 @@
     }
   },
   "scripts": {
-    "clean": "rmdir /s /q dist 2>nul || true",
+    "clean": "if exist dist rmdir /s /q dist",
     "build": "npm run clean && tsc",
     "build:watch": "npm run clean && tsc --watch"
   },
