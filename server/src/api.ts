@@ -4,6 +4,7 @@ import {
   transferCompanyFundsToState,
   transferCompanyFundsFromState,
 } from "./world/companies";
+import { ITown, LOCATION_TYPE } from "@logisim/lib/entities";
 
 export const logisimApi = (world: IWorld) => {
   const app = express();
@@ -208,6 +209,26 @@ export const logisimApi = (world: IWorld) => {
         res.send({ success: true });
       } catch (error) {
         res.status(400).send({ error: "Failed to delete location" });
+      }
+    });
+
+    app.post("/api/town/reseed", (req, res) => {
+      try {
+        const { locationId } = req.body;
+        const location = world.getLocationById(locationId);
+
+        if (location.locationType !== LOCATION_TYPE.Town) {
+          res.status(400).send({ error: "Location is not a town" });
+          return;
+        }
+
+        world.reseedTown(location as ITown);
+        res.send({ success: true });
+      } catch (error) {
+        const err = error as Error;
+        res
+          .status(400)
+          .send({ error: `Failed to reseed town: ${err.message}` });
       }
     });
 

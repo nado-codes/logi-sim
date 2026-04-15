@@ -29,7 +29,11 @@ import {
   getCompanyByName,
   updateCompanies,
 } from "./companies";
-import { createTown, updateTowns } from "./locations/consumers/towns";
+import {
+  createTown,
+  reseedTown,
+  updateTowns,
+} from "./locations/consumers/towns";
 import {
   createCoastline,
   createMountain,
@@ -54,6 +58,7 @@ import {
   IRecipe,
   IWorldState,
   defaultCompanyOptions,
+  ITown,
 } from "@logisim/lib/entities";
 import { Color } from "@logisim/lib/utils";
 
@@ -155,6 +160,7 @@ export interface IWorld {
   ) => void;
 
   assignContract: (contract: IContract, truck: ITruck) => boolean;
+  reseedTown: (town: ITown) => void;
 
   deleteTruck: (truck: ITruck) => void;
   deleteLocation: (location: IBaseLocation) => void;
@@ -274,12 +280,8 @@ export const createWorld = (): IWorld => {
         startWithFullOutputs,
       ),
 
-    createTown: (
-      name: string,
-      companyId: string,
-      position: number,
-      startFull: boolean = false,
-    ) => createTown(state, name, companyId, position, startFull),
+    createTown: (name: string, companyId: string, position: number) =>
+      createTown(state, name, companyId, position),
 
     createContract: (
       companyId: string,
@@ -321,6 +323,9 @@ export const createWorld = (): IWorld => {
 
     assignContract: (contract: IContract, truck: ITruck) =>
       assignContract(state, contract, truck),
+    reseedTown: (town: ITown) => {
+      reseedTown(town);
+    },
 
     deleteTruck: (truck: ITruck) => deleteTruck(state, truck),
     deleteLocation: (location: IBaseLocation) =>

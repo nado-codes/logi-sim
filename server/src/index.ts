@@ -40,7 +40,7 @@ world.createWater(40);
 //world.createMountain(30, 5, 10);
 //world.createResourceDeposit(35, RESOURCE_TYPE.Grain);
 
-world.createProducer("Farm", stateCompany.id, 20, RESOURCE_TYPE.Grain, 25);
+world.createProducer("Farm", stateCompany.id, 10, RESOURCE_TYPE.Grain, 25);
 world.createProcessor("Flour Mill", stateCompany.id, 25, {
   inputs: {
     [RESOURCE_TYPE.Grain]: 6,
@@ -55,7 +55,7 @@ world.createTruck(
   playerCompany.id,
   RESOURCE_TYPE.Grain,
   1000000,
-  0,
+  10,
   2,
 );
 world.createTruck(
@@ -86,7 +86,7 @@ world.createTruck(
   2,
 );
 
-const simTarget = 400;
+const simTarget = 100;
 const checkpointFactor = simTarget / 10;
 
 const update = () => {

@@ -9,6 +9,7 @@ import {
   RESOURCE_TYPE,
 } from "@logisim/lib/entities";
 import { clamp } from "@logisim/lib/utils";
+import { get } from "node:http";
 
 interface ITownConfig {
   populationGrowthThreshold: number;
@@ -66,7 +67,6 @@ export const createTown = (
   name: string,
   companyId: string,
   position: number,
-  startFull: boolean = false,
 ) => {
   // .. tier to be used to determine what resources are demanded
 
@@ -79,7 +79,6 @@ export const createTown = (
     locationType: LOCATION_TYPE.Town,
     confidence: townConfig.baselineConfidence,
     population: townConfig.baselinePopulation,
-    migrationOffset: 0,
   };
 
   state.towns.push(newTown);
@@ -160,6 +159,27 @@ const updateTownPopulation = (town: ITown) => {
         newConsumptionRate * storageConfig.recipeBufferStorageMultiplier;
       s.resourceCapacity = Math.max(s.resourceCount, newStorageCapacity);
     });
+  });
+};
+
+export const reseedTown = (town: ITown) => {
+  town.confidence = townConfig.baselineConfidence;
+  town.population = townConfig.baselinePopulation;
+
+  const townInputs: ResourceMap = town.recipe.inputs ?? {};
+  (Object.keys(townInputs ?? {}) as RESOURCE_TYPE[]).forEach((resourceType) => {
+    townInputs[resourceType] = Math.max(
+      1,
+      Math.round(town.population / townConfig.ptrRatio),
+    );
+  });
+
+  const townInputStorage = getInputStorage(town.recipe, town.storage);
+  townInputStorage.forEach((s) => {
+    s.resourceCount = 0;
+    s.resourceCapacity =
+      (town.population / townConfig.ptrRatio) *
+      storageConfig.recipeBufferStorageMultiplier;
   });
 };
 
