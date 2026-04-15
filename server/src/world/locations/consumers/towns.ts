@@ -72,6 +72,7 @@ export const createTown = (
 
   const consumes: ResourceMap = {
     Flour: townConfig.baselinePopulation / townConfig.ptrRatio,
+    Bread: (townConfig.baselinePopulation / townConfig.ptrRatio) * 0.5, // .. town consumes half as much bread as flour
   };
 
   const newTown = {

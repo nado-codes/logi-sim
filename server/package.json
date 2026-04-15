@@ -4,7 +4,7 @@
   "description": "A text-based logistics simulator grounded in reality, and implements real market demand and freight transport mechanics",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon --watch src --ext ts,json --exec ts-node src/index.ts",
+    "dev": "nodemon --watch src,config --ext ts,json --exec ts-node src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js"
   },

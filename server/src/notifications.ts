@@ -8,6 +8,12 @@ type TruckNotifications = {
   costs: boolean;
 };
 
+type CompanyNotifications = {
+  all: boolean;
+  government: boolean;
+  ai: boolean;
+};
+
 export interface INotificationConfig {
   logStorageNotifications: boolean;
   logProcessorNotifications: boolean;
@@ -17,7 +23,7 @@ export interface INotificationConfig {
   logTruckNotifications: TruckNotifications;
   logProductionNotifications: boolean;
   logLocationNotifications: boolean;
-  logCompanyNotifications: boolean;
+  logCompanyNotifications: CompanyNotifications;
   printLogs: boolean;
 }
 
@@ -36,7 +42,11 @@ const defaultConfig: INotificationConfig = {
   },
   logProductionNotifications: false,
   logLocationNotifications: false,
-  logCompanyNotifications: false,
+  logCompanyNotifications: {
+    all: false,
+    government: false,
+    ai: false,
+  },
   printLogs: false,
 };
 

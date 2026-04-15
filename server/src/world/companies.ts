@@ -64,7 +64,7 @@ export const createCompany = (
     options: { ...defaultCompanyOptions, ...options },
   };
 
-  if (notificationConfig.logCompanyNotifications) {
+  if (notificationConfig.logCompanyNotifications.all) {
     logSuccess(
       `Created a Company ${highlight.yellow(JSON.stringify(newCompany))}`,
     );
@@ -134,7 +134,7 @@ export const transferCompanyFunds = (
         ? `${highlight.yellow("$" + fromCompany.money)}`
         : `${highlight.red("$" + fromCompany.money)}`;
 
-    if (notificationConfig.logCompanyNotifications) {
+    if (notificationConfig.logCompanyNotifications.all) {
       logInfo(`${transferString} and has ${moneyString} left`);
     }
 
@@ -159,7 +159,7 @@ export const transferCompanyFundsToState = (
         ? `${highlight.yellow("$" + fromCompany.money)}`
         : `${highlight.red("$" + fromCompany.money)}`;
 
-    if (notificationConfig.logCompanyNotifications) {
+    if (notificationConfig.logCompanyNotifications.all) {
       logInfo(`${transferString} and has ${moneyString} left`);
     }
 
@@ -181,13 +181,16 @@ export const transferCompanyFundsFromState = (
       ? `${highlight.yellow("$" + toCompany.money)}`
       : `${highlight.red("$" + toCompany.money)}`;
 
-  if (notificationConfig.logCompanyNotifications) {
+  if (notificationConfig.logCompanyNotifications.all) {
     logInfo(`${transferString} and now has ${moneyString}`);
   }
 };
 
 const tryCreateTown = (state: IWorldState, company: ICompany) => {
-  if (notificationConfig.logCompanyNotifications) {
+  if (
+    notificationConfig.logCompanyNotifications.all ||
+    notificationConfig.logCompanyNotifications.government
+  ) {
     logInfo(`[COMPANY] Trying to create a town...`);
   }
 
@@ -199,7 +202,10 @@ const tryCreateTown = (state: IWorldState, company: ICompany) => {
         townConfig.townCatchmentRadius * 2,
     )
   ) {
-    if (notificationConfig.logCompanyNotifications) {
+    if (
+      notificationConfig.logCompanyNotifications.all ||
+      notificationConfig.logCompanyNotifications.government
+    ) {
       logWarning(
         `[COMPANY] Existing towns not at capacity yet - skipping town creation`,
       );
@@ -211,7 +217,11 @@ const tryCreateTown = (state: IWorldState, company: ICompany) => {
     (g) => g.geographyType === GEOGRAPHY_TYPE.Water,
   );
 
-  if (allWater.length === 0 && notificationConfig.logCompanyNotifications) {
+  if (
+    allWater.length === 0 &&
+    (notificationConfig.logCompanyNotifications.all ||
+      notificationConfig.logCompanyNotifications.government)
+  ) {
     logWarning(`[COMPANY] No water found - skipping town creation`);
     return;
   }
@@ -237,17 +247,39 @@ const tryCreateTown = (state: IWorldState, company: ICompany) => {
   if (spawnPos) {
     world.createTown(`Town ${randomUUID()}`, company.id, spawnPos, true);
 
-    if (notificationConfig.logCompanyNotifications) {
+    if (
+      notificationConfig.logCompanyNotifications.all ||
+      notificationConfig.logCompanyNotifications.government
+    ) {
       logSuccess(`[COMPANY] Created town`);
     }
-  } else if (notificationConfig.logCompanyNotifications) {
+  } else if (
+    notificationConfig.logCompanyNotifications.all ||
+    notificationConfig.logCompanyNotifications.government
+  ) {
     logWarning(`[COMPANY] Unable to create town - no suitable position`);
   }
 };
 
 const tryDispatchTrucks = (state: IWorldState, company: ICompany) => {
   const dispatch = Math.random();
+
+  if (
+    notificationConfig.logCompanyNotifications.all ||
+    notificationConfig.logCompanyNotifications.ai
+  ) {
+    logInfo(
+      `[COMPANY] ${company.name} is trying to dispatch trucks with a dispatch chance of ${companyConfig.aiConfig.dispatchChance}...`,
+    );
+  }
+
   if (dispatch > companyConfig.aiConfig.dispatchChance) {
+    if (
+      notificationConfig.logCompanyNotifications.all ||
+      notificationConfig.logCompanyNotifications.ai
+    ) {
+      logInfo(`- Decided not to dispatch trucks this tick (roll: ${dispatch})`);
+    }
     return;
   }
 
@@ -269,12 +301,34 @@ const tryDispatchTrucks = (state: IWorldState, company: ICompany) => {
   let currentCompanyPayables = sum(commitmentsLedger.map((l) => l.totalCost));
 
   const availableContracts = state.contracts.filter((c) => !c.truckId);
+
+  if (
+    notificationConfig.logCompanyNotifications.all ||
+    notificationConfig.logCompanyNotifications.ai
+  ) {
+    if (availableContracts.length === 0) {
+      logWarning(`- No available contracts to consider for dispatching trucks`);
+    } else {
+      logInfo(
+        `- Found ${availableContracts.length} available contracts to consider for dispatching trucks...`,
+      );
+    }
+  }
+
   availableContracts.forEach((c) => {
     const supplier = getLocationById(state, c.supplierId);
     const validIdleTrucks = companyTrucks.filter(
       (t) => t.storage.resourceType === c.resourceType && !t.contractId,
     );
     if (validIdleTrucks.length === 0) {
+      if (
+        notificationConfig.logCompanyNotifications.all ||
+        notificationConfig.logCompanyNotifications.ai
+      ) {
+        logWarning(
+          `- No valid idle trucks available for contract ${c.id} (requires resource type ${c.resourceType})`,
+        );
+      }
       return;
     }
 
@@ -297,17 +351,35 @@ const tryDispatchTrucks = (state: IWorldState, company: ICompany) => {
     const updatedRecievables = currentCompanyReceivables + c.payment;
 
     if (updatedCompanyPayables > updatedRecievables + company.money) {
+      if (
+        notificationConfig.logCompanyNotifications.all ||
+        notificationConfig.logCompanyNotifications.ai
+      ) {
+        logWarning(
+          `- Dispatching truck ${nearestTruck.name} for contract ${c.id} would not be profitable (current receivables: ${currentCompanyReceivables}, current payables: ${currentCompanyPayables}, contract payment: ${c.payment}, contract cost: ${contractDeliveryCost}, company money: ${company.money}) - skipping`,
+        );
+      }
       return;
     }
 
     assignContract(state, c, nearestTruck);
+
+    if (
+      notificationConfig.logCompanyNotifications.all ||
+      notificationConfig.logCompanyNotifications.ai
+    ) {
+      logInfo(
+        `- Dispatching truck ${nearestTruck.name} for contract ${c.id} (contract payment: ${c.payment}, contract cost: ${contractDeliveryCost})`,
+      );
+    }
+
     currentCompanyReceivables = updatedRecievables;
     currentCompanyPayables = updatedCompanyPayables;
   });
 };
 
 export const updateCompanies = (state: IWorldState) => {
-  if (notificationConfig.logCompanyNotifications) {
+  if (notificationConfig.logCompanyNotifications.all) {
     logInfo(`Updating companies...`);
   }
   state.companies.forEach((company) => {
@@ -316,13 +388,19 @@ export const updateCompanies = (state: IWorldState) => {
     }
 
     if (!company.options.isAiEnabled) {
-      if (notificationConfig.logCompanyNotifications) {
+      if (
+        notificationConfig.logCompanyNotifications.all ||
+        notificationConfig.logCompanyNotifications.ai
+      ) {
         logWarning(`[COMPANY] AI behaviour for ${company.name} not enabled`);
       }
       return;
     }
 
-    if (notificationConfig.logCompanyNotifications) {
+    if (
+      notificationConfig.logCompanyNotifications.all ||
+      notificationConfig.logCompanyNotifications.ai
+    ) {
       logInfo(`[COMPANY] Running AI behaviour for ${company.name}...`);
     }
 

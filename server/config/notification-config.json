@@ -13,6 +13,10 @@
   },
   "logProductionNotifications": false,
   "logLocationNotifications": false,
-  "logCompanyNotifications": false,
+  "logCompanyNotifications": {
+    "all": false,
+    "government": false,
+    "ai": false
+  },
   "printLogs": true
 }

@@ -7,12 +7,15 @@ import {
   highlight,
   logError,
   logSuccess,
+  sum,
 } from "@logisim/lib/utils";
 import {
   getResourceCapacity,
   getResourceCount,
   getResourceStorage,
 } from "./world/storages";
+import { getLocationById } from "./world/locations/locations";
+import { loadTruckConfig } from "./world/trucks";
 
 // .. CREATE
 
@@ -31,14 +34,20 @@ const playerCompany = world.createCompany(
   100000,
   Color.Cyan,
 );
-const competitorCompany = world.createCompany("RivalCo", 1000, Color.Red, {
+const competitorCompany = world.createCompany("RivalCo", 100000, Color.Red, {
   isAiEnabled: true,
 });
+const competitorCompany2 = world.createCompany(
+  "Disruptor Inc",
+  100000,
+  Color.Yellow,
+  {
+    isAiEnabled: true,
+  },
+);
 
 world.createCoastline(0);
-world.createWater(40);
-//world.createMountain(30, 5, 10);
-//world.createResourceDeposit(35, RESOURCE_TYPE.Grain);
+world.createWater(60);
 
 world.createProducer("Farm", stateCompany.id, 10, RESOURCE_TYPE.Grain, 25);
 world.createProcessor("Flour Mill", stateCompany.id, 25, {
@@ -48,6 +57,14 @@ world.createProcessor("Flour Mill", stateCompany.id, 25, {
   outputs: {
     [RESOURCE_TYPE.Flour]: 300,
   }, //
+});
+world.createProcessor("Bakery", stateCompany.id, 45, {
+  inputs: {
+    [RESOURCE_TYPE.Flour]: 6,
+  },
+  outputs: {
+    [RESOURCE_TYPE.Bread]: 30,
+  },
 });
 
 world.createTruck(
@@ -67,8 +84,7 @@ world.createTruck(
   2,
 );
 
-// .. TODO: disable per-truck contract acceptance and instead create "dispatcher" behaviour at company
-// level to auto-assign trucks to applicable contracts
+// .. RivalCo trucks
 world.createTruck(
   "Truck 3",
   competitorCompany.id,
@@ -85,15 +101,67 @@ world.createTruck(
   15,
   2,
 );
+world.createTruck(
+  "Truck 5",
+  competitorCompany.id,
+  RESOURCE_TYPE.Bread,
+  1000000,
+  15,
+  2,
+);
+world.createTruck(
+  "Truck 6",
+  competitorCompany.id,
+  RESOURCE_TYPE.Grain,
+  1000000,
+  15,
+  2,
+);
 
-const simTarget = 100;
+// .. Disruptor Inc trucks
+world.createTruck(
+  "Truck 7",
+  competitorCompany2.id,
+  RESOURCE_TYPE.Grain,
+  1000000,
+  15,
+  2,
+);
+world.createTruck(
+  "Truck 8",
+  competitorCompany2.id,
+  RESOURCE_TYPE.Flour,
+  1000000,
+  15,
+  2,
+);
+world.createTruck(
+  "Truck 9",
+  competitorCompany2.id,
+  RESOURCE_TYPE.Bread,
+  1000000,
+  15,
+  2,
+);
+world.createTruck(
+  "Truck 10",
+  competitorCompany2.id,
+  RESOURCE_TYPE.Grain,
+  1000000,
+  15,
+  2,
+);
+
+const simTarget = 0;
 const checkpointFactor = simTarget / 10;
 
 const update = () => {
-  console.log(
-    "Updated world state for tick ",
-    highlight.yellow(world.getCurrentTick()),
-  );
+  if (world.getCurrentTick() >= simTarget) {
+    console.log(
+      "Updated world state for tick ",
+      highlight.yellow(world.getCurrentTick()),
+    );
+  }
   world.advanceTick();
 
   world.updateCompanies();
@@ -121,22 +189,32 @@ const trySnapshot = () => {
     `- Tick ${highlight.yellow(world.getCurrentTick() + "/" + simTarget) + `(${Math.round((world.getCurrentTick() / simTarget) * 100)}%)`} [${lastSnapshotDuration.getMilliseconds() + "ms"}]`,
   );
 
-  lastSnapshot = Date.now();
-};
+  console.log(` - Company Stats: `);
+  world.getCompanies().forEach((c) => {
+    const companyTrucks = world.getTrucks().filter((t) => t.companyId === c.id);
+    const companyContracts = world
+      .getContracts()
+      .filter((c) => companyTrucks.some((t) => c.truckId === t.id));
+    const commitmentsLedger = companyContracts.map((c) => {
+      const supplier = world.getLocationById(c.supplierId);
+      const destination = world.getLocationById(c.destinationId);
+      const totalTravelDistance = Math.abs(
+        destination.position - supplier.position,
+      );
+      const totalTravelCost =
+        totalTravelDistance * truckConfig.baseOperatingCost;
 
-if (simTarget > 0) {
-  console.log(highlight.cyan(`Simulating...`));
-}
+      return { payment: c.payment, totalCost: totalTravelCost };
+    });
+    const receivables = sum(commitmentsLedger.map((l) => l.payment));
+    const payables = sum(commitmentsLedger.map((l) => l.totalCost));
+    const netWorth = c.money + receivables - payables;
+    console.log(
+      `   - ${c.name}: ${highlight.yellow(netWorth)} (Money: ${c.money}, Receivables: ${receivables}, Payables: ${payables})`,
+    );
+  });
 
-let popStrikes = 0;
-const popStrikeLimit = 50;
-const popThreshold = 30;
-
-while (world.getCurrentTick() < simTarget) {
-  trySnapshot();
-  update();
-
-  const towns = world
+  /* const towns = world
     .getLocations()
     .filter((l) => l.locationType === LOCATION_TYPE.Town)
     .map((t) => t as ITown);
@@ -170,7 +248,23 @@ while (world.getCurrentTick() < simTarget) {
       popStrikes--;
     }
     //logSuccess(`[SYSTEM] Towns are all good`);
-  }
+  } */
+
+  lastSnapshot = Date.now();
+};
+
+if (simTarget > 0) {
+  console.log(highlight.cyan(`Simulating...`));
+}
+
+let popStrikes = 0;
+const popStrikeLimit = 50;
+const popThreshold = 30;
+const truckConfig = loadTruckConfig();
+
+while (world.getCurrentTick() < simTarget) {
+  trySnapshot();
+  update();
 }
 
 const api = logisimApi(world);

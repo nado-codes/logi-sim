@@ -1,5 +1,5 @@
 {
   "aiConfig": {
-    "dispatchChance": 1
+    "dispatchChance": 0.2
   }
 }
