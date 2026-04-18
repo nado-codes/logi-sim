@@ -126,6 +126,21 @@ export const logisimApi = (world: IWorld) => {
     });
 
     // CONTRACTS
+    app.get("/api/contract/getString", (req, res) => {
+      try {
+        const { contractId } = req.query;
+        const contract = world.getContractByIdOrNull(contractId as string);
+
+        if (!contract) {
+          res.status(404).send({ error: "Contract not found" });
+          return;
+        }
+
+        res.send(world.getContractString(contract));
+      } catch (error) {
+        res.status(400).send({ error: "Failed to get contract string" });
+      }
+    });
     app.post("/api/contract/assign", (req, res) => {
       try {
         const { contractId, truckId } = req.body;

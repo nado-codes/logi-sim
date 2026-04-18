@@ -2,6 +2,7 @@ import axios from "axios";
 import { createMenuPage, IMenuPage, logMenuError } from "../menu";
 import { createEntitySelectorAction } from "../menuAction";
 import { highlight, logWarning, sum } from "@logisim/lib/utils";
+import { IContract } from "@logisim/lib/entities";
 
 export const createManageCompaniesPage = (apiBaseUrl: string): IMenuPage => {
   const createViewCompanyAction = createEntitySelectorAction(
@@ -20,8 +21,9 @@ export const createManageCompaniesPage = (apiBaseUrl: string): IMenuPage => {
 
         return createMenuPage(company.name, false, [], async () => {
           try {
-            const contracts = (await axios.get(`${apiBaseUrl}/world/contracts`))
-              .data;
+            const contracts: IContract[] = (
+              await axios.get(`${apiBaseUrl}/world/contracts`)
+            ).data;
             const locations = (await axios.get(`${apiBaseUrl}/world/locations`))
               .data;
 
@@ -57,8 +59,18 @@ export const createManageCompaniesPage = (apiBaseUrl: string): IMenuPage => {
             console.log(
               ` - Active Contracts: ${companyContracts.length > 0 ? "" : highlight.yellow(`None`)}`,
             );
-            companyContracts.forEach((contract: any) => {
-              console.log(` - Contract ${contract.id}`);
+            const contractStrings = (
+              await Promise.all(
+                companyContracts.map(async ({ id }) =>
+                  axios.get(`${apiBaseUrl}/contract/getString`, {
+                    params: { contractId: id },
+                  }),
+                ),
+              )
+            ).map((res) => res.data);
+
+            contractStrings.forEach((str) => {
+              console.log(`  - ${str}`);
             });
           } catch (error) {
             console.log(
