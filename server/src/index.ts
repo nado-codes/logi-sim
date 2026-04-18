@@ -24,10 +24,9 @@ export const world = createWorld();
 logInfo("Logi sim starting...");
 logInfo("LogiSim v0.6.1");
 
-const stateCompany = world.createCompany("State", 1000000000, Color.Magenta, {
+const stateCompany = world.createCompany("State", 100000, Color.Magenta, {
   isAiEnabled: true,
   hasUnlimitedMoney: true,
-  isGovernment: true,
 });
 const playerCompany = world.createCompany(
   "NadoCo Logistics",
@@ -48,6 +47,7 @@ const competitorCompany2 = world.createCompany(
 
 world.createCoastline(0);
 world.createWater(60);
+world.createTown("FlourVille", stateCompany.id, 63, true);
 
 world.createProducer("Farm", stateCompany.id, 10, RESOURCE_TYPE.Grain, 25);
 world.createProcessor("Flour Mill", stateCompany.id, 25, {
@@ -152,7 +152,7 @@ world.createTruck(
   2,
 );
 
-const simTarget = 0;
+const simTarget = 10000;
 const checkpointFactor = simTarget / 10;
 
 const update = () => {
@@ -183,72 +183,29 @@ const trySnapshot = () => {
     return;
   }
 
+  const nonStateCompanies = world
+    .getCompanies()
+    .filter((c) => c.name !== "State");
+
+  nonStateCompanies.forEach((c1) => {
+    nonStateCompanies
+      .filter((c) => c !== c1)
+      .forEach((c2) => {
+        const cMoneyPct = (c1.money / c2.money) * 100;
+
+        if (cMoneyPct > 100) {
+          console.log(
+            `  - ${c1.name}->${c2.name} = ${c1.money}/${c2.money} = ${cMoneyPct}%`,
+          );
+        }
+      });
+  });
+
   const lastSnapshotDuration = new Date(Date.now() - lastSnapshot);
 
   console.log(
     `- Tick ${highlight.yellow(world.getCurrentTick() + "/" + simTarget) + `(${Math.round((world.getCurrentTick() / simTarget) * 100)}%)`} [${lastSnapshotDuration.getMilliseconds() + "ms"}]`,
   );
-
-  console.log(` - Company Stats: `);
-  world.getCompanies().forEach((c) => {
-    const companyTrucks = world.getTrucks().filter((t) => t.companyId === c.id);
-    const companyContracts = world
-      .getContracts()
-      .filter((c) => companyTrucks.some((t) => c.truckId === t.id));
-    const commitmentsLedger = companyContracts.map((c) => {
-      const supplier = world.getLocationById(c.supplierId);
-      const destination = world.getLocationById(c.destinationId);
-      const totalTravelDistance = Math.abs(
-        destination.position - supplier.position,
-      );
-      const totalTravelCost =
-        totalTravelDistance * truckConfig.baseOperatingCost;
-
-      return { payment: c.payment, totalCost: totalTravelCost };
-    });
-    const receivables = sum(commitmentsLedger.map((l) => l.payment));
-    const payables = sum(commitmentsLedger.map((l) => l.totalCost));
-    const netWorth = c.money + receivables - payables;
-    console.log(
-      `   - ${c.name}: ${highlight.yellow(netWorth)} (Money: ${c.money}, Receivables: ${receivables}, Payables: ${payables})`,
-    );
-  });
-
-  /* const towns = world
-    .getLocations()
-    .filter((l) => l.locationType === LOCATION_TYPE.Town)
-    .map((t) => t as ITown);
-
-  function mean<T extends number>(arr: T[]) {
-    return arr.reduce((a, c) => a + c, 0) / arr.length;
-  }
-
-  if (towns.some((t) => t.population < popThreshold)) {
-    console.log(" - avg pop: ", mean(towns.map((t) => t.population)));
-    console.log(" - avg confidence: ", mean(towns.map((t) => t.confidence)));
-    const avgFlourStored = mean(
-      towns.map((t) => getResourceCount(RESOURCE_TYPE.Flour, t.storage)),
-    );
-    const avgFlourCapacity = mean(
-      towns.map((t) => getResourceCapacity(RESOURCE_TYPE.Flour, t.storage)),
-    );
-    console.log(
-      ` - avg flour: ${avgFlourStored}/${avgFlourCapacity} (${(avgFlourStored / avgFlourCapacity) * 100}%)`,
-    );
-    if (popStrikes < popStrikeLimit) {
-      popStrikes++;
-    } else {
-      logError(
-        `[SYSTEM] Exiting sim at tick ${world.getCurrentTick()} because a town had less than 50 pop for more than ${popStrikeLimit} ticks`,
-      );
-      break;
-    }
-  } else {
-    if (popStrikes > 0) {
-      popStrikes--;
-    }
-    //logSuccess(`[SYSTEM] Towns are all good`);
-  } */
 
   lastSnapshot = Date.now();
 };
@@ -257,16 +214,41 @@ if (simTarget > 0) {
   console.log(highlight.cyan(`Simulating...`));
 }
 
-let popStrikes = 0;
-const popStrikeLimit = 50;
-const popThreshold = 30;
-const truckConfig = loadTruckConfig();
+let richestCompany = world.getCompanies()[0];
 
 while (world.getCurrentTick() < simTarget) {
   trySnapshot();
   update();
+
+  const companies = world.getCompanies();
+
+  companies.forEach((c) => {
+    if (c.money > richestCompany.money) {
+      richestCompany = c;
+    }
+  });
+
+  if (
+    companies.some((c1) => companies.some((c2) => c1.money / c2.money >= 3))
+  ) {
+    console.log("FOUND RICH COMPANY at tick ", world.getCurrentTick());
+
+    const richestContracts = world
+      .getContracts()
+      .filter((c) => c.shipperId === richestCompany.id);
+
+    if (
+      !richestContracts.some((c) => c.expectedTick > world.getCurrentTick())
+    ) {
+      break;
+    }
+  }
 }
+
+console.log(
+  `The richest company was ${highlight.yellow(richestCompany.name)} with ${highlight.yellow("$" + richestCompany.money)}`,
+);
 
 const api = logisimApi(world);
 api.start();
-setInterval(update, 500);
+//setInterval(update, 500);
