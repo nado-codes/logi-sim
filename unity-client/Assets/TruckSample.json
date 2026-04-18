@@ -1,0 +1,16 @@
+{
+  "id": "a87fc0b7-e260-4293-a1e8-b5ef725f5548",
+  "companyId": "490fb847-9b57-48a9-8ace-fc8081ff5b1e",
+  "name": "Truck 1",
+  "speed": 2,
+  "storage": {
+    "ownerId": "a87fc0b7-e260-4293-a1e8-b5ef725f5548",
+    "resourceType": "Grain",
+    "resourceCapacity": 1000000,
+    "resourceCount": 0,
+    "transferEvents": []
+  },
+  "position": 10,
+  "type": "Vehicle",
+  "vehicleType": "Truck"
+}

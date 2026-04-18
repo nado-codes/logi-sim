@@ -105,7 +105,7 @@ export const logisimApi = (world: IWorld) => {
           companyId,
           resourceType,
           capacity || 100,
-          0,
+          { x: 0, y: 0, z: 0 },
           speed || 2,
         );
         res.send({ success: true });

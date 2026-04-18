@@ -42,7 +42,7 @@ export const createManageCompaniesPage = (apiBaseUrl: string): IMenuPage => {
                   (l: any) => l.id === c.destinationId,
                 );
                 const distance = Math.abs(
-                  destination.position - supplier.position,
+                  destination.position.x - supplier.position.x,
                 );
 
                 // Assuming base operating cost is around 10 per unit distance

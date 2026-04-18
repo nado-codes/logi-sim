@@ -230,7 +230,7 @@ const tryCreateTown = (state: IWorldState, company: ICompany) => {
     .map((w) =>
       Array.from(
         { length: 1 + geographyConfig.arableLandRadius * 2 },
-        (_, i) => w.position - geographyConfig.arableLandRadius + i,
+        (_, i) => w.position.x - geographyConfig.arableLandRadius + i,
       ),
     )
     .reduce((a, c) => a.concat(c));
@@ -238,14 +238,19 @@ const tryCreateTown = (state: IWorldState, company: ICompany) => {
 
   const spawnPos = allPositions.find(
     (p) =>
-      !allLocations.some((l) => l.position === p) &&
+      !allLocations.some((l) => l.position.x === p) &&
       !state.towns.some(
-        (t) => Math.abs(t.position - p) < townConfig.townCatchmentRadius,
+        (t) => Math.abs(t.position.x - p) < townConfig.townCatchmentRadius,
       ),
   );
 
   if (spawnPos) {
-    world.createTown(`Town ${randomUUID()}`, company.id, spawnPos, true);
+    world.createTown(
+      `Town ${randomUUID()}`,
+      company.id,
+      { x: spawnPos, y: 0, z: 0 },
+      true,
+    );
 
     if (
       notificationConfig.logCompanyNotifications.all ||
@@ -291,7 +296,7 @@ const tryDispatchTrucks = (state: IWorldState, company: ICompany) => {
     const supplier = getLocationById(state, c.supplierId);
     const destination = getLocationById(state, c.destinationId);
     const totalTravelDistance = Math.abs(
-      destination.position - supplier.position,
+      destination.position.x - supplier.position.x,
     );
     const totalTravelCost = totalTravelDistance * truckConfig.baseOperatingCost;
 
@@ -333,16 +338,16 @@ const tryDispatchTrucks = (state: IWorldState, company: ICompany) => {
     }
 
     const nearestTruck = validIdleTrucks.reduce((closest, current) =>
-      Math.abs(current.position - supplier.position) <
-      Math.abs(closest.position - supplier.position)
+      Math.abs(current.position.x - supplier.position.x) <
+      Math.abs(closest.position.x - supplier.position.x)
         ? current
         : closest,
     );
 
     const destination = getLocationById(state, c.destinationId);
     const totalTravelDistance =
-      Math.abs(destination.position - supplier.position) +
-      Math.abs(supplier.position - nearestTruck.position);
+      Math.abs(destination.position.x - supplier.position.x) +
+      Math.abs(supplier.position.x - nearestTruck.position.x);
     const contractDeliveryCost =
       totalTravelDistance * truckConfig.baseOperatingCost;
 

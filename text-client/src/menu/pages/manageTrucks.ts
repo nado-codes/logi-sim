@@ -297,7 +297,7 @@ export const createManageTrucksPage = (
 
         console.log(`\nAvailable trucks: ${trucks.length}`);
         trucks.forEach((t: any, i: number) => {
-          const truckString = `Truck ${highlight.yellow(t.id)} at position ${highlight.yellow(t.position)}`;
+          const truckString = `Truck ${highlight.yellow(t.id)} at position ${highlight.yellow(t.position.x)}`;
           console.log(` - [${i}] ${truckString}`);
         });
       } catch (error) {

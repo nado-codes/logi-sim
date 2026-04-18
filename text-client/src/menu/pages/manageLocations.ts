@@ -246,7 +246,7 @@ export const createManageLocationsPage = (
                       await axios.get(`${apiBaseUrl}/world/locations`)
                     ).data;
                     const entityAtPos = locations.find(
-                      (l: any) => l.position === positionChoice,
+                      (l: any) => l.position.x === positionChoice,
                     );
 
                     if (entityAtPos) {
@@ -289,7 +289,7 @@ export const createManageLocationsPage = (
                         {
                           name: `Grain Farm ${locations.length}`,
                           companyId: userSession.companyId,
-                          position: positionChoice,
+                          position: { x: positionChoice },
                           resourceType: RESOURCE_TYPE.Grain,
                           productionRate: 25,
                         },
@@ -300,7 +300,7 @@ export const createManageLocationsPage = (
                         {
                           name: `Flour Mill ${locations.length}`,
                           companyId: userSession.companyId,
-                          position: positionChoice,
+                          position: { x: positionChoice },
                           recipe: {
                             inputs: { Grain: 6 },
                             outputs: { Flour: 3 },
@@ -504,7 +504,7 @@ export const createManageLocationsPage = (
 
             console.log(`\nAvailable industries: ${allIndustries.length}`);
             allIndustries.forEach((l: any, i: number) => {
-              const locationString = `${highlight.yellow(l.name)} at position ${highlight.yellow(l.position)}`;
+              const locationString = `${highlight.yellow(l.name)} at position ${highlight.yellow(l.position.x)}`;
               console.log(` - [${i}] ${locationString}`);
             });
           },
@@ -532,7 +532,7 @@ export const createManageLocationsPage = (
 
         console.log(`\nAvailable locations: ${locations.length}`);
         locations.forEach((l: any, i: number) => {
-          const locationString = `${highlight.yellow(l.name)} at position ${highlight.yellow(l.position)}`;
+          const locationString = `${highlight.yellow(l.name)} at position ${highlight.yellow(l.position.x)}`;
           console.log(` - [${i}] ${locationString}`);
         });
       } catch (error) {

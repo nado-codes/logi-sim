@@ -11,6 +11,7 @@ import {
   RESOURCE_TYPE,
   IRecipe,
   LOCATION_TYPE,
+  Vector3,
 } from "@logisim/lib/entities";
 import { logWarning, logSuccess, logError, logInfo } from "@logisim/lib/utils";
 
@@ -20,7 +21,7 @@ export const createProducer = (
   state: IWorldState,
   name: string,
   companyId: string,
-  position: number,
+  position: Vector3,
   produces: RESOURCE_TYPE,
   productionRate: number,
   startFull: boolean = false,

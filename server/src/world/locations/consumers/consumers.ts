@@ -3,6 +3,7 @@ import {
   LOCATION_TYPE,
   IWorldState,
   IBaseConsumer,
+  Vector3,
 } from "@logisim/lib/entities";
 import { processRecipe } from "../../storages";
 import { createBaseLocation, checkInputStorage } from "../locations";
@@ -10,7 +11,7 @@ import { createBaseLocation, checkInputStorage } from "../locations";
 export const createBaseConsumer = (
   name: string,
   companyId: string,
-  position: number,
+  position: Vector3,
   consumes: ResourceMap,
   startFull: boolean,
 ) => {

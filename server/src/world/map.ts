@@ -59,9 +59,9 @@ export const TagDictionary: Record<MapEntityType, TagDefinition> = {
 
 export const getMap = (state: IWorldState) => {
   const worldPositions = [
-    ...state.getLocations().map((l) => l.position),
-    ...state.geographies.map((g) => g.position),
-    ...state.trucks.map((t) => t.position),
+    ...state.getLocations().map((l) => l.position.x),
+    ...state.geographies.map((g) => g.position.x),
+    ...state.trucks.map((t) => t.position.x),
   ];
   const allWater = state.geographies.filter(
     (g) => g.geographyType === GEOGRAPHY_TYPE.Water,
@@ -79,8 +79,12 @@ export const getMap = (state: IWorldState) => {
   let map = "";
   let spaces = 0;
 
-  for (var pos = 0; pos <= maxPosition; pos++) {
-    const entityAtPos = getWorldEntityByPositionOrNull(state, pos);
+  for (var posX = 0; posX <= maxPosition; posX++) {
+    const entityAtPos = getWorldEntityByPositionOrNull(state, {
+      x: posX,
+      y: 0,
+      z: 0,
+    });
 
     if (entityAtPos) {
       if (entityAtPos.type === WorldEntityType.Geography) {
@@ -105,8 +109,8 @@ export const getMap = (state: IWorldState) => {
           vehicleAtPos.destinationId,
         );
         const isMovingLeft =
-          !destination?.position ||
-          destination?.position < vehicleAtPos.position;
+          !destination?.position.x ||
+          destination?.position.x < vehicleAtPos.position.x;
         const vehicleTags = Array.from(
           TagDictionary[vehicleAtPos.vehicleType].tag,
         );
@@ -131,14 +135,15 @@ export const getMap = (state: IWorldState) => {
     } else if (spaces <= 0) {
       if (
         allWater.some(
-          (w) => Math.abs(w.position - pos) < geographyConfig.arableLandRadius,
+          (w) =>
+            Math.abs(w.position.x - posX) < geographyConfig.arableLandRadius,
         ) &&
         mapConfig.highlightArableLand
       ) {
         map += highlight.cyan("_");
       } else if (
         allTowns.some(
-          (t) => Math.abs(t.position - pos) < townConfig.townCatchmentRadius,
+          (t) => Math.abs(t.position.x - posX) < townConfig.townCatchmentRadius,
         ) &&
         mapConfig.highlightArableLand
       ) {

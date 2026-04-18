@@ -48,9 +48,12 @@
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\6000.3.13f1\Editor\Data\Tools\BuildPipeline\Unity.SourceGenerators\Unity.UIToolkit.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\TruckBehaviour.cs" />
-    <Compile Include="Assets\ClientBehaviour.cs" />
+    <Compile Include="Assets\Scripts\TruckBehaviour.cs" />
+    <Compile Include="Assets\Scripts\DTO\LocationDTO.cs" />
+    <Compile Include="Assets\Scripts\ClientBehaviour.cs" />
     <Compile Include="Assets\TutorialInfo\Scripts\Readme.cs" />
+    <Compile Include="Assets\Scripts\DTO\TruckDTO.cs" />
+    <Compile Include="Assets\Scripts\DTO\WorldEntityDTO.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

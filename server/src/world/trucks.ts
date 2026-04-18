@@ -21,8 +21,14 @@ import {
   VEHICLE_TYPE,
   StorageTransferResult,
   IContract,
+  Vector3,
 } from "@logisim/lib/entities";
-import { logSuccess, highlight, logInfo } from "@logisim/lib/utils";
+import {
+  logSuccess,
+  highlight,
+  logInfo,
+  positionToString,
+} from "@logisim/lib/utils";
 
 interface ITruckConfig {
   baseOperatingCost: number;
@@ -46,7 +52,7 @@ export const createTruck = (
   companyId: string,
   resourceType: RESOURCE_TYPE,
   resourceCapacity: number,
-  position: number,
+  position: Vector3,
   speed: number,
   resourceCount: number = 0,
 ) => {
@@ -70,7 +76,7 @@ export const createTruck = (
 
   if (notificationConfig.logTruckNotifications.all) {
     logSuccess(
-      `[TRUCK] Created a ${highlight.yellow(resourceType)} truck at position ${highlight.yellow(position)}`,
+      `[TRUCK] Created a ${highlight.yellow(resourceType)} truck at position ${highlight.yellow(positionToString(position))}`,
     );
   }
 
@@ -94,7 +100,7 @@ export const getTruckById = (state: IWorldState, id: string) => {
 
 export const getTruckByPositionOrNull = (
   state: IWorldState,
-  position: number,
+  position: Vector3,
 ) => {
   const truck = state.trucks.find((t) => t.position === position);
 
@@ -104,7 +110,7 @@ export const getTruckByPositionOrNull = (
 export const getTruckString = (state: IWorldState, truck: ITruck) => {
   const truckLocation = state
     .getLocations()
-    .find((l) => l.position === truck.position);
+    .find((l) => l.position.x === truck.position.x);
   const truckContract = getContractByIdOrNull(state, truck.contractId);
 
   const contractSupplier = getLocationByIdOrNull(
@@ -118,7 +124,7 @@ export const getTruckString = (state: IWorldState, truck: ITruck) => {
 
   const locationString = truckLocation
     ? `Location: ${highlight.yellow(truckLocation.name)}`
-    : `Position: ${highlight.yellow(truck.position + "")}`;
+    : `Position: ${highlight.yellow(truck.position.x + "")}`;
   const contractString = `Contract: ${truckContract ? highlight.yellow(`${contractSupplier?.name}-->${contractDestination?.name}`) : highlight.yellow("None")}`;
 
   const truckCompany = getCompanyById(state, truck.companyId);
@@ -133,17 +139,19 @@ const updateTruckPosition = (state: IWorldState, truck: ITruck) => {
     return;
   }
 
-  const distance = truck.position - truckDestination.position;
+  const distance = truck.position.x - truckDestination.position.x;
   const direction = Math.sign(distance);
 
-  if (truck.position != truckDestination.position) {
-    truck.position -= direction * truck.speed;
+  if (truck.position.x != truckDestination.position.x) {
+    truck.position.x -= direction * truck.speed;
 
-    if (Math.abs(truck.position - truckDestination.position) < truck.speed) {
-      truck.position = truckDestination.position; // Snap to destination
+    if (
+      Math.abs(truck.position.x - truckDestination.position.x) < truck.speed
+    ) {
+      truck.position.x = truckDestination.position.x; // Snap to destination
     }
 
-    if (truck.position === truckDestination.position) {
+    if (truck.position.x === truckDestination.position.x) {
       if (
         notificationConfig.logTruckNotifications.all ||
         notificationConfig.logTruckNotifications.movement
@@ -183,7 +191,7 @@ export const updateTrucks = (state: IWorldState) => {
         truckContract.destinationId,
       );
 
-      if (truck.position === contractSupplier.position) {
+      if (truck.position.x === contractSupplier.position.x) {
         const amountLeftToLoad =
           truckContract.totalAmount - truck.storage.resourceCount;
 
@@ -234,7 +242,7 @@ export const updateTrucks = (state: IWorldState) => {
             truck.debugMessage = "LD-WT";
           }
         }
-      } else if (truck.position === contractDestination.position) {
+      } else if (truck.position.x === contractDestination.position.x) {
         const unloadResult = transferResources(
           state,
           truck.storage.resourceCount,

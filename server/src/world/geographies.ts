@@ -8,6 +8,7 @@ import {
   IMountain,
   RESOURCE_TYPE,
   IResourceDeposit,
+  Vector3,
 } from "@logisim/lib/entities";
 import { createWorldEntity } from "../entities";
 import { loadConfig } from "../utils/configUtils";
@@ -23,7 +24,7 @@ const defaultConfig: IGeographyConfig = {
 export const loadGeographyConfig = () => loadConfig("geography", defaultConfig);
 
 export const createBaseGeographicEntity = (
-  position: number,
+  position: Vector3,
   name: string,
   geographyType: GEOGRAPHY_TYPE,
 ): IGeographicEntity => {
@@ -35,7 +36,7 @@ export const createBaseGeographicEntity = (
 
 export const createCoastline = (
   state: IWorldState,
-  position: number,
+  position: Vector3,
 ): ICoastline => {
   const newCoastline: ICoastline = {
     ...createBaseGeographicEntity(
@@ -50,7 +51,7 @@ export const createCoastline = (
   return newCoastline;
 };
 
-export const createWater = (state: IWorldState, position: number): IWater => {
+export const createWater = (state: IWorldState, position: Vector3): IWater => {
   const newWater: ICoastline = {
     ...createBaseGeographicEntity(position, "Water", GEOGRAPHY_TYPE.Water),
   };
@@ -62,7 +63,7 @@ export const createWater = (state: IWorldState, position: number): IWater => {
 
 export const createMountain = (
   state: IWorldState,
-  position: number,
+  position: Vector3,
   width: number,
   height: number,
 ): IMountain => {
@@ -83,7 +84,7 @@ export const createMountain = (
 
 export const createResourceDeposit = (
   state: IWorldState,
-  position: number,
+  position: Vector3,
   resourceType: RESOURCE_TYPE,
 ): IResourceDeposit => {
   const newResourceDeposit: IResourceDeposit = {

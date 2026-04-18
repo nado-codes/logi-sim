@@ -112,7 +112,7 @@ export const createContract = (
 
   const supplier = getLocationById(state, supplierId);
   const destination = getLocationById(state, destinationId);
-  const distance = Math.abs(destination.position - supplier.position);
+  const distance = Math.abs(destination.position.x - supplier.position.x);
   const payment = calculateContractPayment(amount, distance, dueTicks);
 
   const newContract: IContract = {

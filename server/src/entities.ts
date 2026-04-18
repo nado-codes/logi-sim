@@ -3,6 +3,7 @@ import {
   INamedEntity,
   WorldEntityType,
   IWorldEntity,
+  Vector3,
 } from "@logisim/lib/entities";
 import { randomUUID } from "crypto";
 
@@ -25,7 +26,7 @@ export const createNamedEntity = (name: string): INamedEntity => {
 
 export const createWorldEntity = (
   type: WorldEntityType,
-  position: number,
+  position: Vector3,
   name: string,
 ): IWorldEntity => {
   return {

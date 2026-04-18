@@ -59,7 +59,7 @@ export const createManageContractsPage = (
         );
 
         const supplierOwnerDistance = Math.abs(
-          contractDestination.position - contractSupplier.position,
+          contractDestination.position.x - contractSupplier.position.x,
         );
 
         const createSelectTruckAction = (): IMenuAction => ({
@@ -96,7 +96,7 @@ export const createManageContractsPage = (
                 console.log();
 
                 const distance =
-                  Math.abs(truck.position - contractSupplier.position) +
+                  Math.abs(truck.position.x - contractSupplier.position.x) +
                   supplierOwnerDistance;
 
                 console.log(
@@ -131,12 +131,13 @@ export const createManageContractsPage = (
             availableTrucks.forEach((t: any, i: number) => {
               const supplierOwnerDistance = contract
                 ? Math.abs(
-                    contractDestination.position - contractSupplier.position,
+                    contractDestination.position.x -
+                      contractSupplier.position.x,
                   )
                 : 0;
 
               const contractDistance = contract
-                ? Math.abs(t.position - contractSupplier.position)
+                ? Math.abs(t.position.x - contractSupplier.position.x)
                 : 0;
               const distance = contractDistance + supplierOwnerDistance;
               const distanceString = `Total Distance: ${highlight.yellow(distance + " units")}`;

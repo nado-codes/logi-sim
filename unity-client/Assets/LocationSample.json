@@ -1,0 +1,26 @@
+[
+  {
+    "id": "5224cdff-014b-4d36-93c2-20068440dc7e",
+    "name": "Farm",
+    "type": "Location",
+    "position": 10,
+    "storage": [
+      {
+        "ownerId": "5224cdff-014b-4d36-93c2-20068440dc7e",
+        "resourceType": "Grain",
+        "resourceCapacity": 25000,
+        "resourceCount": 10275,
+        "transferEvents": [
+          {
+            "entityId": "5224cdff-014b-4d36-93c2-20068440dc7e",
+            "tick": 5,
+            "amount": 125
+          }
+        ]
+      }
+    ],
+    "recipe": { "outputs": { "Grain": 25 } },
+    "locationType": "Producer",
+    "companyId": "0d47996e-c4f7-4fbc-8c7e-d9a2836721b7"
+  }
+]

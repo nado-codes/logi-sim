@@ -1,8 +1,8 @@
-import { IWorldState } from "@logisim/lib/entities";
+import { IWorldState, Vector3 } from "@logisim/lib/entities";
 
 export const getWorldEntityByPositionOrNull = (
   state: IWorldState,
-  position: number,
+  position: Vector3,
 ) => {
   const worldEntities = [
     ...state.getLocations(),

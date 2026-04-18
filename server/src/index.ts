@@ -45,34 +45,50 @@ const competitorCompany2 = world.createCompany(
   },
 );
 
-world.createCoastline(0);
-world.createWater(60);
-world.createTown("FlourVille", stateCompany.id, 63, true);
+world.createCoastline({ x: 0, y: 0, z: 0 });
+world.createWater({ x: 60, y: 0, z: 0 });
+world.createTown("FlourVille", stateCompany.id, { x: 63, y: 0, z: 0 }, true);
 
-world.createProducer("Farm", stateCompany.id, 10, RESOURCE_TYPE.Grain, 25);
-world.createProcessor("Flour Mill", stateCompany.id, 25, {
-  inputs: {
-    [RESOURCE_TYPE.Grain]: 6,
+world.createProducer(
+  "Farm",
+  stateCompany.id,
+  { x: 10, y: 0, z: 0 },
+  RESOURCE_TYPE.Grain,
+  25,
+);
+world.createProcessor(
+  "Flour Mill",
+  stateCompany.id,
+  { x: 25, y: 0, z: 0 },
+  {
+    inputs: {
+      [RESOURCE_TYPE.Grain]: 6,
+    },
+    outputs: {
+      [RESOURCE_TYPE.Flour]: 300,
+    }, //
   },
-  outputs: {
-    [RESOURCE_TYPE.Flour]: 300,
-  }, //
-});
-world.createProcessor("Bakery", stateCompany.id, 45, {
-  inputs: {
-    [RESOURCE_TYPE.Flour]: 6,
+);
+world.createProcessor(
+  "Bakery",
+  stateCompany.id,
+  { x: 45, y: 0, z: 0 },
+  {
+    inputs: {
+      [RESOURCE_TYPE.Flour]: 6,
+    },
+    outputs: {
+      [RESOURCE_TYPE.Bread]: 30,
+    },
   },
-  outputs: {
-    [RESOURCE_TYPE.Bread]: 30,
-  },
-});
+);
 
 world.createTruck(
   "Truck 1",
   playerCompany.id,
   RESOURCE_TYPE.Grain,
   1000000,
-  10,
+  { x: 10, y: 0, z: 0 },
   2,
 );
 world.createTruck(
@@ -80,7 +96,7 @@ world.createTruck(
   playerCompany.id,
   RESOURCE_TYPE.Flour,
   1000000,
-  15,
+  { x: 15, y: 0, z: 0 },
   2,
 );
 
@@ -90,7 +106,7 @@ world.createTruck(
   competitorCompany.id,
   RESOURCE_TYPE.Grain,
   1000000,
-  15,
+  { x: 15, y: 0, z: 0 },
   2,
 );
 world.createTruck(
@@ -98,7 +114,7 @@ world.createTruck(
   competitorCompany.id,
   RESOURCE_TYPE.Flour,
   1000000,
-  15,
+  { x: 15, y: 0, z: 0 },
   2,
 );
 world.createTruck(
@@ -106,7 +122,7 @@ world.createTruck(
   competitorCompany.id,
   RESOURCE_TYPE.Bread,
   1000000,
-  15,
+  { x: 15, y: 0, z: 0 },
   2,
 );
 world.createTruck(
@@ -114,7 +130,7 @@ world.createTruck(
   competitorCompany.id,
   RESOURCE_TYPE.Grain,
   1000000,
-  15,
+  { x: 15, y: 0, z: 0 },
   2,
 );
 
@@ -124,7 +140,7 @@ world.createTruck(
   competitorCompany2.id,
   RESOURCE_TYPE.Grain,
   1000000,
-  15,
+  { x: 15, y: 0, z: 0 },
   2,
 );
 world.createTruck(
@@ -132,7 +148,7 @@ world.createTruck(
   competitorCompany2.id,
   RESOURCE_TYPE.Flour,
   1000000,
-  15,
+  { x: 15, y: 0, z: 0 },
   2,
 );
 world.createTruck(
@@ -140,7 +156,7 @@ world.createTruck(
   competitorCompany2.id,
   RESOURCE_TYPE.Bread,
   1000000,
-  15,
+  { x: 15, y: 0, z: 0 },
   2,
 );
 world.createTruck(
@@ -148,11 +164,11 @@ world.createTruck(
   competitorCompany2.id,
   RESOURCE_TYPE.Grain,
   1000000,
-  15,
+  { x: 15, y: 0, z: 0 },
   2,
 );
 
-const simTarget = 10000;
+const simTarget = 100;
 const checkpointFactor = simTarget / 10;
 
 const update = () => {
@@ -251,4 +267,4 @@ console.log(
 
 const api = logisimApi(world);
 api.start();
-//setInterval(update, 500);
+setInterval(update, 500);

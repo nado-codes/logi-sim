@@ -1,3 +1,4 @@
+import { Vector3 } from "../entities";
 import { Color } from "./color";
 
 interface LogEntry {
@@ -34,6 +35,9 @@ export const logSuccess = (text: string | number) => {
   const entry = `\x1b[32m${text}\x1b[0m`; // green
   log(entry);
 };
+
+export const positionToString = (position: Vector3) =>
+  `(${position.x},${position.y},${position.z})`;
 
 export const highlight = {
   red: (text: string | number) => `\x1b[31m${text}\x1b[0m`,

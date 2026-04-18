@@ -22,6 +22,7 @@ import {
   IWorldState,
   Nullable,
   RESOURCE_TYPE,
+  Vector3,
 } from "@logisim/lib/entities";
 import {
   highlight,
@@ -49,7 +50,7 @@ const storageConfig = loadStorageConfig();
 export const createBaseLocation = (
   name: string,
   companyId: string,
-  position: number,
+  position: Vector3,
   recipe: IRecipe,
   locationType: LOCATION_TYPE,
   startWithFullInputs: boolean = false,
@@ -103,7 +104,7 @@ export const getLocationByIdOrNull = (
 
 export const getLocationByPositionOrNull = (
   state: IWorldState,
-  position: number,
+  position: Vector3,
 ) => {
   const location = state.getLocations().find((l) => l.position === position);
 
@@ -111,7 +112,7 @@ export const getLocationByPositionOrNull = (
 };
 
 export const getLocationString = (world: IWorld, location: IBaseLocation) => {
-  const locationString = `Position: ${highlight.yellow(location.position + "")}`;
+  const locationString = `Position: ${highlight.yellow(location.position.x + "")}`;
 
   const inputs = Object.entries(location.recipe.inputs ?? []).map(
     ([res, amt]) => `${highlight.yellow(amt + " " + res)}`,
@@ -192,11 +193,13 @@ export const checkInputStorage = (
 
           let closestSupplier = suppliers[0];
           let closestDistance = Math.abs(
-            location.position - closestSupplier.position,
+            location.position.x - closestSupplier.position.x,
           );
 
           for (const supplier of suppliers) {
-            const distance = Math.abs(location.position - supplier.position);
+            const distance = Math.abs(
+              location.position.x - supplier.position.x,
+            );
 
             if (distance < closestDistance) {
               closestSupplier = supplier;
