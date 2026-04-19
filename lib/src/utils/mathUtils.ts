@@ -1,3 +1,5 @@
+import { Vector3 } from "../entities";
+
 export const clamp = (value: number, min: number, max: number) => {
   if (max <= min) {
     throw Error(
@@ -10,3 +12,7 @@ export const clamp = (value: number, min: number, max: number) => {
 export function sum(array: number[]) {
   return array.reduce((a, c) => a + c, 0);
 }
+
+export const vectorsAreEqual = (A: Vector3, B: Vector3) => {
+  return A.x === B.x && A.y === B.y && A.z === B.z;
+};

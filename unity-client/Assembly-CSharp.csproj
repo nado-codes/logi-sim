@@ -49,10 +49,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\TruckBehaviour.cs" />
+    <Compile Include="Assets\Scripts\Client.cs" />
     <Compile Include="Assets\Scripts\DTO\LocationDTO.cs" />
-    <Compile Include="Assets\Scripts\ClientBehaviour.cs" />
+    <Compile Include="Assets\Scripts\Types.cs" />
     <Compile Include="Assets\TutorialInfo\Scripts\Readme.cs" />
     <Compile Include="Assets\Scripts\DTO\TruckDTO.cs" />
+    <Compile Include="Assets\Scripts\DTO\StorageDTO.cs" />
     <Compile Include="Assets\Scripts\DTO\WorldEntityDTO.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -614,6 +616,10 @@
     </Reference>
     <Reference Include="System.Runtime.CompilerServices.Unsafe">
       <HintPath>Library\PackageCache\com.unity.collections@12999e356c23\Unity.Collections.Tests\System.Runtime.CompilerServices.Unsafe\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>Library\PackageCache\com.unity.nuget.newtonsoft-json@4dfd81071c64\Runtime\Newtonsoft.Json.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="netstandard">

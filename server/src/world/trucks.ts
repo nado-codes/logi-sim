@@ -10,7 +10,11 @@ import {
   getCompanyById,
   transferCompanyFundsToState,
 } from "./companies";
-import { getLocationById, getLocationByIdOrNull } from "./locations/locations";
+import {
+  getLocationById,
+  getLocationByIdOrNull,
+  getLocationByPositionOrNull,
+} from "./locations/locations";
 import { createAndGetStorage, transferResources } from "./storages";
 import { loadConfig } from "../utils/configUtils";
 import {
@@ -28,6 +32,7 @@ import {
   highlight,
   logInfo,
   positionToString,
+  vectorsAreEqual,
 } from "@logisim/lib/utils";
 
 interface ITruckConfig {
@@ -102,15 +107,13 @@ export const getTruckByPositionOrNull = (
   state: IWorldState,
   position: Vector3,
 ) => {
-  const truck = state.trucks.find((t) => t.position === position);
+  const truck = state.trucks.find((t) => vectorsAreEqual(t.position, position));
 
   return truck;
 };
 
 export const getTruckString = (state: IWorldState, truck: ITruck) => {
-  const truckLocation = state
-    .getLocations()
-    .find((l) => l.position.x === truck.position.x);
+  const truckLocation = getLocationByPositionOrNull(state, truck.position);
   const truckContract = getContractByIdOrNull(state, truck.contractId);
 
   const contractSupplier = getLocationByIdOrNull(
@@ -148,10 +151,10 @@ const updateTruckPosition = (state: IWorldState, truck: ITruck) => {
     if (
       Math.abs(truck.position.x - truckDestination.position.x) < truck.speed
     ) {
-      truck.position.x = truckDestination.position.x; // Snap to destination
+      truck.position = truckDestination.position; // Snap to destination
     }
 
-    if (truck.position.x === truckDestination.position.x) {
+    if (vectorsAreEqual(truck.position, truckDestination.position)) {
       if (
         notificationConfig.logTruckNotifications.all ||
         notificationConfig.logTruckNotifications.movement
@@ -191,7 +194,7 @@ export const updateTrucks = (state: IWorldState) => {
         truckContract.destinationId,
       );
 
-      if (truck.position.x === contractSupplier.position.x) {
+      if (vectorsAreEqual(truck.position, contractSupplier.position)) {
         const amountLeftToLoad =
           truckContract.totalAmount - truck.storage.resourceCount;
 
@@ -242,7 +245,9 @@ export const updateTrucks = (state: IWorldState) => {
             truck.debugMessage = "LD-WT";
           }
         }
-      } else if (truck.position.x === contractDestination.position.x) {
+      } else if (
+        vectorsAreEqual(truck.position, contractDestination.position)
+      ) {
         const unloadResult = transferResources(
           state,
           truck.storage.resourceCount,

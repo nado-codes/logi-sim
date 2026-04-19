@@ -1,16 +1,18 @@
-{
-  "id": "a87fc0b7-e260-4293-a1e8-b5ef725f5548",
-  "companyId": "490fb847-9b57-48a9-8ace-fc8081ff5b1e",
-  "name": "Truck 1",
-  "speed": 2,
-  "storage": {
-    "ownerId": "a87fc0b7-e260-4293-a1e8-b5ef725f5548",
-    "resourceType": "Grain",
-    "resourceCapacity": 1000000,
-    "resourceCount": 0,
-    "transferEvents": []
-  },
-  "position": 10,
-  "type": "Vehicle",
-  "vehicleType": "Truck"
-}
+[
+  {
+    "id": "f33f943d-67da-44ba-9a22-37acc01eef8c",
+    "companyId": "4ec057b6-66ed-4a4a-a202-3b1bc3672075",
+    "name": "Truck 1",
+    "speed": 2,
+    "storage": {
+      "ownerId": "f33f943d-67da-44ba-9a22-37acc01eef8c",
+      "resourceType": "Grain",
+      "resourceCapacity": 1000000,
+      "resourceCount": 0,
+      "transferEvents": []
+    },
+    "position": { "x": 10, "y": 0, "z": 0 },
+    "type": "Vehicle",
+    "vehicleType": "Truck"
+  }
+]

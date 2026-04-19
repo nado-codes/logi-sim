@@ -30,6 +30,7 @@ import {
   logInfo,
   logError,
   logSuccess,
+  vectorsAreEqual,
 } from "@logisim/lib/utils";
 
 interface ILocationConfig {
@@ -106,7 +107,9 @@ export const getLocationByPositionOrNull = (
   state: IWorldState,
   position: Vector3,
 ) => {
-  const location = state.getLocations().find((l) => l.position === position);
+  const location = state
+    .getLocations()
+    .find((l) => vectorsAreEqual(l.position, position));
 
   return location;
 };

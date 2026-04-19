@@ -1,26 +1,26 @@
 [
   {
-    "id": "5224cdff-014b-4d36-93c2-20068440dc7e",
+    "id": "f51bbaf0-fb2b-4722-833a-1cccca560f0b",
     "name": "Farm",
     "type": "Location",
-    "position": 10,
+    "position": { "x": 10, "y": 0, "z": 0 },
     "storage": [
       {
-        "ownerId": "5224cdff-014b-4d36-93c2-20068440dc7e",
+        "ownerId": "f51bbaf0-fb2b-4722-833a-1cccca560f0b",
         "resourceType": "Grain",
         "resourceCapacity": 25000,
-        "resourceCount": 10275,
+        "resourceCount": 25000,
         "transferEvents": [
           {
-            "entityId": "5224cdff-014b-4d36-93c2-20068440dc7e",
-            "tick": 5,
-            "amount": 125
+            "entityId": "f51bbaf0-fb2b-4722-833a-1cccca560f0b",
+            "tick": 4,
+            "amount": 100
           }
         ]
       }
     ],
     "recipe": { "outputs": { "Grain": 25 } },
     "locationType": "Producer",
-    "companyId": "0d47996e-c4f7-4fbc-8c7e-d9a2836721b7"
+    "companyId": "d9c69600-236b-45c4-a543-49f68a2ac11b"
   }
 ]

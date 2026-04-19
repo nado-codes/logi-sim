@@ -278,7 +278,7 @@ export const transferResources = (
   }
 
   let result = StorageTransferResult.SUCCESS;
-  let amountLeftToTransfer = amount;
+  let amountLeftToTransfer = Math.round(amount);
 
   matchingSourceStorage.forEach((source) => {
     if (source.resourceCount <= 0) {
