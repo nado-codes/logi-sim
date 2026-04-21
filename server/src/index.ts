@@ -168,7 +168,7 @@ world.createTruck(
   2,
 );
 
-const simTarget = 100;
+const simTarget = 0;
 const checkpointFactor = simTarget / 10;
 
 const update = () => {
