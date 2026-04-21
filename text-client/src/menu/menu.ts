@@ -139,8 +139,7 @@ export const createMenu = (callback: () => void, userSession: IUserSession) => {
     console.log(playerCompanyString);
     console.log();
     console.log(`RIVAL COMPANIES:`);
-    const rivalCompanies = (await axios.get(`${apiBaseUrl}/world/companies`))
-      .data;
+    const rivalCompanies = (await axios.get(`${apiBaseUrl}/companies`)).data;
     rivalCompanies
       .filter((c: any) => c.id !== playerCompany.id && !c.options.isGovernment)
       .forEach((c: any) => {

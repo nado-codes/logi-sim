@@ -1,6 +1,6 @@
 
-public class TruckDTO : WorldEntityDTO
+public class TruckDTO : CompanyEntityDTO
 {
-    //public StorageDTO storage;
-    public string destinationId;
+    public StorageDTO Storage { get; set; }
+    public string DestinationId { get; set; }
 }

@@ -130,7 +130,7 @@ export const createManageLocationsPage = (
                           await axios.get(`${apiBaseUrl}/world/trucks`)
                         ).data;
                         const companies = (
-                          await axios.get(`${apiBaseUrl}/world/companies`)
+                          await axios.get(`${apiBaseUrl}/companies`)
                         ).data;
                         const shipper = trucks.find(
                           (t: any) => t.id === c.truckId,
@@ -156,7 +156,7 @@ export const createManageLocationsPage = (
                           await axios.get(`${apiBaseUrl}/world/trucks`)
                         ).data;
                         const companies = (
-                          await axios.get(`${apiBaseUrl}/world/companies`)
+                          await axios.get(`${apiBaseUrl}/companies`)
                         ).data;
                         const shipper = trucks.find(
                           (t: any) => t.id === c.truckId,

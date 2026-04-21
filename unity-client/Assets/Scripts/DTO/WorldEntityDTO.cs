@@ -1,10 +1,9 @@
 using UnityEngine;
 
-public class WorldEntityDTO
+public class WorldEntityDTO : BaseEntityDTO, INamedEntity
 {
-    public string id;
-    public Vector3 position;
-    public string name;
+    public Vector3 Position { get; set; }
+    public string Name { get; set; }
 
-    public GameObject gameObject;
+    public GameObject GameObject { get; set; }
 }

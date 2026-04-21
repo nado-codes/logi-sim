@@ -8,8 +8,10 @@ using UnityEngine.Networking;
 
 public class Client : MonoBehaviour
 {
+    private const string BaseUrl = "http://localhost:3001/api";
     public List<TruckDTO> truckDTOs = new List<TruckDTO>();
     public List<LocationDTO> locationDTOs = new List<LocationDTO>();
+    public List<CompanyDTO> companyDTOs = new List<CompanyDTO>();
 
     public GameObject boxTruckProto, flatbedTruckProto;
     public GameObject processorProto, bakeryProto;
@@ -25,12 +27,13 @@ public class Client : MonoBehaviour
         }
     }
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         _client = this;
         StartCoroutine(FetchLocationState());
+        StartCoroutine(FetchCompanyState());
         StartCoroutine(FetchTruckState());
+
         StartCoroutine(RefreshTrucks(.4f));
     }
 
@@ -38,7 +41,7 @@ public class Client : MonoBehaviour
     {
         while (true)
         {
-            var trucksRequest = UnityWebRequest.Get("http://localhost:3001/api/world/trucks");
+            var trucksRequest = UnityWebRequest.Get(BaseUrl + "/world/trucks");
             yield return trucksRequest.SendWebRequest();
 
             if (trucksRequest.result == UnityWebRequest.Result.Success)
@@ -46,11 +49,11 @@ public class Client : MonoBehaviour
                 var updatedTruckDTOs = JsonConvert.DeserializeObject<List<TruckDTO>>(trucksRequest.downloadHandler.text);
                 foreach (TruckDTO truckDTO in updatedTruckDTOs)
                 {
-                    var existingTruckDTO = truckDTOs.Find(truck => truck.id == truckDTO.id);
+                    var existingTruckDTO = truckDTOs.Find(truck => truck.Id == truckDTO.Id);
                     if (existingTruckDTO != null)
                     {
-                        existingTruckDTO.position = truckDTO.position;
-                        existingTruckDTO.destinationId = truckDTO.destinationId;
+                        existingTruckDTO.Position = truckDTO.Position;
+                        existingTruckDTO.DestinationId = truckDTO.DestinationId;
                     }
 
                 }
@@ -65,14 +68,14 @@ public class Client : MonoBehaviour
 
     private IEnumerator FetchTruckState()
     {
-        var trucksRequest = UnityWebRequest.Get("http://localhost:3001/api/world/trucks");
+        var trucksRequest = UnityWebRequest.Get(BaseUrl + "/world/trucks");
         yield return trucksRequest.SendWebRequest();
 
         if (trucksRequest.result == UnityWebRequest.Result.Success)
         {
             foreach (TruckDTO truck in truckDTOs)
             {
-                Destroy(truck.gameObject);
+                Destroy(truck.GameObject);
             }
 
             truckDTOs = JsonConvert.DeserializeObject<List<TruckDTO>>(trucksRequest.downloadHandler.text);
@@ -80,9 +83,9 @@ public class Client : MonoBehaviour
 
             foreach (TruckDTO truck in truckDTOs)
             {
-                var newTruck = Instantiate(boxTruckProto, truck.position, Quaternion.identity);
-                truck.gameObject = newTruck.gameObject;
-                truck.gameObject.transform.position *= positionScaleFactor;
+                var newTruck = Instantiate(boxTruckProto, truck.Position, Quaternion.identity);
+                truck.GameObject = newTruck.gameObject;
+                truck.GameObject.transform.position *= positionScaleFactor;
             }
         }
         else
@@ -93,7 +96,7 @@ public class Client : MonoBehaviour
 
     private IEnumerator FetchLocationState()
     {
-        var locationsRequest = UnityWebRequest.Get("http://localhost:3001/api/world/locations");
+        var locationsRequest = UnityWebRequest.Get(BaseUrl + "/world/locations");
         yield return locationsRequest.SendWebRequest();
 
         if (locationsRequest.result == UnityWebRequest.Result.Success)
@@ -106,28 +109,28 @@ public class Client : MonoBehaviour
             {
                 if (location.locationType == LocationType.Producer)
                 {
-                    var newFarm = Instantiate(farmProto, location.position, Quaternion.identity);
-                    location.gameObject = newFarm.gameObject;
+                    var newFarm = Instantiate(farmProto, location.Position, Quaternion.identity);
+                    location.GameObject = newFarm.gameObject;
                 }
                 else if (location.locationType == LocationType.Processor)
                 {
-                    if (location.name.ToLower().Contains("bakery"))
+                    if (location.Name.ToLower().Contains("bakery"))
                     {
-                        var newBakery = Instantiate(bakeryProto, location.position, Quaternion.identity);
-                        location.gameObject = newBakery.gameObject;
+                        var newBakery = Instantiate(bakeryProto, location.Position, Quaternion.identity);
+                        location.GameObject = newBakery.gameObject;
                     }
                     else
                     {
-                        var newFactory = Instantiate(processorProto, location.position, Quaternion.identity);
-                        location.gameObject = newFactory.gameObject;
+                        var newFactory = Instantiate(processorProto, location.Position, Quaternion.identity);
+                        location.GameObject = newFactory.gameObject;
                     }
                 }
                 else if (location.locationType == LocationType.Town)
                 {
-                    var newTown = Instantiate(townProto, location.position, Quaternion.identity);
-                    location.gameObject = newTown.gameObject;
+                    var newTown = Instantiate(townProto, location.Position, Quaternion.identity);
+                    location.GameObject = newTown.gameObject;
                 }
-                location.gameObject.transform.position *= positionScaleFactor;
+                location.GameObject.transform.position *= positionScaleFactor;
             }
         }
         else
@@ -136,21 +139,41 @@ public class Client : MonoBehaviour
         }
     }
 
+    private IEnumerator FetchCompanyState()
+    {
+        var companiesRequest = UnityWebRequest.Get(BaseUrl + "/companies");
+        yield return companiesRequest.SendWebRequest();
+
+        if (companiesRequest.result == UnityWebRequest.Result.Success)
+        {
+            companyDTOs = JsonConvert.DeserializeObject<List<CompanyDTO>>(companiesRequest.downloadHandler.text);
+            Debug.Log("There are " + companyDTOs.Count + " companies");
+        }
+        else
+        {
+            Debug.LogError("Failed to fetch company state: " + companiesRequest.error);
+        }
+    }
+
     // Update is called once per frame
     void Update()
     {
         foreach (TruckDTO truck in truckDTOs)
         {
-            if (truck.gameObject != null)
+            if (truck.GameObject != null)
             {
-                truck.gameObject.transform.position = Vector3.Lerp(truck.gameObject.transform.position, truck.position * positionScaleFactor, Time.deltaTime);
+                truck.GameObject.transform.position = Vector3.Lerp(truck.GameObject.transform.position, truck.Position * positionScaleFactor, Time.deltaTime);
 
-                var truckDestination = locationDTOs.Find(location => location.id == truck.destinationId);
+                var truckDestination = locationDTOs.Find(location => location.Id == truck.DestinationId);
 
                 if (truckDestination != null)
                 {
-                    var dirToDestination = truckDestination.position - truck.position;
-                    truck.gameObject.transform.rotation = Quaternion.Lerp(truck.gameObject.transform.rotation, Quaternion.LookRotation(dirToDestination), Time.deltaTime * 5f);
+                    var dirToDestination = truckDestination.Position - truck.Position;
+
+                    if (dirToDestination != Vector3.zero)
+                    {
+                        truck.GameObject.transform.rotation = Quaternion.Lerp(truck.GameObject.transform.rotation, Quaternion.LookRotation(dirToDestination), Time.deltaTime * 5f);
+                    }
                 }
             }
         }

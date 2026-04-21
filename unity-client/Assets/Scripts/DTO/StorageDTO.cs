@@ -1,6 +1,6 @@
 public class StorageDTO
 {
-    public ResourceType resourceType;
-    public float resourceCapacity;
-    public float resourceCount;
+    public ResourceType ResourceType { get; set; }
+    public float ResourceCapacity { get; set; }
+    public float ResourceCount { get; set; }
 }

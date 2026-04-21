@@ -10,8 +10,7 @@ export const createManageCompaniesPage = (apiBaseUrl: string): IMenuPage => {
     "company",
     async (companyChoiceIndex: number) => {
       try {
-        const companies = (await axios.get(`${apiBaseUrl}/world/companies`))
-          .data;
+        const companies = (await axios.get(`${apiBaseUrl}/companies`)).data;
         const company = companies[companyChoiceIndex];
 
         if (!company) {
@@ -91,8 +90,7 @@ export const createManageCompaniesPage = (apiBaseUrl: string): IMenuPage => {
     [createViewCompanyAction],
     async () => {
       try {
-        const companies = (await axios.get(`${apiBaseUrl}/world/companies`))
-          .data;
+        const companies = (await axios.get(`${apiBaseUrl}/companies`)).data;
 
         if (companies.length === 0) {
           logWarning(` - There are no companies available`);

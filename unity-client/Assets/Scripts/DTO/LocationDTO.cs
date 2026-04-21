@@ -1,5 +1,5 @@
 
-public class LocationDTO : WorldEntityDTO
+public class LocationDTO : CompanyEntityDTO
 {
     public LocationType locationType;
     public StorageDTO[] storage;

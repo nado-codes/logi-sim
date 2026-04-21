@@ -38,7 +38,7 @@ export const logisimApi = (world: IWorld) => {
 
     // COMPANIES
 
-    app.get("/api/world/companies", (req, res) => {
+    app.get("/api/companies", (req, res) => {
       res.send(world.getCompanies());
     });
 
