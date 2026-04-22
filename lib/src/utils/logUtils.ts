@@ -9,14 +9,13 @@ interface LogEntry {
 export const logEntries: LogEntry[] = [];
 
 const log = (entry: string) => {
-  console.log(entry);
-
   const now = new Date(Date.now());
 
   const hours = now.getHours(); // 0-23
   const minutes = now.getMinutes(); // 0-59
   const seconds = now.getSeconds(); // 0-59
 
+  console.log(`[${hours}:${minutes}:${seconds}]: `, entry);
   logEntries.push({ timestamp: `${hours}:${minutes}:${seconds}`, entry });
 };
 export const logError = (text: string | number) => {

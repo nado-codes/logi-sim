@@ -1,21 +1,7 @@
 import { createWorld } from "./world/world";
 import { logisimApi } from "./api";
-import { ITown, LOCATION_TYPE, RESOURCE_TYPE } from "@logisim/lib/entities";
-import {
-  logInfo,
-  Color,
-  highlight,
-  logError,
-  logSuccess,
-  sum,
-} from "@logisim/lib/utils";
-import {
-  getResourceCapacity,
-  getResourceCount,
-  getResourceStorage,
-} from "./world/storages";
-import { getLocationById } from "./world/locations/locations";
-import { loadTruckConfig } from "./world/trucks";
+import { RESOURCE_TYPE } from "@logisim/lib/entities";
+import { logInfo, Color, highlight } from "@logisim/lib/utils";
 
 // .. CREATE
 
@@ -36,17 +22,15 @@ const playerCompany = world.createCompany(
 const competitorCompany = world.createCompany("RivalCo", 100000, Color.Red, {
   isAiEnabled: true,
 });
-const competitorCompany2 = world.createCompany(
+/*const competitorCompany2 = world.createCompany(
   "Disruptor Inc",
   100000,
   Color.Yellow,
   {
     isAiEnabled: true,
   },
-);
+);*/
 
-world.createCoastline({ x: 0, y: 0, z: 0 });
-world.createWater({ x: 60, y: 0, z: 0 });
 world.createTown("FlourVille", stateCompany.id, { x: 63, y: 0, z: 0 }, true);
 
 world.createProducer(
@@ -69,7 +53,7 @@ world.createProcessor(
     }, //
   },
 );
-world.createProcessor(
+/* world.createProcessor(
   "Bakery",
   stateCompany.id,
   { x: 45, y: 0, z: 0 },
@@ -81,9 +65,9 @@ world.createProcessor(
       [RESOURCE_TYPE.Bread]: 30,
     },
   },
-);
+); */
 
-world.createTruck(
+/*world.createTruck(
   "Truck 1",
   playerCompany.id,
   RESOURCE_TYPE.Grain,
@@ -98,7 +82,7 @@ world.createTruck(
   1000000,
   { x: 15, y: 0, z: 0 },
   2,
-);
+);*/
 
 // .. RivalCo trucks
 world.createTruck(
@@ -117,7 +101,7 @@ world.createTruck(
   { x: 15, y: 0, z: 0 },
   2,
 );
-world.createTruck(
+/*world.createTruck(
   "Truck 5",
   competitorCompany.id,
   RESOURCE_TYPE.Bread,
@@ -166,9 +150,9 @@ world.createTruck(
   1000000,
   { x: 15, y: 0, z: 0 },
   2,
-);
+);*/
 
-const simTarget = 0;
+const simTarget = 1300;
 const checkpointFactor = simTarget / 10;
 
 const update = () => {
@@ -204,18 +188,11 @@ const trySnapshot = () => {
     .filter((c) => c.name !== "State");
 
   nonStateCompanies.forEach((c1) => {
-    nonStateCompanies
-      .filter((c) => c !== c1)
-      .forEach((c2) => {
-        const cMoneyPct = (c1.money / c2.money) * 100;
-
-        if (cMoneyPct > 100) {
-          console.log(
-            `  - ${c1.name}->${c2.name} = ${c1.money}/${c2.money} = ${cMoneyPct}%`,
-          );
-        }
-      });
+    console.log(`  - ${c1.name} = ${c1.money}`);
   });
+
+  if (world.getCurrentTick() > 750) {
+  }
 
   const lastSnapshotDuration = new Date(Date.now() - lastSnapshot);
 
@@ -230,41 +207,11 @@ if (simTarget > 0) {
   console.log(highlight.cyan(`Simulating...`));
 }
 
-let richestCompany = world.getCompanies()[0];
-
 while (world.getCurrentTick() < simTarget) {
   trySnapshot();
   update();
-
-  const companies = world.getCompanies();
-
-  companies.forEach((c) => {
-    if (c.money > richestCompany.money) {
-      richestCompany = c;
-    }
-  });
-
-  if (
-    companies.some((c1) => companies.some((c2) => c1.money / c2.money >= 3))
-  ) {
-    console.log("FOUND RICH COMPANY at tick ", world.getCurrentTick());
-
-    const richestContracts = world
-      .getContracts()
-      .filter((c) => c.shipperId === richestCompany.id);
-
-    if (
-      !richestContracts.some((c) => c.expectedTick > world.getCurrentTick())
-    ) {
-      break;
-    }
-  }
 }
-
-console.log(
-  `The richest company was ${highlight.yellow(richestCompany.name)} with ${highlight.yellow("$" + richestCompany.money)}`,
-);
 
 const api = logisimApi(world);
 api.start();
-setInterval(update, 500);
+//setInterval(update, 500);

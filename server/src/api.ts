@@ -36,6 +36,11 @@ export const logisimApi = (world: IWorld) => {
       res.send(world.getLocations());
     });
 
+    app.post("/api/advanceTick", (req, res) => {
+      world.advanceTick();
+      res.send();
+    });
+
     // COMPANIES
 
     app.get("/api/companies", (req, res) => {
