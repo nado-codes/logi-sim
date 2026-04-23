@@ -4,7 +4,7 @@
   "description": "A text-based logistics simulator grounded in reality, and implements real market demand and freight transport mechanics",
   "main": "index.js",
   "scripts": {
-    "sc-base": "nodemon --watch src,config --ext ts,json --exec ts-node src/scenarios/base-scenario.ts",
+    "sc-base": "npx ts-node src/scenarios/sc-base.ts",
     "dev": "nodemon --watch src,config --ext ts,json --exec ts-node src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js"

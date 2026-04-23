@@ -1,9 +1,8 @@
 import { createBaseEntity, createNamedEntity } from "../entities";
 import { loadGeographyConfig } from "./geographies";
-import { world } from "..";
 import { randomUUID } from "node:crypto";
 import { loadNotificationConfig } from "../notifications";
-import { loadTownConfig } from "./locations/consumers/towns";
+import { createTown, loadTownConfig } from "./locations/consumers/towns";
 import { getLocationById } from "./locations/locations";
 import { assignContract } from "./contracts";
 import { loadTruckConfig } from "./trucks";
@@ -245,12 +244,11 @@ const tryCreateTown = (state: IWorldState, company: ICompany) => {
   );
 
   if (spawnPos) {
-    world.createTown(
-      `Town ${randomUUID()}`,
-      company.id,
-      { x: spawnPos, y: 0, z: 0 },
-      true,
-    );
+    createTown(state, `Town ${randomUUID()}`, company.id, {
+      x: spawnPos,
+      y: 0,
+      z: 0,
+    });
 
     if (
       notificationConfig.logCompanyNotifications.all ||

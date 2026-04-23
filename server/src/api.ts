@@ -5,6 +5,7 @@ import {
   transferCompanyFundsFromState,
 } from "./world/companies";
 import { ITown, LOCATION_TYPE } from "@logisim/lib/entities";
+import { logEntries } from "@logisim/lib/utils";
 
 export const logisimApi = (world: IWorld) => {
   const app = express();
@@ -41,6 +42,10 @@ export const logisimApi = (world: IWorld) => {
       res.send();
     });
 
+    app.get("/api/logs", (req, res) => {
+      res.send(logEntries);
+    });
+
     // COMPANIES
 
     app.get("/api/companies", (req, res) => {
@@ -56,6 +61,22 @@ export const logisimApi = (world: IWorld) => {
     });
 
     // TRUCKS
+    app.get("/api/truck/getString", (req, res) => {
+      try {
+        const { truckId } = req.query;
+        const truck = world.getTruckById(truckId as string);
+
+        if (!truck) {
+          res.status(404).send({ error: "Truck not found" });
+          return;
+        }
+
+        res.send(world.getTruckString(truck));
+      } catch (error) {
+        res.status(400).send({ error: "Failed to get truck string" });
+      }
+    });
+
     app.get<{ id: string }>("/api/truck/id/:id", (req, res) => {
       try {
         res.send(world.getTruckById(req.params.id));

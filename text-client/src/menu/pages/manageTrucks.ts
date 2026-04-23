@@ -8,7 +8,7 @@ import {
   MenuItemType,
 } from "../menu";
 import { IUserSession } from "@logisim/lib";
-import { RESOURCE_TYPE } from "@logisim/lib/entities";
+import { ITruck, RESOURCE_TYPE } from "@logisim/lib/entities";
 import { highlight, logSuccess } from "@logisim/lib/utils";
 import { randomUUID } from "node:crypto";
 
@@ -288,7 +288,8 @@ export const createManageTrucksPage = (
     [createViewTruckAction(), createBuyTruckAction(), createSellTruckAction()],
     async () => {
       try {
-        const trucks = (await axios.get(`${apiBaseUrl}/world/trucks`)).data;
+        const trucks: ITruck[] = (await axios.get(`${apiBaseUrl}/world/trucks`))
+          .data;
 
         if (trucks.length === 0) {
           console.log(highlight.warning(` - There are no trucks available`));
@@ -296,9 +297,18 @@ export const createManageTrucksPage = (
         }
 
         console.log(`\nAvailable trucks: ${trucks.length}`);
-        trucks.forEach((t: any, i: number) => {
-          const truckString = `Truck ${highlight.yellow(t.id)} at position ${highlight.yellow(t.position.x)}`;
-          console.log(` - [${i}] ${truckString}`);
+        const truckStrings = (
+          await Promise.all(
+            trucks.map(async ({ id }) =>
+              axios.get(`${apiBaseUrl}/truck/getString`, {
+                params: { truckId: id },
+              }),
+            ),
+          )
+        ).map((res) => res.data);
+
+        truckStrings.forEach((str, i) => {
+          console.log(` - [${i}] ${str}`);
         });
       } catch (error) {
         console.log(highlight.error(`Failed to load trucks: ${error}`));

@@ -85,7 +85,7 @@ export const createMenu = (callback: () => void, userSession: IUserSession) => {
     createManageTrucksPage(apiBaseUrl, userSession),
     createManageLocationsPage(apiBaseUrl, userSession),
     createManageCompaniesPage(apiBaseUrl),
-    createViewLogsPage(),
+    createViewLogsPage(apiBaseUrl),
   ]);
 
   let activePage: IMenuPage = mainMenu;

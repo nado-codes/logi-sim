@@ -8,15 +8,19 @@ interface LogEntry {
 
 export const logEntries: LogEntry[] = [];
 
+let contextProvider: (() => string) | null = null;
+
+export const setLogContextProvider = (provider: () => string) => {
+  contextProvider = provider;
+};
+
 const log = (entry: string) => {
-  const now = new Date(Date.now());
+  const context = contextProvider
+    ? contextProvider()
+    : `${new Date().toISOString().slice(11, 19)}`; // fallback to wall clock
 
-  const hours = now.getHours(); // 0-23
-  const minutes = now.getMinutes(); // 0-59
-  const seconds = now.getSeconds(); // 0-59
-
-  console.log(`[${hours}:${minutes}:${seconds}]: `, entry);
-  logEntries.push({ timestamp: `${hours}:${minutes}:${seconds}`, entry });
+  console.log(`[${context}] `, entry);
+  logEntries.push({ timestamp: context, entry });
 };
 export const logError = (text: string | number) => {
   const entry = `\x1b[31m${text}\x1b[0m`; // red

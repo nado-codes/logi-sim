@@ -8,7 +8,6 @@ import { getLocationById } from "./locations/locations";
 import { getTruckById, setTruckContract } from "./trucks";
 import { getResourceCount, getResourceStorage } from "./storages";
 import { loadConfig } from "../utils/configUtils";
-import { world } from "..";
 import {
   logInfo,
   logSuccess,
@@ -243,7 +242,7 @@ export const assignContract = (
   setTruckContract(truck, contract);
   contract.shipperId = truck.companyId;
   contract.truckId = truck.id;
-  contract.acceptedAtTick = world.getCurrentTick();
+  contract.acceptedAtTick = state.currentTick;
 
   if (notificationConfig.logContractNotifications) {
     const truckCompany = getCompanyById(state, truck.companyId);
