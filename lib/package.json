@@ -30,6 +30,10 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/seedrandom": "^3.0.8",
     "typescript": "^6.0.2"
+  },
+  "dependencies": {
+    "seedrandom": "^3.0.5"
   }
 }

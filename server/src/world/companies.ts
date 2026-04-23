@@ -22,6 +22,7 @@ import {
   logInfo,
   logWarning,
   sum,
+  random,
 } from "@logisim/lib/utils";
 
 const geographyConfig = loadGeographyConfig();
@@ -265,7 +266,7 @@ const tryCreateTown = (state: IWorldState, company: ICompany) => {
 };
 
 const tryDispatchTrucks = (state: IWorldState, company: ICompany) => {
-  const dispatch = Math.random();
+  const dispatch = random();
 
   if (
     notificationConfig.logCompanyNotifications.all ||

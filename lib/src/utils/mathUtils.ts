@@ -1,4 +1,5 @@
 import { Vector3 } from "../entities";
+import seedrandom from "seedrandom";
 
 export const clamp = (value: number, min: number, max: number) => {
   if (max <= min) {
@@ -16,3 +17,11 @@ export function sum(array: number[]) {
 export const vectorsAreEqual = (A: Vector3, B: Vector3) => {
   return A.x === B.x && A.y === B.y && A.z === B.z;
 };
+
+let rng = seedrandom();
+
+export const setGlobalSeed = (seed: string) => {
+  rng = seedrandom(seed);
+};
+
+export const random = () => rng();
