@@ -4,20 +4,24 @@
   "description": "A text-based logistics simulator grounded in reality, and implements real market demand and freight transport mechanics",
   "main": "index.js",
   "scripts": {
-    "sc-base": "npx ts-node src/scenarios/sc-base.ts",
+    "sc-base": "npx ts-node test/scenarios/sc-base.ts",
     "dev": "nodemon --watch src,config --ext ts,json --exec ts-node src/index.ts",
     "build": "tsc",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "test": "vitest run",
+    "test:soak": "vitest run test/soak --testTimeout=60000"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@rolldown/binding-win32-x64-msvc": "^1.0.0-rc.17",
     "@types/express": "^5.0.6",
     "@types/node": "^25.2.2",
     "nodemon": "^3.1.11",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.5"
   },
   "dependencies": {
     "@logisim/lib": "file:../lib",

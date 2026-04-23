@@ -65,12 +65,7 @@ import { Color } from "@logisim/lib/utils";
 
 export interface IWorld {
   advanceTick: () => void;
-  updateProcessors: () => void;
-  updateTowns: () => void;
-  updateProducers: () => void;
-  updateContracts: () => void;
-  updateTrucks: () => void;
-  updateCompanies: () => void;
+  update: () => void;
 
   getMap: () => void;
   getCurrentTick: () => number;
@@ -193,14 +188,21 @@ const createInitialState = (): IWorldState => {
 export const createWorld = (): IWorld => {
   const state: IWorldState = createInitialState();
 
+  const update = (state: IWorldState) => {
+    updateProcessors(state);
+    updateTowns(state);
+    updateProducers(state);
+    updateContracts(state);
+    updateTrucks(state);
+    updateCompanies(state);
+
+    state.currentTick++;
+  };
+
   return {
     advanceTick: () => state.currentTick++,
-    updateProcessors: () => updateProcessors(state),
-    updateTowns: () => updateTowns(state),
-    updateProducers: () => updateProducers(state),
-    updateContracts: () => updateContracts(state),
-    updateTrucks: () => updateTrucks(state),
-    updateCompanies: () => updateCompanies(state),
+
+    update: () => update(state),
 
     getMap: () => getMap(state),
     getCurrentTick: () => state.currentTick,

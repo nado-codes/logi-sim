@@ -232,7 +232,7 @@ const tryCreateTown = (state: IWorldState, company: ICompany) => {
         (_, i) => w.position.x - geographyConfig.arableLandRadius + i,
       ),
     )
-    .reduce((a, c) => a.concat(c));
+    .reduce((a, c) => a.concat(c), []);
   const allLocations = state.getLocations();
 
   const spawnPos = allPositions.find(

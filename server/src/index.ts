@@ -161,66 +161,6 @@ world.createTruck(
 
 setLogContextProvider(() => `Tick ${world.getCurrentTick()}`);
 
-const simTarget = 0;
-const checkpointFactor = simTarget / 10;
-
-const update = () => {
-  if (world.getCurrentTick() >= simTarget) {
-    console.log(
-      "Updated world state for tick ",
-      highlight.yellow(world.getCurrentTick()),
-    );
-  }
-  world.advanceTick();
-
-  world.updateCompanies();
-  world.updateProducers();
-  world.updateProcessors();
-  world.updateTowns();
-  world.updateContracts();
-  world.updateTrucks();
-};
-
-let lastSnapshot = Date.now();
-
-const trySnapshot = () => {
-  if (
-    simTarget <= 0 ||
-    world.getCurrentTick() / checkpointFactor !==
-      Math.round(world.getCurrentTick() / checkpointFactor)
-  ) {
-    return;
-  }
-
-  const nonStateCompanies = world
-    .getCompanies()
-    .filter((c) => c.name !== "State");
-
-  nonStateCompanies.forEach((c1) => {
-    console.log(`  - ${c1.name} = ${c1.money}`);
-  });
-
-  if (world.getCurrentTick() > 750) {
-  }
-
-  const lastSnapshotDuration = new Date(Date.now() - lastSnapshot);
-
-  console.log(
-    `- Tick ${highlight.yellow(world.getCurrentTick() + "/" + simTarget) + `(${Math.round((world.getCurrentTick() / simTarget) * 100)}%)`} [${lastSnapshotDuration.getMilliseconds() + "ms"}]`,
-  );
-
-  lastSnapshot = Date.now();
-};
-
-if (simTarget > 0) {
-  console.log(highlight.cyan(`Simulating...`));
-}
-
-while (world.getCurrentTick() < simTarget) {
-  trySnapshot();
-  update();
-}
-
 const api = logisimApi(world);
 api.start();
-setInterval(update, 500);
+setInterval(world.update, 500);
