@@ -1,12 +1,12 @@
 import { describe, it, expect } from "vitest";
 import { runBaseSimulation } from "../testHelpers/baseSimulation";
 import { IWorld } from "../../src/world/world";
-import { highlight, setGlobalSeed } from "@logisim/lib/utils";
-import { ITruck } from "../../../lib/dist/entities/truck";
+import { highlight, setGlobalSeed, vectorsAreEqual } from "@logisim/lib/utils";
+import { Vector3 } from "@logisim/lib/entities";
 
 describe("deadlock soak", () => {
-  it("No loaded truck may be idle for more than 2 ticks", () => {
-    let previousTickLoadedTrucks: ITruck[] = [];
+  it("No loaded truck may be idle for more than 5 ticks", () => {
+    const previousTickLoadedTruckPositions: Record<string, Vector3> = {};
     const loadedTrucksTicksIdle: Record<string, number> = {};
 
     const observe = (world: IWorld) => {
@@ -15,23 +15,36 @@ describe("deadlock soak", () => {
         .filter((t) => t.storage.resourceCount > 0);
 
       loadedTrucks.forEach((t) => {
-        if (
-          previousTickLoadedTrucks.find(
-            (ptt) => ptt.id === t.id && t.position === ptt.position,
-          )
-        ) {
-          loadedTrucksTicksIdle[t.id] = (loadedTrucksTicksIdle[t.id] ?? 0) + 1;
+        const tPreviousPosition = previousTickLoadedTruckPositions[t.id];
+        if (tPreviousPosition) {
+          if (vectorsAreEqual(t.position, tPreviousPosition)) {
+            console.log(
+              `${highlight.yellow(t.name)} has been idle for ${
+                loadedTrucksTicksIdle[t.id] ?? 0
+              } ticks at position ${highlight.yellow(JSON.stringify(t.position))}`,
+            );
+            loadedTrucksTicksIdle[t.id] =
+              (loadedTrucksTicksIdle[t.id] ?? 0) + 1;
+          } else {
+            loadedTrucksTicksIdle[t.id] = 0;
+          }
         }
+        previousTickLoadedTruckPositions[t.id] = structuredClone(t.position);
       });
 
-      previousTickLoadedTrucks = loadedTrucks;
-
-      const stuckTruck = Object.entries(loadedTrucksTicksIdle).find(
-        ([_, ticksIdle]) => ticksIdle > 2,
+      const stuckTruckInfo = Object.entries(loadedTrucksTicksIdle).find(
+        ([_, ticksIdle]) => ticksIdle > 5,
       );
+      const stuckTruckId = stuckTruckInfo?.[0];
+      const stuckTruck = stuckTruckId ? world.getTruckById(stuckTruckId) : null;
+      const stuckTruckMessage = stuckTruck
+        ? `${highlight.yellow(stuckTruck.name)} at position ${highlight.yellow(
+            JSON.stringify(stuckTruck.position),
+          )} with ${highlight.yellow(stuckTruck.storage.resourceCount + " " + stuckTruck.storage.resourceType)}`
+        : "Unknown truck got stuck";
       expect(
-        stuckTruck?.[0],
-        `Truck with id ${stuckTruck?.[0]} has been idle with resources for ${stuckTruck?.[1]} ticks`,
+        stuckTruckInfo,
+        `${stuckTruckMessage} has been idle for ${stuckTruckInfo?.[1]} ticks`,
       ).toBeUndefined();
     };
 

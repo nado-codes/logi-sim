@@ -148,10 +148,12 @@ const updateTruckPosition = (state: IWorldState, truck: ITruck) => {
   if (truck.position.x != truckDestination.position.x) {
     truck.position.x -= direction * truck.speed;
 
+    // .. TODO: Why do trucks get stuck after loading? Ideally, trucks should load and then depart immediately
+    // .. trucks getting stuck causes economic deadlocks
     if (
       Math.abs(truck.position.x - truckDestination.position.x) < truck.speed
     ) {
-      truck.position = truckDestination.position; // Snap to destination
+      truck.position = structuredClone(truckDestination.position); // Snap to destination
     }
 
     if (vectorsAreEqual(truck.position, truckDestination.position)) {

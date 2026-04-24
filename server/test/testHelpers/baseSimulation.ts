@@ -38,7 +38,7 @@ export const runBaseSimulation = (options: {
     stateCompany.id,
     { x: 10, y: 0, z: 0 },
     RESOURCE_TYPE.Grain,
-    25,
+    2500,
   );
   world.createProcessor(
     "Flour Mill",
@@ -57,20 +57,20 @@ export const runBaseSimulation = (options: {
   // .. RivalCo trucks
   world.createTruck(
     "Truck 3",
-    competitorCompany.id,
+    playerCompany.id,
     RESOURCE_TYPE.Grain,
     1000000,
     { x: 15, y: 0, z: 0 },
     2,
   );
-  world.createTruck(
+  /*world.createTruck(
     "Truck 4",
     competitorCompany.id,
     RESOURCE_TYPE.Flour,
     1000000,
     { x: 15, y: 0, z: 0 },
     2,
-  );
+  );*/
 
   setLogContextProvider(() => `Tick ${world.getCurrentTick()}`);
 

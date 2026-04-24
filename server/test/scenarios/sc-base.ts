@@ -1,9 +1,9 @@
-import { setGlobalSeed } from "../../../lib/dist/utils/mathUtils";
+import { setGlobalSeed } from "@logisim/lib/utils";
 import { logisimApi } from "../../src/api";
 import { runBaseSimulation } from "../testHelpers/baseSimulation";
 
-setGlobalSeed("base-scenario-seed");
-const world = runBaseSimulation({ simTarget: 500 });
+setGlobalSeed("deadlock-soak-test-seed");
+const world = runBaseSimulation({ simTarget: 5 });
 
 const api = logisimApi(world);
 api.start();
