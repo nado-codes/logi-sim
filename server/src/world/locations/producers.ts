@@ -39,6 +39,8 @@ export const createProducer = (
   );
 
   state.producers.push(newProducer);
+
+  return newProducer;
 };
 
 export const updateProducers = (state: IWorldState) => {

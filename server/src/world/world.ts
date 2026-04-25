@@ -60,6 +60,8 @@ import {
   defaultCompanyOptions,
   ITown,
   Vector3,
+  IProducer,
+  IProcessor,
 } from "@logisim/lib/entities";
 import { Color } from "@logisim/lib/utils";
 
@@ -118,7 +120,7 @@ export interface IWorld {
     produces: RESOURCE_TYPE,
     productionRate: number,
     startFull?: boolean,
-  ) => void;
+  ) => IProducer;
 
   createProcessor: (
     name: string,
@@ -127,14 +129,14 @@ export interface IWorld {
     recipe: IRecipe,
     startWithFullInputs?: boolean,
     startWithFullOutputs?: boolean,
-  ) => void;
+  ) => IProcessor;
 
   createTown: (
     name: string,
     companyId: string,
     position: Vector3,
     startFull?: boolean,
-  ) => void;
+  ) => ITown;
 
   createContract: (
     companyId: string,
@@ -143,7 +145,7 @@ export interface IWorld {
     resourceType: RESOURCE_TYPE,
     amount: number,
     dueTicks: number,
-  ) => void;
+  ) => IContract;
 
   createTruck: (
     name: string,
@@ -153,7 +155,7 @@ export interface IWorld {
     position: Vector3,
     speed: number,
     resourceCount?: number,
-  ) => void;
+  ) => ITruck;
 
   assignContract: (contract: IContract, truck: ITruck) => boolean;
   reseedTown: (town: ITown) => void;

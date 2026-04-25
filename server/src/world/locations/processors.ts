@@ -45,6 +45,8 @@ export const createProcessor = (
   };
 
   state.processors.push(newProcessor);
+
+  return newProcessor;
 };
 
 export const updateProcessors = (state: IWorldState) => {

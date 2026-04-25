@@ -132,6 +132,8 @@ export const createContract = (
   }
 
   state.contracts.push(newContract);
+
+  return newContract;
 };
 
 // .. READ

@@ -372,8 +372,8 @@ const tryDispatchTrucks = (state: IWorldState, company: ICompany) => {
       notificationConfig.logCompanyNotifications.all ||
       notificationConfig.logCompanyNotifications.ai
     ) {
-      logInfo(
-        `- Dispatching truck ${nearestTruck.name} for contract ${c.id} (contract payment: ${c.payment}, contract cost: ${contractDeliveryCost})`,
+      logSuccess(
+        `- Dispatched ${nearestTruck.name} for contract ${c.id} (contract payment: ${c.payment}, contract cost: ${contractDeliveryCost})`,
       );
     }
 

@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "sc-base": "npx ts-node test/scenarios/sc-base.ts",
+    "sc-compete": "npx ts-node test/scenarios/sc-compete.ts",
     "dev": "nodemon --watch src,config --ext ts,json --exec ts-node src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",

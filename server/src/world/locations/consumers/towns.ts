@@ -84,6 +84,8 @@ export const createTown = (
   };
 
   state.towns.push(newTown);
+
+  return newTown;
 };
 
 export const townHasSpace = (town: ITown) => {

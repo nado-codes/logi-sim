@@ -33,6 +33,7 @@ import {
   logInfo,
   positionToString,
   vectorsAreEqual,
+  logError,
 } from "@logisim/lib/utils";
 
 interface ITruckConfig {
@@ -86,6 +87,8 @@ export const createTruck = (
   }
 
   state.trucks.push(newTruck);
+
+  return newTruck;
 };
 
 // .. READ
@@ -273,7 +276,10 @@ export const updateTrucks = (state: IWorldState) => {
             stopTruck(truck);
             truck.contractId = undefined;
 
-            if (!truckContract.acceptedAtTick) {
+            if (truckContract.acceptedAtTick === undefined) {
+              logError(
+                `Contract ${truckContract.id} doesn't have acceptedAtTick set`,
+              );
               throw Error(`Contract acceptedAtTick must be set`);
             }
 
