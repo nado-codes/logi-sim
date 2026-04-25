@@ -63,7 +63,7 @@ import {
   IProducer,
   IProcessor,
 } from "@logisim/lib/entities";
-import { Color } from "@logisim/lib/utils";
+import { Color, highlight } from "@logisim/lib/utils";
 
 export interface IWorld {
   advanceTick: () => void;
@@ -197,6 +197,8 @@ export const createWorld = (): IWorld => {
     updateContracts(state);
     updateTrucks(state);
     updateCompanies(state);
+
+    console.log(`World updated at tick ${highlight.yellow(state.currentTick)}`);
 
     state.currentTick++;
   };
