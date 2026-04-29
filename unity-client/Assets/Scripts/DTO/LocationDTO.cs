@@ -1,6 +1,7 @@
 
-public class LocationDTO : CompanyEntityDTO
+public class LocationDTO : WorldEntityDTO, ICompanyEntity
 {
-    public LocationType locationType;
-    public StorageDTO[] storage;
+    public string companyId { get; set; }
+    public LocationType locationType { get; set; }
+    public StorageDTO[] storage { get; set; }
 }

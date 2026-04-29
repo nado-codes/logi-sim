@@ -120,9 +120,8 @@ export const createContract = (
     supplierId,
     resourceType,
     totalAmount: amount,
-    amountDelivered: 0,
     payment,
-    expectedTick: state.currentTick + dueTicks,
+    expectedTick: Math.round(state.currentTick + dueTicks),
   };
 
   if (notificationConfig.logContractNotifications) {

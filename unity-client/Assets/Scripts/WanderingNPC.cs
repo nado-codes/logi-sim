@@ -13,7 +13,14 @@ public class WanderingNPC : MonoBehaviour
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
+        GotoRandomWaypoint();
         StartCoroutine(WanderRoutine());
+    }
+
+    void GotoRandomWaypoint()
+    {
+        Transform target = waypoints[Random.Range(0, waypoints.Length)];
+        agent.SetDestination(target.position);
     }
 
     IEnumerator WanderRoutine()
@@ -21,8 +28,7 @@ public class WanderingNPC : MonoBehaviour
         while (true)
         {
             yield return new WaitForSeconds(Random.Range(minWait, maxWait));
-            Transform target = waypoints[Random.Range(0, waypoints.Length)];
-            agent.SetDestination(target.position);
+            GotoRandomWaypoint();
         }
     }
 }

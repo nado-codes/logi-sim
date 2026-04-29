@@ -55,6 +55,7 @@
     <Compile Include="Assets\Scripts\DTO\LocationDTO.cs" />
     <Compile Include="Assets\Scripts\Flycam.cs" />
     <Compile Include="Assets\Scripts\Types.cs" />
+    <Compile Include="Assets\Scripts\DTO\ContractDTO.cs" />
     <Compile Include="Assets\Scripts\RecBlink.cs" />
     <Compile Include="Assets\Scripts\DTO\CompanyEntityDTO.cs" />
     <Compile Include="Assets\Scripts\DTO\BaseEntityDTO.cs" />
@@ -62,10 +63,12 @@
     <Compile Include="Assets\TutorialInfo\Scripts\Readme.cs" />
     <Compile Include="Assets\Scripts\DTO\TruckDTO.cs" />
     <Compile Include="Assets\Scripts\DTO\StorageDTO.cs" />
+    <Compile Include="Assets\Scripts\AITrainer.cs" />
     <Compile Include="Assets\Scripts\TreeSpawner.cs" />
     <Compile Include="Assets\Scripts\Interfaces\INamedEntity.cs" />
     <Compile Include="Assets\Scripts\DTO\CompanyDTO.cs" />
     <Compile Include="Assets\Scripts\DTO\WorldEntityDTO.cs" />
+    <Compile Include="Assets\Scripts\Interfaces\ICompanyEntity.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />
