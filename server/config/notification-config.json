@@ -1,0 +1,22 @@
+{
+  "logStorageNotifications": false,
+  "logProcessorNotifications": false,
+  "logProducerNotifications": false,
+  "logConsumerNotifications": false,
+  "logContractNotifications": false,
+  "logTruckNotifications": {
+    "all": false,
+    "loading": false,
+    "unloading": false,
+    "movement": false,
+    "costs": false
+  },
+  "logProductionNotifications": false,
+  "logLocationNotifications": false,
+  "logCompanyNotifications": {
+    "all": false,
+    "government": false,
+    "ai": false
+  },
+  "printLogs": true
+}

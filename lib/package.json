@@ -1,0 +1,39 @@
+{
+  "name": "@logisim/lib",
+  "version": "0.1.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./entities": "./dist/entities/index.js",
+    "./entities/locations": "./dist/entities/locations/index.js",
+    "./utils": "./dist/utils/index.js"
+  },
+  "typesVersions": {
+    "*": {
+      "entities": [
+        "dist/entities/index.d.ts"
+      ],
+      "entities/locations": [
+        "dist/entities/locations/index.d.ts"
+      ],
+      "utils": [
+        "dist/utils/index.d.ts"
+      ]
+    }
+  },
+  "scripts": {
+    "clean": "if exist dist rmdir /s /q dist",
+    "build": "npm run clean && tsc",
+    "build:watch": "npm run clean && tsc --watch"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/seedrandom": "^3.0.8",
+    "typescript": "^6.0.2"
+  },
+  "dependencies": {
+    "seedrandom": "^3.0.5"
+  }
+}

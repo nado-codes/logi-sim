@@ -1,0 +1,36 @@
+import {
+  ResourceMap,
+  LOCATION_TYPE,
+  IWorldState,
+  IBaseConsumer,
+  Vector3,
+} from "@logisim/lib/entities";
+import { processRecipe } from "../../storages";
+import { createBaseLocation, checkInputStorage } from "../locations";
+
+export const createBaseConsumer = (
+  name: string,
+  companyId: string,
+  position: Vector3,
+  consumes: ResourceMap,
+  startFull: boolean,
+) => {
+  const newConsumer = createBaseLocation(
+    name,
+    companyId,
+    position,
+    { inputs: consumes },
+    LOCATION_TYPE.Consumer,
+    startFull,
+  );
+
+  return newConsumer;
+};
+
+export const updateBaseConsumer = (
+  state: IWorldState,
+  consumer: IBaseConsumer,
+) => {
+  processRecipe(consumer.recipe, consumer.storage);
+  checkInputStorage(state, consumer);
+};
