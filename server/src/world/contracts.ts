@@ -6,7 +6,11 @@ import {
 } from "./companies";
 import { getLocationById } from "./locations/locations";
 import { getTruckById, setTruckContract } from "./trucks";
-import { getResourceCount, getResourceStorage } from "./storages";
+import {
+  canStoreResourceType,
+  getResourceCount,
+  getResourceStorage,
+} from "./storages";
 import { loadConfig } from "../utils/configUtils";
 import {
   logInfo,
@@ -113,6 +117,17 @@ export const createContract = (
   const destination = getLocationById(state, destinationId);
   const distance = Math.abs(destination.position.x - supplier.position.x);
   const payment = calculateContractPayment(amount, distance, dueTicks);
+
+  if (!canStoreResourceType(supplier.storage, resourceType)) {
+    throw Error(
+      `[CRITICAL CONTRACT ERROR] Supplier ${supplier.name} doesn't provide ${resourceType}`,
+    );
+  }
+  if (!canStoreResourceType(destination.storage, resourceType)) {
+    throw Error(
+      `[CRITICAL CONTRACT ERROR] Destination ${destination.name} doesn't accept ${resourceType}`,
+    );
+  }
 
   const newContract: IContract = {
     ...createCompanyEntity(companyId),

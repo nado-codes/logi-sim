@@ -96,11 +96,26 @@ export const createRecipeStorage = (
   return [...inputStorage, ...outputStorage];
 };
 
+export const canStoreResourceType = (
+  storage: IStorage[],
+  resourceType: RESOURCE_TYPE,
+) => storage.some((s) => s.resourceType === resourceType);
+
 export const getResourceStorage = (
   resourceType: RESOURCE_TYPE,
   storage: IStorage[],
 ) => {
-  return storage.filter((s) => s.resourceType === resourceType);
+  const matchingStorage = storage.filter(
+    (s) => s.resourceType === resourceType,
+  );
+
+  if (matchingStorage.length === 0) {
+    throw Error(
+      `[CRITICAL STORAGE ERROR] No storage found for resource type ${resourceType}`,
+    );
+  }
+
+  return matchingStorage;
 };
 
 export const getInputStorage = (recipe: IRecipe, storage: IStorage[]) =>
@@ -236,21 +251,11 @@ export const transferResources = (
     logInfo(`[STORAGE] We'll try to transfer ${amount} ${resourceType}...`);
   }
 
-  const matchingSourceStorage = fromStorage.filter(
-    (s) => s.resourceType === resourceType,
+  const matchingSourceStorage = getResourceStorage(resourceType, fromStorage);
+  const matchingDestinationStorage = getResourceStorage(
+    resourceType,
+    toStorage,
   );
-  const matchingDestinationStorage = toStorage.filter(
-    (s) => s.resourceType === resourceType,
-  );
-
-  if (
-    matchingSourceStorage.length === 0 ||
-    matchingDestinationStorage.length === 0
-  ) {
-    throw Error(
-      `[CRITICAL STORAGE ERROR] No matching source & destination storage found for ${resourceType}`,
-    );
-  }
 
   const matchingSourceResourceCount = matchingSourceStorage
     .map((s) => s.resourceCount)
