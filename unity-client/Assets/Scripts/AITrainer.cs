@@ -40,7 +40,9 @@ public class AITrainer : MonoBehaviour
     private CanvasGroup canvasGroup;
 
     private TutorialType currentTutorial;
-    private int flowStep = 0;
+    private string[] pages;
+
+    private int page = 0;
 
     private enum WelcomeMessageType
     {
@@ -48,26 +50,8 @@ public class AITrainer : MonoBehaviour
     }
 
     // Welcome flow messages
-    private List<TutorialMessage<WelcomeMessageType>> welcomeMessages = new List<TutorialMessage<WelcomeMessageType>>()
-    {
-        new TutorialMessage<WelcomeMessageType> { MessageType = WelcomeMessageType.None, Message = "Alright, since it's your first time here, we'll start you off with the basics." },
-        new TutorialMessage<WelcomeMessageType> { MessageType = WelcomeMessageType.None, Message = "You'll see the seniors running around doing lots of things ... " },
-        new TutorialMessage<WelcomeMessageType> { MessageType = WelcomeMessageType.None, Message = "...Dispatching trucks, talking on the phone with our industry guys to make sure the production lines are running etc" },
-        new TutorialMessage<WelcomeMessageType> { MessageType = WelcomeMessageType.None, Message = "Don't worry about that stuff for now though. Boss has asked me to walk you through how we get contracts..." },
-         new TutorialMessage<WelcomeMessageType> { MessageType = WelcomeMessageType.None, Message = "Because at the end of the day, that's what we're here for. We haul stuff around and get paid for it." },
-        new TutorialMessage<WelcomeMessageType> { MessageType = WelcomeMessageType.None, Message = "Contracts usually come in pretty quickly. I'll let you know when one pops up, and we can go through it together." }
-    };
+    private const string welcomeMessages = @"Alright, since it's your first time here, we'll start you off with the basics. You'll see the seniors running around doing lots of things: Dispatching trucks, talking on the phone with our industry guys to make sure the production lines are running etc. Don't worry about that stuff for now though. Boss has asked me to walk you through how we get contracts. Because at the end of the day, that's what we're here for. We haul stuff around and get paid for it. Contracts usually come in pretty quickly. I'll let you know when one pops up, and we can go through it together.";
 
-    // Contract tutorial events
-    private enum ContractMessageType
-    {
-        NewContract
-    }
-
-    private List<TutorialMessage<ContractMessageType>> contractFlowEvents = new List<TutorialMessage<ContractMessageType>>()
-    {
-        new TutorialMessage<ContractMessageType> { MessageType = ContractMessageType.NewContract, Message = "Alright, we've got some new contracts coming in" }
-    };
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -119,41 +103,45 @@ public class AITrainer : MonoBehaviour
         isTeaching = true;
         currentTutorial = type;
 
-        flowStep = 0;
-        txMessage.text = getTutorialMessage(currentTutorial, flowStep);
+        page = 0;
+        pages = paginateMessages(welcomeMessages);
+        txMessage.text = pages[page];
     }
 
-    string getTutorialMessage(TutorialType type, int step)
+    string[] paginateMessages(string message, int wordsPerPage = 25)
     {
-        switch (type)
-        {
-            case TutorialType.Welcome:
-                return welcomeMessages[step].Message;
-            case TutorialType.Contracts:
-                return contractFlowEvents[step].Message;
-            default:
-                return null;
-        }
-    }
+        string[] words = message.Split(" ");
+        List<string> pages = new();
+        var cursorOffset = 0;
+        var cursor = 0;
 
-    int getTutorialMessageCount(TutorialType type)
-    {
-        switch (type)
+        var page = "";
+        while (cursor < words.Length)
         {
-            case TutorialType.Welcome:
-                return welcomeMessages.Count;
-            case TutorialType.Contracts:
-                return contractFlowEvents.Count;
-            default:
-                return 0;
+            if (cursor - cursorOffset < wordsPerPage)
+            {
+                page += (page.Length > 0 ? " " : "") + words[cursor];
+                cursor++;
+            }
+            else
+            {
+                pages.Add($"{page}...");
+
+                cursorOffset += wordsPerPage;
+                page = "";
+            }
         }
+
+        pages.Add(page);
+
+        return pages.ToArray();
     }
 
     public void nextMessage()
     {
-        if (flowStep < getTutorialMessageCount(currentTutorial) - 1)
+        if (page < pages.Length - 1)
         {
-            flowStep++;
+            page++;
         }
         else
         {
@@ -161,7 +149,7 @@ public class AITrainer : MonoBehaviour
             currentTutorial = TutorialType.None;
         }
 
-        txMessage.text = getTutorialMessage(currentTutorial, flowStep);
+        txMessage.text = pages[page];
     }
 
     IEnumerator PollServerState()
@@ -194,7 +182,7 @@ public class AITrainer : MonoBehaviour
     {
         if (!isTeaching)
         {
-            canvasGroup.alpha = Mathf.Lerp(canvasGroup.alpha, 0, Time.deltaTime); // Fade out when not teaching
+            canvasGroup.alpha = Mathf.Lerp(canvasGroup.alpha, 0, Time.deltaTime * 3); // Fade out when not teaching
         }
         else
         {
