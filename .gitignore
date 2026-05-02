@@ -139,3 +139,5 @@ Library
 Temp
 Obj
 Logs
+
+*.apik
