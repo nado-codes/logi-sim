@@ -5,49 +5,35 @@ using Newtonsoft.Json;
 using UnityEngine;
 using TMPro;
 using UnityEngine.Networking;
-using System;
 
 public class AITrainer : MonoBehaviour
 {
     private const string BaseUrl = "http://localhost:3001/api";
     private static AITrainer instance;
 
-    private enum TutorialType
+    private enum EventType
     {
         None,
         Welcome,
-        Contracts,
-        Dispatch,
-        FleetManagement,
-        IndustryManagement
-    }
-    struct TutorialMessage<T> where T : Enum
-    {
-        public T MessageType;
-        public string Message;
+        NewContract,
     }
 
     // User-controlled tutorial toggles
-    private bool canWelcome = true;
+    private bool canWelcome = false;
     private bool canTeachContracts = true;
     private bool canTeachDispatch = false;
     private bool canTeachFleetManagement = false;
     private bool canTeachIndustryManagement = false;
-    private bool isTeaching = false;
+    private bool isActive = false;
 
     private List<ContractDTO> contractDTOs = new List<ContractDTO>();
     private TextMeshProUGUI txMessage;
     private CanvasGroup canvasGroup;
 
-    private TutorialType currentTutorial;
+    private EventType currentEvent;
     private string[] pages;
 
     private int page = 0;
-
-    private enum WelcomeMessageType
-    {
-        None
-    }
 
     // Welcome flow messages
     private const string welcomeMessages = @"Alright, since it's your first time here, we'll start you off with the basics. You'll see the seniors running around doing lots of things: Dispatching trucks, talking on the phone with our industry guys to make sure the production lines are running etc. Don't worry about that stuff for now though. Boss has asked me to walk you through how we get contracts. Because at the end of the day, that's what we're here for. We haul stuff around and get paid for it. Contracts usually come in pretty quickly. I'll let you know when one pops up, and we can go through it together.";
@@ -87,25 +73,41 @@ public class AITrainer : MonoBehaviour
 
         if (canWelcome)
         {
-            startTutorial(TutorialType.Welcome);
+            pages = paginateMessages(welcomeMessages);
+            currentEvent = EventType.Welcome;
+            txMessage.text = pages[page];
+            isActive = true;
         }
     }
 
-    void startTutorial(TutorialType type)
+    IEnumerator processEvent(string situation, string contextJSON)
     {
-        Debug.Log("Starting tutorial: " + type);
-        if (isTeaching)
+        if(isActive)
         {
-            Debug.LogWarning(" - Already teaching" + currentTutorial + ", cannot start a new one");
-            return;
+            yield break;
         }
-        Debug.Log("Started tutorial: " + type);
-        isTeaching = true;
-        currentTutorial = type;
 
-        page = 0;
-        pages = paginateMessages(welcomeMessages);
+        var data = new Dictionary<string,string>()
+        {
+            {"situation",situation},
+            {"context",contextJSON}
+        };
+        var dialogueRequest = UnityWebRequest.Post(BaseUrl + "/ai/dialogue",JsonConvert.SerializeObject(data),"application/json");
+        yield return dialogueRequest.SendWebRequest();
+
+        if (dialogueRequest.result == UnityWebRequest.Result.Success)
+        {
+            var response = JsonConvert.DeserializeObject<Dictionary<string,string>>(dialogueRequest.downloadHandler.text);
+            pages = paginateMessages(response["dialogue"]);
+            isActive = true;
         txMessage.text = pages[page];
+        }
+        else
+        {
+            Debug.LogError("Failed to process event: "+dialogueRequest.downloadHandler.text);
+        } 
+
+        
     }
 
     string[] paginateMessages(string message, int wordsPerPage = 25)
@@ -142,14 +144,14 @@ public class AITrainer : MonoBehaviour
         if (page < pages.Length - 1)
         {
             page++;
+            txMessage.text = pages[page];
         }
         else
         {
-            isTeaching = false;
-            currentTutorial = TutorialType.None;
+            page = 0;
+            isActive = false;
+            currentEvent = EventType.None;
         }
-
-        txMessage.text = pages[page];
     }
 
     IEnumerator PollServerState()
@@ -163,11 +165,12 @@ public class AITrainer : MonoBehaviour
             {
                 var updatedContractDTOs = JsonConvert.DeserializeObject<List<ContractDTO>>(contractsRequest.downloadHandler.text);
 
-                var newContractDTOs = updatedContractDTOs.FindAll(updated => !contractDTOs.Exists(existing => existing.Id == updated.Id));
+                var newContractDTOs = updatedContractDTOs.FindAll(updated => !contractDTOs.Exists(existing => existing.Id == updated.Id) && updated.AcceptedAtTick == null && updated.DeliveredTick == null);
+                var newContractVMs = newContractDTOs.Select(c => ContractViewModel.FromDTO(c,Client.LocationDTOs,Client.TruckDTOs,Client.WorldTick));
 
                 if (newContractDTOs.Any())
                 {
-                    startTutorial(TutorialType.Contracts);
+                    StartCoroutine(processEvent("A new contract has come in. Need to know if it's good or not. Not interested in the truck name, or whether it was accepted or delivered.",JsonConvert.SerializeObject(newContractVMs)));
                 }
 
                 contractDTOs = updatedContractDTOs;
@@ -180,13 +183,13 @@ public class AITrainer : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (!isTeaching)
+        if (!isActive)
         {
             canvasGroup.alpha = Mathf.Lerp(canvasGroup.alpha, 0, Time.deltaTime * 3); // Fade out when not teaching
         }
         else
         {
-            canvasGroup.alpha = Mathf.Lerp(canvasGroup.alpha, 1, Time.deltaTime); // Fade in when teaching
+            canvasGroup.alpha = Mathf.Lerp(canvasGroup.alpha, 1, Time.deltaTime * 3); // Fade in when teaching
         }
     }
 }

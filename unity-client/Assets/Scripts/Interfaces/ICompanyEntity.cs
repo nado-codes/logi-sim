@@ -1,4 +1,4 @@
-public interface ICompanyEntity
+public interface ICompanyEntity : IBaseEntity
 {
-    string companyId { get; set; }
+    string CompanyId { get; set; }
 }

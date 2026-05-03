@@ -4245,6 +4245,57 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 1258380888}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1260707261
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1260707263}
+  - component: {fileID: 1260707262}
+  m_Layer: 0
+  m_Name: Manager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1260707262
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1260707261}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 59c61944a0bdab04ab5e0b06944a76b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Client
+  boxTruckProto: {fileID: 0}
+  flatbedTruckProto: {fileID: 0}
+  processorProto: {fileID: 0}
+  bakeryProto: {fileID: 0}
+  farmProto: {fileID: 0}
+  townProto: {fileID: 0}
+  SpawnEntities: 0
+--- !u!4 &1260707263
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1260707261}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 979.59015, y: -45.48895, z: 225.50159}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1300337230
 GameObject:
   m_ObjectHideFlags: 0
@@ -7496,3 +7547,4 @@ SceneRoots:
   - {fileID: 332942877}
   - {fileID: 121349977}
   - {fileID: 884673636}
+  - {fileID: 1260707263}

@@ -129,7 +129,6 @@ GameObject:
   m_Component:
   - component: {fileID: 35319462}
   - component: {fileID: 35319463}
-  - component: {fileID: 35319464}
   m_Layer: 0
   m_Name: Manager
   m_TagString: Untagged
@@ -176,20 +175,7 @@ MonoBehaviour:
     type: 3}
   townProto: {fileID: 8744534182939949508, guid: d1f3c55947b59f04e9b138ca828f88bf,
     type: 3}
---- !u!114 &35319464
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 35319460}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c0f62d77a772d4b4d8465018119dce3e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: '::'
-  terrain: {fileID: 0}
-  treePrefab: {fileID: 0}
+  SpawnEntities: 1
 --- !u!1 &124985779
 GameObject:
   m_ObjectHideFlags: 0

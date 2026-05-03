@@ -1,4 +1,4 @@
-public class CompanyEntityDTO : BaseEntityDTO
+public class CompanyEntityDTO : BaseEntityDTO, ICompanyEntity
 {
-    public string companyId { get; set; }
+    public string CompanyId { get; set; }
 }
