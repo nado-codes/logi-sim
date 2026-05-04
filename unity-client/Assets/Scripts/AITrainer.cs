@@ -168,7 +168,7 @@ public class AITrainer : MonoBehaviour
                 var newContractDTOs = updatedContractDTOs.FindAll(updated => !contractDTOs.Exists(existing => existing.Id == updated.Id) && updated.AcceptedAtTick == null && updated.DeliveredTick == null);
                 var newContractVMs = newContractDTOs.Select(c => ContractViewModel.FromDTO(c,Client.LocationDTOs,Client.TruckDTOs,Client.WorldTick));
 
-                if (newContractDTOs.Any())
+                if (newContractDTOs.Any() && canTeachContracts)
                 {
                     StartCoroutine(processEvent("A new contract has come in. Need to know if it's good or not. Not interested in the truck name, or whether it was accepted or delivered.",JsonConvert.SerializeObject(newContractVMs)));
                 }

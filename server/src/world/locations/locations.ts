@@ -28,7 +28,6 @@ import {
   highlight,
   logWarning,
   logInfo,
-  logError,
   logSuccess,
   vectorsAreEqual,
 } from "@logisim/lib/utils";
@@ -212,7 +211,7 @@ export const checkInputStorage = (
 
           if (!closestSupplier) {
             if (notificationConfig.logLocationNotifications) {
-              logError(`- No nearby suppliers to resupply ${location.name}`);
+              logWarning(`- No nearby suppliers to resupply ${location.name}`);
             }
           } else {
             // .. if there's literally NO STOCK left, we need to create an URGENT contract (due sooner, more needs to be transported)
@@ -231,7 +230,7 @@ export const checkInputStorage = (
           }
         } else if (!contract.truckId) {
           if (notificationConfig.logLocationNotifications) {
-            logError(
+            logWarning(
               `- ${location.name} was unable to create a contract because one already exists and is NOT being shipped`,
             );
           }
