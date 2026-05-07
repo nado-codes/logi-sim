@@ -8,7 +8,7 @@ using UnityEngine.Networking;
 
 public class Client : MonoBehaviour
 {
-    private const string BaseUrl = "http://localhost:3001/api";
+    public static readonly string BaseUrl = "http://localhost:3001/api";
     public static List<TruckDTO> TruckDTOs = new List<TruckDTO>();
     public static List<LocationDTO> LocationDTOs = new List<LocationDTO>();
     public static List<CompanyDTO> CompanyDTOs = new List<CompanyDTO>();

@@ -1,5 +1,6 @@
 public class ContractDTO : CompanyEntityDTO
 {
+    public string ShipperId {get; set;}
     public string SupplierId { get; set; }
     public string DestinationId { get; set; }
     public string? TruckId { get; set; }

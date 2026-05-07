@@ -1,4 +1,4 @@
 public interface ICompanyEntity : IBaseEntity
 {
-    string CompanyId { get; set; }
+    public string CompanyId { get; set; }
 }

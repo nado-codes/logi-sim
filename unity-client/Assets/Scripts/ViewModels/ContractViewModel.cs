@@ -2,11 +2,9 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ContractViewModel : ICompanyEntity
+public class ContractViewModel : BaseCompanyEntityViewModel
 {
-    public string Id { get; set;}
-    public string CompanyId { get; set;}
-
+    public string ShipperName {get;set;}
     public string SupplierName { get; set; }
     public string DestinationName { get; set; }
     public string? TruckName { get; set; }
@@ -19,15 +17,22 @@ public class ContractViewModel : ICompanyEntity
     public int? AcceptedAtTick { get; set; }
 
     public static ContractViewModel FromDTO(
-    ContractDTO dto, 
+    ContractDTO dto,
+    List<CompanyDTO> companies, 
     List<LocationDTO> locations, 
     List<TruckDTO> trucks,
     int currentTick)
     {
+        var company = companies.Find(c => c.Id == dto.CompanyId);
         var supplier = locations.Find(l => l.Id == dto.SupplierId);
         var destination = locations.Find(l => l.Id == dto.DestinationId);
+        var shipper = companies.Find(c => c.Id == dto.ShipperId);
         var truck = trucks.Find(t => t.Id == dto.TruckId);
 
+        if(company == null)
+        {
+            throw new NullReferenceException($"Company with id ${dto.CompanyId} doesn't exist");
+        }
         if(supplier == null)
         {
             throw new NullReferenceException($"Supplier with id ${dto.SupplierId} doesn't exist");
@@ -40,14 +45,15 @@ public class ContractViewModel : ICompanyEntity
         return new ContractViewModel
         {
             Id = dto.Id,
-            CompanyId = dto.CompanyId,
+            CompanyName = company.Name,
             SupplierName = supplier.Name,
             DestinationName = destination.Name,
+            ShipperName = shipper.Name,
+            TruckName = truck?.Name ?? "N/A",
             ResourceName = dto.ResourceType.ToString(),
             TotalAmount = dto.TotalAmount,
             Payment = dto.Payment,
             DueInTicks = dto.ExpectedTick - currentTick,
-            TruckName = truck?.Name ?? "N/A",
             Distance = Vector3.Distance(supplier.Position,destination.Position),
             DeliveredTick = dto.DeliveredTick,
             AcceptedAtTick = dto.AcceptedAtTick

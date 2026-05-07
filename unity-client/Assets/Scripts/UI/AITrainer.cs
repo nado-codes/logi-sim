@@ -8,7 +8,6 @@ using UnityEngine.Networking;
 
 public class AITrainer : MonoBehaviour
 {
-    private const string BaseUrl = "http://localhost:3001/api";
     private static AITrainer instance;
 
     private enum EventType
@@ -92,7 +91,7 @@ public class AITrainer : MonoBehaviour
             {"situation",situation},
             {"context",contextJSON}
         };
-        var dialogueRequest = UnityWebRequest.Post(BaseUrl + "/ai/dialogue",JsonConvert.SerializeObject(data),"application/json");
+        var dialogueRequest = UnityWebRequest.Post(Client.BaseUrl + "/ai/dialogue",JsonConvert.SerializeObject(data),"application/json");
         yield return dialogueRequest.SendWebRequest();
 
         if (dialogueRequest.result == UnityWebRequest.Result.Success)
@@ -158,7 +157,7 @@ public class AITrainer : MonoBehaviour
     {
         while (true)
         {
-            var contractsRequest = UnityWebRequest.Get(BaseUrl + "/world/contracts");
+            var contractsRequest = UnityWebRequest.Get(Client.BaseUrl + "/world/contracts");
             yield return contractsRequest.SendWebRequest();
 
             if (contractsRequest.result == UnityWebRequest.Result.Success)
@@ -166,7 +165,7 @@ public class AITrainer : MonoBehaviour
                 var updatedContractDTOs = JsonConvert.DeserializeObject<List<ContractDTO>>(contractsRequest.downloadHandler.text);
 
                 var newContractDTOs = updatedContractDTOs.FindAll(updated => !contractDTOs.Exists(existing => existing.Id == updated.Id) && updated.AcceptedAtTick == null && updated.DeliveredTick == null);
-                var newContractVMs = newContractDTOs.Select(c => ContractViewModel.FromDTO(c,Client.LocationDTOs,Client.TruckDTOs,Client.WorldTick));
+                var newContractVMs = newContractDTOs.Select(c => ContractViewModel.FromDTO(c,Client.CompanyDTOs,Client.LocationDTOs,Client.TruckDTOs,Client.WorldTick));
 
                 if (newContractDTOs.Any() && canTeachContracts)
                 {
