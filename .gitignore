@@ -140,4 +140,7 @@ Temp
 Obj
 Logs
 
+bin
+obj
+
 *.apik

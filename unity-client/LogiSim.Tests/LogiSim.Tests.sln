@@ -1,0 +1,24 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LogiSim.Tests", "LogiSim.Tests.csproj", "{847293AC-C207-0679-C1D7-CE53EA74834D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{847293AC-C207-0679-C1D7-CE53EA74834D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{847293AC-C207-0679-C1D7-CE53EA74834D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{847293AC-C207-0679-C1D7-CE53EA74834D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{847293AC-C207-0679-C1D7-CE53EA74834D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FFF0D892-BA03-4B54-B6DB-9EB2F57EF44D}
+	EndGlobalSection
+EndGlobal

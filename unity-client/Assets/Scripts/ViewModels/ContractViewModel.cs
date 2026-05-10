@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 
 public class ContractViewModel : BaseCompanyEntityViewModel
 {
@@ -54,7 +53,7 @@ public class ContractViewModel : BaseCompanyEntityViewModel
             TotalAmount = dto.TotalAmount,
             Payment = dto.Payment,
             DueInTicks = dto.ExpectedTick - currentTick,
-            Distance = Vector3.Distance(supplier.Position,destination.Position),
+            Distance = MathUtils.Distance(supplier.Position.x,supplier.Position.y,supplier.Position.z,destination.Position.x,destination.Position.y,destination.Position.z),
             DeliveredTick = dto.DeliveredTick,
             AcceptedAtTick = dto.AcceptedAtTick
         };
