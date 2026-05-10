@@ -6,7 +6,7 @@ import {
   IRecipe,
   IProcessor,
   LOCATION_TYPE,
-  Vector3,
+  Pos3D,
 } from "@logisim/lib/entities";
 import { logWarning, logSuccess } from "@logisim/lib/utils";
 
@@ -16,7 +16,7 @@ export const createProcessor = (
   state: IWorldState,
   name: string,
   companyId: string,
-  position: Vector3,
+  position: Pos3D,
   recipe: IRecipe,
   startWithFullInputs: boolean = false,
   startWithFullOutputs: boolean = false,

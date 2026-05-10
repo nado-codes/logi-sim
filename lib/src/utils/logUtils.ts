@@ -1,4 +1,4 @@
-import { Vector3 } from "../entities";
+import { Pos3D } from "../entities";
 import { Color } from "./color";
 
 interface LogEntry {
@@ -39,7 +39,7 @@ export const logSuccess = (text: string | number) => {
   log(entry);
 };
 
-export const positionToString = (position: Vector3) =>
+export const positionToString = (position: Pos3D) =>
   `(${position.x},${position.y},${position.z})`;
 
 export const highlight = {

@@ -1,4 +1,4 @@
-import { Vector3 } from "../entities";
+import { Pos3D } from "../entities";
 import seedrandom from "seedrandom";
 
 export const clamp = (value: number, min: number, max: number) => {
@@ -14,7 +14,7 @@ export function sum(array: number[]) {
   return array.reduce((a, c) => a + c, 0);
 }
 
-export const vectorsAreEqual = (A: Vector3, B: Vector3) => {
+export const vectorsAreEqual = (A: Pos3D, B: Pos3D) => {
   return A.x === B.x && A.y === B.y && A.z === B.z;
 };
 

@@ -50,10 +50,10 @@ public class ContractViewModelTests
         };
         var contractViewModel = ContractViewModel.FromDTO(contractDTO,companies,locations,trucks,0);
 
-        Assert.Equals(contractViewModel.CompanyName,companyOne.Name);
-        Assert.Equals(contractViewModel.SupplierName,localSupplier.Name);
-        Assert.Equals(contractViewModel.DestinationName,localDestination.Name);
-        Assert.Equals(contractViewModel.ShipperName,localShipper.Name);
+        Assert.That(contractViewModel.CompanyName == companyOne.Name);
+        Assert.That(contractViewModel.SupplierName == localSupplier.Name);
+        Assert.That(contractViewModel.DestinationName == localDestination.Name);
+        Assert.That(contractViewModel.ShipperName == localShipper.Name);
 
         if(contractViewModel.TruckName == null)
         {
@@ -61,6 +61,6 @@ public class ContractViewModelTests
             return;
         }
 
-        Assert.Equals(contractViewModel.TruckName,localTruck.Name);
+        Assert.That(contractViewModel.TruckName == localTruck.Name);
     }
 }

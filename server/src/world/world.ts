@@ -59,7 +59,7 @@ import {
   IWorldState,
   defaultCompanyOptions,
   ITown,
-  Vector3,
+  Pos3D,
   IProducer,
   IProcessor,
 } from "@logisim/lib/entities";
@@ -71,7 +71,7 @@ export interface IWorld {
 
   getMap: () => void;
   getCurrentTick: () => number;
-  getWorldEntityByPositionOrNull: (position: Vector3) => Nullable<IWorldEntity>;
+  getWorldEntityByPositionOrNull: (position: Pos3D) => Nullable<IWorldEntity>;
 
   getContracts: () => IContract[];
   getContractByIdOrNull: (id: Nullable<string>) => Nullable<IContract>;
@@ -82,7 +82,7 @@ export interface IWorld {
 
   getTrucks: () => ITruck[];
   getTruckById: (id: string) => ITruck;
-  getTruckByPositionOrNull: (position: Vector3) => Nullable<ITruck>;
+  getTruckByPositionOrNull: (position: Pos3D) => Nullable<ITruck>;
   getTruckString: (truck: ITruck) => string;
 
   getLocations: () => IBaseLocation[];
@@ -94,15 +94,11 @@ export interface IWorld {
   getCompanyByIdOrNull: (id: string) => Nullable<ICompany>;
   getCompanyByName: (name: string) => ICompany;
 
-  createCoastline: (position: Vector3) => ICoastline;
-  createWater: (position: Vector3) => IWater;
-  createMountain: (
-    position: Vector3,
-    width: number,
-    height: number,
-  ) => IMountain;
+  createCoastline: (position: Pos3D) => ICoastline;
+  createWater: (position: Pos3D) => IWater;
+  createMountain: (position: Pos3D, width: number, height: number) => IMountain;
   createResourceDeposit: (
-    position: Vector3,
+    position: Pos3D,
     resourceType: RESOURCE_TYPE,
   ) => IResourceDeposit;
 
@@ -116,7 +112,7 @@ export interface IWorld {
   createProducer: (
     name: string,
     companyId: string,
-    position: Vector3,
+    position: Pos3D,
     produces: RESOURCE_TYPE,
     productionRate: number,
     startFull?: boolean,
@@ -125,7 +121,7 @@ export interface IWorld {
   createProcessor: (
     name: string,
     companyId: string,
-    position: Vector3,
+    position: Pos3D,
     recipe: IRecipe,
     startWithFullInputs?: boolean,
     startWithFullOutputs?: boolean,
@@ -134,7 +130,7 @@ export interface IWorld {
   createTown: (
     name: string,
     companyId: string,
-    position: Vector3,
+    position: Pos3D,
     startFull?: boolean,
   ) => ITown;
 
@@ -152,7 +148,7 @@ export interface IWorld {
     companyId: string,
     resourceType: RESOURCE_TYPE,
     resourceCapacity: number,
-    position: Vector3,
+    position: Pos3D,
     speed: number,
     resourceCount?: number,
   ) => ITruck;
@@ -210,7 +206,7 @@ export const createWorld = (): IWorld => {
 
     getMap: () => getMap(state),
     getCurrentTick: () => state.currentTick,
-    getWorldEntityByPositionOrNull: (position: Vector3) =>
+    getWorldEntityByPositionOrNull: (position: Pos3D) =>
       getWorldEntityByPositionOrNull(state, position),
 
     getContracts: () => state.contracts,
@@ -223,7 +219,7 @@ export const createWorld = (): IWorld => {
 
     getTrucks: () => state.trucks,
     getTruckById: (id: string) => getTruckById(state, id),
-    getTruckByPositionOrNull: (position: Vector3) =>
+    getTruckByPositionOrNull: (position: Pos3D) =>
       getTruckByPositionOrNull(state, position),
     getTruckString: (truck: ITruck) => getTruckString(state, truck),
 
@@ -237,11 +233,11 @@ export const createWorld = (): IWorld => {
     getCompanyByIdOrNull: (id: string) => getCompanyByIdOrNull(state, id),
     getCompanyByName: (name: string) => getCompanyByName(state, name),
 
-    createCoastline: (position: Vector3) => createCoastline(state, position),
-    createWater: (position: Vector3) => createWater(state, position),
-    createMountain: (position: Vector3, width: number, height: number) =>
+    createCoastline: (position: Pos3D) => createCoastline(state, position),
+    createWater: (position: Pos3D) => createWater(state, position),
+    createMountain: (position: Pos3D, width: number, height: number) =>
       createMountain(state, position, width, height),
-    createResourceDeposit: (position: Vector3, resourceType: RESOURCE_TYPE) =>
+    createResourceDeposit: (position: Pos3D, resourceType: RESOURCE_TYPE) =>
       createResourceDeposit(state, position, resourceType),
 
     createCompany: (
@@ -254,7 +250,7 @@ export const createWorld = (): IWorld => {
     createProducer: (
       name: string,
       companyId: string,
-      position: Vector3,
+      position: Pos3D,
       produces: RESOURCE_TYPE,
       productionRate: number,
       startFull: boolean = false,
@@ -272,7 +268,7 @@ export const createWorld = (): IWorld => {
     createProcessor: (
       name: string,
       companyId: string,
-      position: Vector3,
+      position: Pos3D,
       recipe: IRecipe,
       startWithFullInputs: boolean = false,
       startWithFullOutputs: boolean = false,
@@ -287,7 +283,7 @@ export const createWorld = (): IWorld => {
         startWithFullOutputs,
       ),
 
-    createTown: (name: string, companyId: string, position: Vector3) =>
+    createTown: (name: string, companyId: string, position: Pos3D) =>
       createTown(state, name, companyId, position),
 
     createContract: (
@@ -313,7 +309,7 @@ export const createWorld = (): IWorld => {
       companyId: string,
       resourceType: RESOURCE_TYPE,
       resourceCapacity: number,
-      position: Vector3,
+      position: Pos3D,
       speed: number,
       resourceCount?: number,
     ) =>

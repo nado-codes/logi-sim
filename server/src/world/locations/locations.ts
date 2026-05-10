@@ -22,7 +22,7 @@ import {
   IWorldState,
   Nullable,
   RESOURCE_TYPE,
-  Vector3,
+  Pos3D,
 } from "@logisim/lib/entities";
 import {
   highlight,
@@ -50,7 +50,7 @@ const storageConfig = loadStorageConfig();
 export const createBaseLocation = (
   name: string,
   companyId: string,
-  position: Vector3,
+  position: Pos3D,
   recipe: IRecipe,
   locationType: LOCATION_TYPE,
   startWithFullInputs: boolean = false,
@@ -104,7 +104,7 @@ export const getLocationByIdOrNull = (
 
 export const getLocationByPositionOrNull = (
   state: IWorldState,
-  position: Vector3,
+  position: Pos3D,
 ) => {
   const location = state
     .getLocations()

@@ -2,11 +2,11 @@ import { describe, it, expect } from "vitest";
 import { runBaseSimulation } from "../testHelpers/baseSimulation";
 import { IWorld } from "../../src/world/world";
 import { highlight, setGlobalSeed, vectorsAreEqual } from "@logisim/lib/utils";
-import { Vector3 } from "@logisim/lib/entities";
+import { Pos3D } from "@logisim/lib/entities";
 
 describe("deadlock soak", () => {
   it("No loaded truck may be idle for more than 5 ticks", () => {
-    const previousTickLoadedTruckPositions: Record<string, Vector3> = {};
+    const previousTickLoadedTruckPositions: Record<string, Pos3D> = {};
     const loadedTrucksTicksIdle: Record<string, number> = {};
 
     const observe = (world: IWorld) => {

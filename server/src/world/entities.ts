@@ -1,9 +1,9 @@
-import { IWorldState, Vector3 } from "@logisim/lib/entities";
+import { IWorldState, Pos3D } from "@logisim/lib/entities";
 import { vectorsAreEqual } from "@logisim/lib/utils";
 
 export const getWorldEntityByPositionOrNull = (
   state: IWorldState,
-  position: Vector3,
+  position: Pos3D,
 ) => {
   const worldEntities = [
     ...state.getLocations(),

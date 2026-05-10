@@ -25,7 +25,7 @@ import {
   VEHICLE_TYPE,
   StorageTransferResult,
   IContract,
-  Vector3,
+  Pos3D,
 } from "@logisim/lib/entities";
 import {
   logSuccess,
@@ -58,7 +58,7 @@ export const createTruck = (
   companyId: string,
   resourceType: RESOURCE_TYPE,
   resourceCapacity: number,
-  position: Vector3,
+  position: Pos3D,
   speed: number,
   resourceCount: number = 0,
 ) => {
@@ -108,7 +108,7 @@ export const getTruckById = (state: IWorldState, id: string) => {
 
 export const getTruckByPositionOrNull = (
   state: IWorldState,
-  position: Vector3,
+  position: Pos3D,
 ) => {
   const truck = state.trucks.find((t) => vectorsAreEqual(t.position, position));
 

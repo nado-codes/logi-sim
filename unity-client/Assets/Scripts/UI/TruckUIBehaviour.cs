@@ -18,7 +18,7 @@ public class TruckUIBehaviour : MonoBehaviour
             transform.LookAt(transform.position + camera.transform.rotation * Vector3.forward, camera.transform.rotation * Vector3.up);
         }
 
-        var truck = Client.TruckDTOs.Find(truck => truck.GameObject == transform.parent.gameObject);
+        var truck = Client.TruckDTOs.Find(truck => truck.Id == gameObject.name);
         if (truck != null)
         {
             var txName = transform.Find("txName").GetComponent<TextMeshProUGUI>();

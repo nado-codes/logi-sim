@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
 using UnityEditor.PackageManager;
 using UnityEngine;
@@ -10,7 +11,9 @@ public class Client : MonoBehaviour
 {
     public static readonly string BaseUrl = "http://localhost:3001/api";
     public static List<TruckDTO> TruckDTOs = new List<TruckDTO>();
+    private static List<GameObject> Trucks = new List<GameObject>();
     public static List<LocationDTO> LocationDTOs = new List<LocationDTO>();
+    public static List<GameObject> Locations = new List<GameObject>();
     public static List<CompanyDTO> CompanyDTOs = new List<CompanyDTO>();
     public static int WorldTick = 0;
 
@@ -87,17 +90,7 @@ public class Client : MonoBehaviour
             var trucksRequest = CallAPI("/world/trucks",APICallType.Get);
             yield return trucksRequest;
 
-            var updatedTruckDTOs = JsonConvert.DeserializeObject<List<TruckDTO>>(trucksRequest.downloadHandler.text);
-                foreach (TruckDTO truckDTO in updatedTruckDTOs)
-                {
-                    var existingTruckDTO = TruckDTOs.Find(truck => truck.Id == truckDTO.Id);
-                    if (existingTruckDTO != null)
-                    {
-                        existingTruckDTO.Position = truckDTO.Position;
-                        existingTruckDTO.DestinationId = truckDTO.DestinationId;
-                    }
-
-                }
+            TruckDTOs = JsonConvert.DeserializeObject<List<TruckDTO>>(trucksRequest.downloadHandler.text);
 
             yield return new WaitForSeconds(interval);
         }
@@ -110,9 +103,9 @@ public class Client : MonoBehaviour
         var trucksRequest = CallAPI("/world/trucks",APICallType.Get);
         yield return trucksRequest;
 
-        foreach (TruckDTO truck in TruckDTOs)
+        foreach (GameObject truck in Trucks)
         {
-            Destroy(truck.GameObject);
+            Destroy(truck);
         }
 
         TruckDTOs = JsonConvert.DeserializeObject<List<TruckDTO>>(trucksRequest.downloadHandler.text);
@@ -123,9 +116,10 @@ public class Client : MonoBehaviour
         Debug.Log("There are " + TruckDTOs.Count + " trucks to spawn");
         foreach (TruckDTO truck in TruckDTOs)
         {
-            var newTruck = Instantiate(boxTruckProto, truck.Position, Quaternion.identity);
-            truck.GameObject = newTruck.gameObject;
-            truck.GameObject.transform.position *= positionScaleFactor;
+            var newTruck = Instantiate(boxTruckProto, truck.Position.ToVector3(), Quaternion.identity);
+            newTruck.name = truck.Id;
+            newTruck.transform.position *= positionScaleFactor;
+            Trucks.Add(newTruck);
         }
     }
 
@@ -143,30 +137,30 @@ public class Client : MonoBehaviour
 
         foreach (LocationDTO location in LocationDTOs)
         {
+            GameObject newLocation;
             if (location.LocationType == LocationType.Producer)
             {
-                var newFarm = Instantiate(farmProto, location.Position, Quaternion.identity);
-                location.GameObject = newFarm.gameObject;
+                newLocation = Instantiate(farmProto, location.Position.ToVector3(), Quaternion.identity);
             }
             else if (location.LocationType == LocationType.Processor)
             {
                 if (location.Name.ToLower().Contains("bakery"))
                 {
-                    var newBakery = Instantiate(bakeryProto, location.Position, Quaternion.identity);
-                    location.GameObject = newBakery.gameObject;
+                    newLocation = Instantiate(bakeryProto, location.Position.ToVector3(), Quaternion.identity);
                 }
                 else
                 {
-                    var newFactory = Instantiate(processorProto, location.Position, Quaternion.identity);
-                    location.GameObject = newFactory.gameObject;
+                    newLocation = Instantiate(processorProto, location.Position.ToVector3(), Quaternion.identity);
                 }
             }
-            else if (location.LocationType == LocationType.Town)
+            else
             {
-                var newTown = Instantiate(townProto, location.Position, Quaternion.identity);
-                location.GameObject = newTown.gameObject;
+                newLocation = Instantiate(townProto, location.Position.ToVector3(), Quaternion.identity);
             }
-            location.GameObject.transform.position *= positionScaleFactor;
+
+            newLocation.name = location.Id;
+            newLocation.transform.position *= positionScaleFactor;
+            Locations.Add(newLocation);
         }
     }
 
@@ -184,19 +178,20 @@ public class Client : MonoBehaviour
     {
         foreach (TruckDTO truck in TruckDTOs)
         {
-            if (truck.GameObject != null)
+            var truckGO = Trucks.FirstOrDefault(t => t.name == truck.Id);
+            if (truckGO != null)
             {
-                truck.GameObject.transform.position = Vector3.Lerp(truck.GameObject.transform.position, truck.Position * positionScaleFactor, Time.deltaTime);
+                truckGO.transform.position = Vector3.Lerp(truckGO.transform.position, truck.Position.ToVector3() * positionScaleFactor, Time.deltaTime);
 
-                var truckDestination = LocationDTOs.Find(location => location.Id == truck.DestinationId);
+                var truckDestGO = Locations.FirstOrDefault(l => l.name == truck.DestinationId);
 
-                if (truckDestination != null)
+                if (truckDestGO != null)
                 {
-                    var dirToDestination = truckDestination.Position - truck.Position;
+                    var dirToDestination = truckDestGO.transform.position - truck.Position.ToVector3();
 
                     if (dirToDestination != Vector3.zero)
                     {
-                        truck.GameObject.transform.rotation = Quaternion.Lerp(truck.GameObject.transform.rotation, Quaternion.LookRotation(dirToDestination), Time.deltaTime * 5f);
+                        truckGO.transform.rotation = Quaternion.Lerp(truckGO.transform.rotation, Quaternion.LookRotation(dirToDestination), Time.deltaTime * 5f);
                     }
                 }
             }

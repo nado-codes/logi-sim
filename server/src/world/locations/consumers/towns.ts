@@ -7,7 +7,7 @@ import {
   LOCATION_TYPE,
   ITown,
   RESOURCE_TYPE,
-  Vector3,
+  Pos3D,
 } from "@logisim/lib/entities";
 import { clamp } from "@logisim/lib/utils";
 import { get } from "node:http";
@@ -67,7 +67,7 @@ export const createTown = (
   state: IWorldState,
   name: string,
   companyId: string,
-  position: Vector3,
+  position: Pos3D,
 ) => {
   // .. tier to be used to determine what resources are demanded
 

@@ -14,7 +14,7 @@ export enum WorldEntityType {
   Vehicle = "Vehicle",
 }
 
-export type Vector3 = {
+export type Pos3D = {
   x: number;
   y: number;
   z: number;
@@ -22,6 +22,6 @@ export type Vector3 = {
 
 export interface IWorldEntity extends INamedEntity {
   type: WorldEntityType;
-  position: Vector3;
+  position: Pos3D;
   debugMessage?: string;
 }
