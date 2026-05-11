@@ -41,7 +41,6 @@ export const createAndGetStorage = (
     resourceType,
     resourceCapacity,
     resourceCount,
-    transferEvents: [],
   };
 
   return newStorage;
@@ -326,17 +325,7 @@ export const transferResources = (
         }
 
         _removeResources(amountToTransfer, source);
-        source.transferEvents.push({
-          entityId: source.ownerId,
-          tick: state.currentTick,
-          amount: amountToTransfer,
-        });
         _addResources(amountToTransfer, destination);
-        destination.transferEvents.push({
-          entityId: source.ownerId,
-          tick: state.currentTick,
-          amount: amountToTransfer,
-        });
 
         amountLeftToTransfer -= amountToTransfer;
         amountLeftToTransfer = Math.max(amountLeftToTransfer, 0);

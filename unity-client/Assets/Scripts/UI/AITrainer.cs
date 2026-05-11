@@ -5,6 +5,8 @@ using Newtonsoft.Json;
 using UnityEngine;
 using TMPro;
 using UnityEngine.Networking;
+using UnityEditor.PackageManager;
+using System;
 
 public class AITrainer : MonoBehaviour
 {
@@ -29,7 +31,6 @@ public class AITrainer : MonoBehaviour
     private TextMeshProUGUI txMessage;
     private CanvasGroup canvasGroup;
 
-    private EventType currentEvent;
     private string[] pages;
 
     private int page = 0;
@@ -68,12 +69,11 @@ public class AITrainer : MonoBehaviour
 
         txMessage.text = "";
 
-        StartCoroutine(PollServerState());
+        StartCoroutine(CheckForNewContracts());
 
         if (canWelcome)
         {
             pages = paginateMessages(welcomeMessages);
-            currentEvent = EventType.Welcome;
             txMessage.text = pages[page];
             isActive = true;
         }
@@ -149,22 +149,15 @@ public class AITrainer : MonoBehaviour
         {
             page = 0;
             isActive = false;
-            currentEvent = EventType.None;
         }
     }
 
-    IEnumerator PollServerState()
+    IEnumerator CheckForNewContracts()
     {
         while (true)
         {
-            var contractsRequest = UnityWebRequest.Get(Client.BaseUrl + "/world/contracts");
-            yield return contractsRequest.SendWebRequest();
-
-            if (contractsRequest.result == UnityWebRequest.Result.Success)
-            {
-                var updatedContractDTOs = JsonConvert.DeserializeObject<List<ContractDTO>>(contractsRequest.downloadHandler.text);
-
-                var newContractDTOs = updatedContractDTOs.FindAll(updated => !contractDTOs.Exists(existing => existing.Id == updated.Id) && updated.AcceptedAtTick == null && updated.DeliveredTick == null);
+            try{
+                var newContractDTOs = Client.ContractDTOs.FindAll(updated => !contractDTOs.Exists(existing => existing.Id == updated.Id) && updated.AcceptedAtTick == null && updated.DeliveredTick == null);
                 var newContractVMs = newContractDTOs.Select(c => ContractViewModel.FromDTO(c,Client.CompanyDTOs,Client.LocationDTOs,Client.TruckDTOs,Client.WorldTick));
 
                 if (newContractDTOs.Any() && canTeachContracts)
@@ -172,23 +165,26 @@ public class AITrainer : MonoBehaviour
                     StartCoroutine(processEvent("A new contract has come in. Need to know if it's good or not. Not interested in the truck name, or whether it was accepted or delivered.",JsonConvert.SerializeObject(newContractVMs)));
                 }
 
-                contractDTOs = updatedContractDTOs;
+                contractDTOs = Client.ContractDTOs;
+            }
+            catch(Exception err)
+            {
+                Debug.LogError(err);
             }
 
-            yield return new WaitForSeconds(.5f); // Wait for 0.5 seconds before the next teaching cycle
+            yield return new WaitForSeconds(.5f);
         }
     }
 
-    // Update is called once per frame
     void Update()
     {
         if (!isActive)
         {
-            canvasGroup.alpha = Mathf.Lerp(canvasGroup.alpha, 0, Time.deltaTime * 3); // Fade out when not teaching
+            canvasGroup.alpha = Mathf.Lerp(canvasGroup.alpha, 0, Time.deltaTime * 3);
         }
         else
         {
-            canvasGroup.alpha = Mathf.Lerp(canvasGroup.alpha, 1, Time.deltaTime * 3); // Fade in when teaching
+            canvasGroup.alpha = Mathf.Lerp(canvasGroup.alpha, 1, Time.deltaTime * 3);
         }
     }
 }

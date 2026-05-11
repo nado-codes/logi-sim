@@ -8,12 +8,12 @@ public class ContractViewModel : BaseCompanyEntityViewModel
     public string DestinationName { get; set; }
     public string? TruckName { get; set; }
     public string ResourceName { get; set; }
-    public int TotalAmount { get; set; }
-    public int Payment { get; set; }
-    public int DueInTicks { get; set; }
-    public float Distance {get;set;}
-    public int? DeliveredTick { get; set; }
-    public int? AcceptedAtTick { get; set; }
+    public string TotalAmount { get; set; }
+    public string Payment { get; set; }
+    public string DueInTicks { get; set; }
+    public string Distance {get;set;}
+    public string? DeliveredTick { get; set; }
+    public string? AcceptedAtTick { get; set; }
 
     public static ContractViewModel FromDTO(
     ContractDTO dto,
@@ -47,15 +47,15 @@ public class ContractViewModel : BaseCompanyEntityViewModel
             CompanyName = company.Name,
             SupplierName = supplier.Name,
             DestinationName = destination.Name,
-            ShipperName = shipper.Name,
+            ShipperName = shipper?.Name ?? "N/A",
             TruckName = truck?.Name ?? "N/A",
             ResourceName = dto.ResourceType.ToString(),
-            TotalAmount = dto.TotalAmount,
-            Payment = dto.Payment,
-            DueInTicks = dto.ExpectedTick - currentTick,
-            Distance = MathUtils.Distance(supplier.Position.x,supplier.Position.y,supplier.Position.z,destination.Position.x,destination.Position.y,destination.Position.z),
-            DeliveredTick = dto.DeliveredTick,
-            AcceptedAtTick = dto.AcceptedAtTick
+            TotalAmount = dto.TotalAmount.ToString("N0"),
+            Payment = dto.Payment.ToString("C"),
+            DueInTicks = (dto.ExpectedTick - currentTick).ToString()+" ticks",
+            Distance = MathUtils.Distance(supplier.Position.x,supplier.Position.y,supplier.Position.z,destination.Position.x,destination.Position.y,destination.Position.z).ToString()+"km",
+            DeliveredTick = "Tick "+dto.DeliveredTick.ToString(),
+            AcceptedAtTick = "Tick "+dto.AcceptedAtTick.ToString()
         };
     }
 }
