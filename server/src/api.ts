@@ -271,7 +271,25 @@ Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, 
         res.status(400).send({ error: "Failed to get contract string" });
       }
     });
-    app.post("/api/contract/assign", (req, res) => {
+    app.post("/api/contract/assignCompany", (req, res) => {
+      try {
+        const { contractId, companyId } = req.body;
+        const contract = world.getContractByIdOrNull(contractId);
+        const company = world.getCompanyById(companyId);
+
+        if (!contract) {
+          res.status(404).send({ error: "Contract not found" });
+          return;
+        }
+
+        const result = world.assignContractToCompany(contract, company);
+        res.send({ success: result });
+      } catch (error) {
+        res.status(400).send({ error: "Failed to assign contract to company" });
+      }
+    });
+
+    app.post("/api/contract/assignTruck", (req, res) => {
       try {
         const { contractId, truckId } = req.body;
         const contract = world.getContractByIdOrNull(contractId);
@@ -282,10 +300,10 @@ Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, 
           return;
         }
 
-        const result = world.assignContract(contract, truck);
+        const result = world.assignContractToTruck(contract, truck);
         res.send({ success: result });
       } catch (error) {
-        res.status(400).send({ error: "Failed to assign contract" });
+        res.status(400).send({ error: "Failed to assign contract to truck" });
       }
     });
 

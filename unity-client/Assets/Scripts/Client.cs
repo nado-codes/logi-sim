@@ -2,14 +2,20 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
-using UnityEditor.PackageManager;
 using UnityEngine;
 using UnityEngine.Networking;
 
+public enum APICallType
+    {
+        Get,
+        Post
+    }
 
 public class Client : MonoBehaviour
 {
     public static readonly string BaseUrl = "http://localhost:3001/api";
+
+    public static string PlayerCompanyId;
     
     public static List<TruckDTO> TruckDTOs = new List<TruckDTO>();
     private static List<GameObject> trucks = new List<GameObject>();
@@ -28,11 +34,7 @@ public class Client : MonoBehaviour
 
     private static Client _client;
 
-    enum APICallType
-    {
-        Get,
-        Post
-    }
+    
 
     void Awake()
     {
@@ -43,9 +45,11 @@ public class Client : MonoBehaviour
     {
         _client = this;
         StartCoroutine(RefreshWorldState(.4f));
+
+        PlayerCompanyId = CompanyDTOs.FirstOrDefault(c => c.Name == "State")?.Id;
     }
     
-    UnityWebRequest CallAPI(string uri, APICallType callType, string data = null)
+    public static UnityWebRequest CallAPI(string uri, APICallType callType, string data = null)
     {
         var request = callType == APICallType.Get ? UnityWebRequest.Get(BaseUrl + uri) : UnityWebRequest.Post(BaseUrl + uri,data,"application/json");
         
@@ -66,19 +70,35 @@ public class Client : MonoBehaviour
         {
             var companiesRequest = CallAPI("/companies",APICallType.Get);
             yield return companiesRequest;
-            CompanyDTOs = JsonConvert.DeserializeObject<List<CompanyDTO>>(companiesRequest.downloadHandler.text) ?? new List<CompanyDTO>();
+            var companiesResult = JsonConvert.DeserializeObject<List<CompanyDTO>>(companiesRequest.downloadHandler.text);
+            if (companiesResult != null)
+            {
+                CompanyDTOs = companiesResult;
+            }
 
             var locationsRequest = CallAPI("/world/locations",APICallType.Get);
             yield return locationsRequest;
-            LocationDTOs = JsonConvert.DeserializeObject<List<LocationDTO>>(locationsRequest.downloadHandler.text)  ?? new List<LocationDTO>();
+            var locationsResult = JsonConvert.DeserializeObject<List<LocationDTO>>(locationsRequest.downloadHandler.text);
+            if (locationsResult != null)
+            {
+                LocationDTOs = locationsResult;
+            }
 
             var trucksRequest = CallAPI("/world/trucks",APICallType.Get);
             yield return trucksRequest;
-            TruckDTOs = JsonConvert.DeserializeObject<List<TruckDTO>>(trucksRequest.downloadHandler.text) ?? new List<TruckDTO>();
+            var trucksResult = JsonConvert.DeserializeObject<List<TruckDTO>>(trucksRequest.downloadHandler.text);
+            if (trucksResult != null)
+            {
+                TruckDTOs = trucksResult;
+            }
 
             var contractsRequest = CallAPI("/world/contracts",APICallType.Get);
             yield return contractsRequest;
-            ContractDTOs = JsonConvert.DeserializeObject<List<ContractDTO>>(contractsRequest.downloadHandler.text) ?? new List<ContractDTO>();
+            var contractsResult = JsonConvert.DeserializeObject<List<ContractDTO>>(contractsRequest.downloadHandler.text);
+            if (contractsResult != null)
+            {
+                ContractDTOs = contractsResult;
+            }
 
             var worldTickRequest = CallAPI("/world/tick",APICallType.Get);
             yield return worldTickRequest;

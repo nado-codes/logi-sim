@@ -50,7 +50,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\WanderingNPC.cs" />
-    <Compile Include="Assets\Scripts\TruckBehaviour.cs" />
     <Compile Include="Assets\Scripts\Client.cs" />
     <Compile Include="Assets\Scripts\DTO\LocationDTO.cs" />
     <Compile Include="Assets\Scripts\Flycam.cs" />

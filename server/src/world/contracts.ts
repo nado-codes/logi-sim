@@ -25,6 +25,7 @@ import {
   IContract,
   Nullable,
   ITruck,
+  ICompany,
 } from "@logisim/lib/entities";
 
 const notificationConfig = loadNotificationConfig();
@@ -232,7 +233,20 @@ export const updateContracts = (state: IWorldState) => {
   });
 };
 
-export const assignContract = (
+export const assignContractToCompany = (state:IWorldState, contract: IContract, company: ICompany) => {
+
+  contract.shipperId = company.id;
+  contract.acceptedAtTick = state.currentTick;
+
+  if (notificationConfig.logContractNotifications) {
+    logSuccess(
+      `- SUCCESS: Contract ${highlight.yellow(contract.id)} assigned to ${highlight.yellow(company.name)}`,
+    );
+  }
+
+  return true;
+};
+export const assignContractToTruck = (
   state: IWorldState,
   contract: IContract,
   truck: ITruck,

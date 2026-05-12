@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
+using Newtonsoft.Json;
 
 public class ContractViewModel : BaseCompanyEntityViewModel
 {
@@ -30,14 +32,17 @@ public class ContractViewModel : BaseCompanyEntityViewModel
 
         if(company == null)
         {
+            Debug.LogError(JsonConvert.SerializeObject(companies));
             throw new NullReferenceException($"Company with id ${dto.CompanyId} doesn't exist");
         }
         if(supplier == null)
         {
+            Debug.LogError(JsonConvert.SerializeObject(locations));
             throw new NullReferenceException($"Supplier with id ${dto.SupplierId} doesn't exist");
         }
         if(destination == null)
         {
+            Debug.LogError(JsonConvert.SerializeObject(locations));
             throw new NullReferenceException($"Destination with id ${dto.DestinationId} doesn't exist");
         }
 

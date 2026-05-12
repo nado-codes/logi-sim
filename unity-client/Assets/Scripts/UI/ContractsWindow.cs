@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
+using UnityEngine;
 
 public class ContractsWindow : BaseWindow<ContractsWindow>
 {
@@ -17,7 +19,7 @@ public class ContractsWindow : BaseWindow<ContractsWindow>
     {
         if(!IsOpen) 
             return;
-
+            
         var availableContractDTOs = Client.ContractDTOs.Where(dto => dto.AcceptedAtTick == null);
         var contractVMs = availableContractDTOs.Select(dto => ContractViewModel.FromDTO(dto,Client.CompanyDTOs,Client.LocationDTOs,Client.TruckDTOs,Client.WorldTick));
         table.Refresh(contractVMs.ToList());
@@ -29,7 +31,21 @@ public class ContractsWindow : BaseWindow<ContractsWindow>
 
         var availableContractDTOs = Client.ContractDTOs.Where(dto => dto.AcceptedAtTick == null);
         var contractVMs = availableContractDTOs.Select(dto => ContractViewModel.FromDTO(dto,Client.CompanyDTOs,Client.LocationDTOs,Client.TruckDTOs,Client.WorldTick));
-        table.Populate(contractVMs.ToList(),new List<RowAction>());
+        table.Populate(contractVMs.ToList(),new List<RowAction>()
+        {
+            new RowAction()
+            {
+                Name = "Accept",
+                Callback = (contractId) =>
+                {
+                    Client.CallAPI($"/contract/assignCompany", APICallType.Post, JsonConvert.SerializeObject(new 
+                    { 
+                        ContractId = contractId, 
+                        CompanyId = Client.PlayerCompanyId 
+                    }));
+                }
+            }
+        });
     }
 
     public new void Close()

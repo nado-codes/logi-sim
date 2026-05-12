@@ -1,5 +1,6 @@
 import {
-  assignContract,
+  assignContractToCompany,
+  assignContractToTruck,
   createContract,
   getContractByIdOrNull,
   getContractByLocationIdOrNull,
@@ -18,7 +19,6 @@ import {
   deleteTruck,
   getTruckById,
   getTruckByPositionOrNull,
-  getTrucks,
   getTruckString,
   updateTrucks,
 } from "./trucks";
@@ -153,7 +153,8 @@ export interface IWorld {
     resourceCount?: number,
   ) => ITruck;
 
-  assignContract: (contract: IContract, truck: ITruck) => boolean;
+  assignContractToTruck: (contract: IContract, truck: ITruck) => boolean;
+  assignContractToCompany: (contract: IContract, company: ICompany) => boolean;
   reseedTown: (town: ITown) => void;
 
   deleteTruck: (truck: ITruck) => void;
@@ -324,8 +325,10 @@ export const createWorld = (): IWorld => {
         resourceCount,
       ),
 
-    assignContract: (contract: IContract, truck: ITruck) =>
-      assignContract(state, contract, truck),
+    assignContractToTruck: (contract: IContract, truck: ITruck) =>
+      assignContractToTruck(state, contract, truck),
+    assignContractToCompany: (contract: IContract, company: ICompany) =>
+      assignContractToCompany(state, contract, company),
     reseedTown: (town: ITown) => {
       reseedTown(town);
     },

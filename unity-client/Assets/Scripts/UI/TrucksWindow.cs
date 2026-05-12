@@ -3,11 +3,11 @@ using System.Linq;
 
 public class TrucksWindow : BaseWindow<TrucksWindow>
 {
-    private UITable table;
+    public UITable Table;
     protected override void Start()
     {
         base.Start();
-        table = GetComponentInChildren<UITable>();
+        Table = GetComponentInChildren<UITable>();
         Close();
     }
 
@@ -17,7 +17,7 @@ public class TrucksWindow : BaseWindow<TrucksWindow>
             return;
 
         var truckVMs = Client.TruckDTOs.Select(dto => TruckViewModel.FromDTO(dto,Client.CompanyDTOs,Client.LocationDTOs));
-        table.Refresh(truckVMs.ToList());
+        Table.Refresh(truckVMs.ToList());
     }
 
     public new void Open()
@@ -25,7 +25,7 @@ public class TrucksWindow : BaseWindow<TrucksWindow>
         base.Open();
 
         var truckVMs = Client.TruckDTOs.Select(dto => TruckViewModel.FromDTO(dto,Client.CompanyDTOs,Client.LocationDTOs));
-        table.Populate(truckVMs.ToList(),new List<RowAction>());
+        Table.Populate(truckVMs.ToList(),new List<RowAction>());
     }
 
     public new void Close()

@@ -4,7 +4,7 @@ import { randomUUID } from "node:crypto";
 import { loadNotificationConfig } from "../notifications";
 import { createTown, loadTownConfig } from "./locations/consumers/towns";
 import { getLocationById } from "./locations/locations";
-import { assignContract } from "./contracts";
+import { assignContractToTruck } from "./contracts";
 import { loadTruckConfig } from "./trucks";
 import { loadConfig } from "../utils/configUtils";
 import {
@@ -366,7 +366,7 @@ const tryDispatchTrucks = (state: IWorldState, company: ICompany) => {
       return;
     }
 
-    assignContract(state, c, nearestTruck);
+    assignContractToTruck(state, c, nearestTruck);
 
     if (
       notificationConfig.logCompanyNotifications.all ||
