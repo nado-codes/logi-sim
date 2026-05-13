@@ -16,7 +16,8 @@ public class TrucksWindow : BaseWindow<TrucksWindow>
         if(!IsOpen) 
             return;
 
-        var truckVMs = Client.TruckDTOs.Select(dto => TruckViewModel.FromDTO(dto,Client.CompanyDTOs,Client.LocationDTOs));
+        var companyTrucks = Client.TruckDTOs.Where(t => t.CompanyId == Client.PlayerCompanyId).ToList();
+        var truckVMs = companyTrucks.Select(dto => TruckViewModel.FromDTO(dto,Client.CompanyDTOs,Client.LocationDTOs));
         Table.Refresh(truckVMs.ToList());
     }
 
@@ -24,7 +25,8 @@ public class TrucksWindow : BaseWindow<TrucksWindow>
     {
         base.Open();
 
-        var truckVMs = Client.TruckDTOs.Select(dto => TruckViewModel.FromDTO(dto,Client.CompanyDTOs,Client.LocationDTOs));
+        var companyTrucks = Client.TruckDTOs.Where(t => t.CompanyId == Client.PlayerCompanyId).ToList();
+        var truckVMs = companyTrucks.Select(dto => TruckViewModel.FromDTO(dto,Client.CompanyDTOs,Client.LocationDTOs));
         Table.Populate(truckVMs.ToList(),new List<RowAction>());
     }
 
