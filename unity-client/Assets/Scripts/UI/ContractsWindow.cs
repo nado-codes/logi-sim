@@ -44,7 +44,8 @@ public class ContractsWindow : BaseWindow<ContractsWindow>
             },JsonConvert.SerializeObject(new 
             { 
                 contractId, 
-                companyId = Client.PlayerCompanyId 
+                companyId = Client.PlayerCompanyId,
+                breakType = ContractBreakType.Shipper 
             }));
         }
     };

@@ -73,6 +73,7 @@ public class UITable : MonoBehaviour
 
             if(row == null) {
                 row = CreateRow(item);
+                loadActionsToRow(row, currentActions);
             }
 
             loadItemToRow(item,row);
@@ -205,7 +206,6 @@ public class UITable : MonoBehaviour
             buttonGO.transform.SetParent(actionsCell.transform, false);
             button.onClick.AddListener(() => action.Callback(row.name));
             buttonText.text = action.Name;
-
             buttonGO.SetActive(true);
             Debug.Log(" - Finished adding action button");
         }

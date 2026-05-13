@@ -347,7 +347,7 @@ export const deleteTruck = (state: IWorldState, truck: ITruck) => {
   }
 
   if (truckContract) {
-    breakContract(state, truckContract, CONTRACT_BREAK_TYPE.SHIPPER);
+    breakContract(state, truckContract, CONTRACT_BREAK_TYPE.Shipper);
   }
 
   state.trucks = state.trucks.filter((t) => t.id !== truck.id);

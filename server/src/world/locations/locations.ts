@@ -252,8 +252,8 @@ export const deleteLocation = (state: IWorldState, location: IBaseLocation) => {
   if (locationContract) {
     const breakType =
       location.id === locationContract.supplierId
-        ? CONTRACT_BREAK_TYPE.SUPPLIER
-        : CONTRACT_BREAK_TYPE.DESTINATION;
+        ? CONTRACT_BREAK_TYPE.Supplier
+        : CONTRACT_BREAK_TYPE.Destination;
 
     breakContract(state, locationContract, breakType);
   }

@@ -3,7 +3,7 @@
   "logProcessorNotifications": false,
   "logProducerNotifications": false,
   "logConsumerNotifications": false,
-  "logContractNotifications": false,
+  "logContractNotifications": true,
   "logTruckNotifications": {
     "all": false,
     "loading": false,

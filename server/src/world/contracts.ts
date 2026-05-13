@@ -348,9 +348,9 @@ export const completeContract = (state: IWorldState, contract: IContract) => {
 };
 
 export enum CONTRACT_BREAK_TYPE {
-  SUPPLIER,
-  DESTINATION,
-  SHIPPER,
+  Supplier,
+  Destination,
+  Shipper,
 }
 
 export const breakContract = (
@@ -367,11 +367,11 @@ export const breakContract = (
 
   if (notificationConfig.logContractNotifications) {
     logWarning(
-      `[CONTRACT] Contract between ${contractSupplier.name} and ${contractDestination.name} was broken by the ${breakType}`,
+      `[CONTRACT] Contract between ${contractSupplier.name} and ${contractDestination.name} was broken by the ${CONTRACT_BREAK_TYPE[breakType]}`,
     );
   }
 
-  if (breakType !== CONTRACT_BREAK_TYPE.SHIPPER) {
+  if (breakType !== CONTRACT_BREAK_TYPE.Shipper) {
     if (contract.truckId) {
       const contractTruck = getTruckById(state, contract.truckId);
       const truckCompany = getCompanyById(state, contractTruck.companyId);
@@ -382,7 +382,7 @@ export const breakContract = (
       );
     }
 
-    if (breakType === CONTRACT_BREAK_TYPE.SUPPLIER) {
+    if (breakType === CONTRACT_BREAK_TYPE.Supplier) {
       const allLocationsExceptContractParties = state
         .getLocations()
         .filter(
@@ -398,10 +398,18 @@ export const breakContract = (
       } else {
         archiveContract(state, contract);
       }
-    } else if (breakType === CONTRACT_BREAK_TYPE.DESTINATION) {
+    } else if (breakType === CONTRACT_BREAK_TYPE.Destination) {
       archiveContract(state, contract);
     }
   } else {
+    contract.shipperId = undefined;
     contract.truckId = undefined;
+    contract.acceptedAtTick = undefined;
+
+    if (notificationConfig.logContractNotifications) {
+      logInfo(
+        ` - Contract ${highlight.yellow(contract.id)} is now unassigned and available for acceptance`,
+      );
+    }
   }
 };

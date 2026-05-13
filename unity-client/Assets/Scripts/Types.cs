@@ -11,3 +11,10 @@ public enum LocationType
     Processor,
     Town
 }
+
+public enum ContractBreakType
+{
+    Supplier,
+    Destination,
+    Shipper
+}
