@@ -1983,7 +1983,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &332942877
 Transform:
   m_ObjectHideFlags: 0
@@ -2987,7 +2987,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &504522726
 Transform:
   m_ObjectHideFlags: 0
@@ -3141,7 +3141,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &541343210
 Transform:
   m_ObjectHideFlags: 0
@@ -7127,6 +7127,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 670d411aafe789f43baf4ada0075d91a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
+  IsOpen: 0
 --- !u!1 &1414608751
 GameObject:
   m_ObjectHideFlags: 0
@@ -9958,7 +9959,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1777921319
 Transform:
   m_ObjectHideFlags: 0
@@ -11150,7 +11151,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1974692074
 Transform:
   m_ObjectHideFlags: 0
@@ -11710,6 +11711,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4ef2619345d1d6d40ab0be066da681e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UITable
+  rowPrototype: {fileID: 0}
 --- !u!1001 &5023209319362743685
 PrefabInstance:
   m_ObjectHideFlags: 0

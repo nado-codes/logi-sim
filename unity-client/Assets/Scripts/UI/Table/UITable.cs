@@ -26,10 +26,6 @@ public class UITable : MonoBehaviour
 
         rowPrototype.SetActive(false);
     }
-    void Update()
-    {
-        
-    }
 
     public void Populate<T>(List<T> items,List<RowAction> actions)  where T: BaseCompanyEntityViewModel
     {
@@ -93,6 +89,21 @@ public class UITable : MonoBehaviour
         return row;
     }
 
+    private void DeleteRow(GameObject rowToDelete)
+    {
+        rows.Remove(rowToDelete);
+        Destroy(rowToDelete);
+
+        foreach(var row in rows)
+        {
+            var index = rows.IndexOf(row);
+            var rowRect = row.GetComponent<RectTransform>();
+            var protoHeight = rowPrototype.GetComponent<RectTransform>().sizeDelta.y;
+            var protoPos = rowPrototype.GetComponent<RectTransform>().position;
+            rowRect.position = new Vector3(protoPos.x,protoPos.y-(protoHeight*index));
+        }
+    }
+
     private void LoadItemToRow<T>(T item, GameObject row) where T: BaseCompanyEntityViewModel
     {
         var rowCells = row.transform.GetComponentsInChildren<Transform>().Select(t => t.gameObject).Where(go => go.name.Contains("Cell"));
@@ -129,6 +140,15 @@ public class UITable : MonoBehaviour
             }
 
             LoadItemToRow(item,row);
+        }
+
+        for(var i = 0; i < rows.Count; i++)
+        {
+            var row = rows[i];
+            if(!items.Any(item => item.Id == row.name))
+            {
+                DeleteRow(row);
+            }
         }
     }
 }

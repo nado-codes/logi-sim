@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { get } from "axios";
 import {
   IMenuPage,
   IMenuAction,
@@ -8,6 +8,7 @@ import {
 } from "../menu";
 import { highlight } from "@logisim/lib/utils";
 import { IUserSession } from "@logisim/lib";
+import { IContract } from "../../../../lib/dist/entities/contract";
 
 export const createManageContractsPage = (
   apiBaseUrl: string,
@@ -181,7 +182,7 @@ export const createManageContractsPage = (
 
         console.log(`\nContracts in progress: ${contractsInProgress.length}`);
         contractsInProgress.forEach((c: any, i: number) => {
-          console.log(` - [${i}] Contract ${highlight.yellow(c.id)}`);
+          console.log(` - [${i}] Contract ${highlight.yellow(getContractString(c))}`);
         });
       } catch (error) {
         console.log(highlight.error(`Failed to load contracts: ${error}`));
@@ -195,7 +196,7 @@ export const createManageContractsPage = (
     [createAcceptContractAction(), createViewContractsInProgressPage()],
     async () => {
       try {
-        const contracts = (await axios.get(`${apiBaseUrl}/world/contracts`))
+        const contracts : IContract[] = (await axios.get(`${apiBaseUrl}/world/contracts`))
           .data;
         const trucks = (await axios.get(`${apiBaseUrl}/world/trucks`)).data;
         const availableContracts = contracts.filter((c: any) => !c.truckId);
@@ -205,9 +206,19 @@ export const createManageContractsPage = (
           return;
         }
 
+        const contractStrings = (
+                  await Promise.all(
+                    contracts.map(async ({ id }) =>
+                      axios.get(`${apiBaseUrl}/contract/getString`, {
+                        params: { contractId: id },
+                      }),
+                    ),
+                  )
+                ).map((res) => res.data);
+
         console.log(`\nAvailable contracts: ${availableContracts.length}`);
-        availableContracts.forEach((c: any, i: number) => {
-          console.log(` - [${i}] Contract ${highlight.yellow(c.id)}`);
+        contractStrings.forEach((str: string, i: number) => {
+          console.log(` - [${i}] Contract ${highlight.yellow(str)}`);
         });
 
         const availableTrucks = trucks.filter(

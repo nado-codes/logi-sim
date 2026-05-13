@@ -285,7 +285,7 @@ Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, 
         const result = world.assignContractToCompany(contract, company);
         res.send({ success: result });
       } catch (error) {
-        res.status(400).send({ error: "Failed to assign contract to company" });
+        res.status(400).send({ error: "Failed to assign contract to company: "+( error as Error).message });
       }
     });
 

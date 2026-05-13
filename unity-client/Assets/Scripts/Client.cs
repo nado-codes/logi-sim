@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +16,7 @@ public class Client : MonoBehaviour
 {
     public static readonly string BaseUrl = "http://localhost:3001/api";
 
-    public static string PlayerCompanyId;
+    public static string PlayerCompanyId => CompanyDTOs.FirstOrDefault(c => c.Name == "State")?.Id;
     
     public static List<TruckDTO> TruckDTOs = new List<TruckDTO>();
     private static List<GameObject> trucks = new List<GameObject>();
@@ -45,64 +46,89 @@ public class Client : MonoBehaviour
     {
         _client = this;
         StartCoroutine(RefreshWorldState(.4f));
+    }
 
-        PlayerCompanyId = CompanyDTOs.FirstOrDefault(c => c.Name == "State")?.Id;
+    private static IEnumerator callAPICoroutine(string uri, APICallType callType, 
+    Action<bool, string> onComplete, string data)
+    {
+        Debug.Log($"Making API call to {uri} with data: {data}");
+        var request = callType == APICallType.Get 
+        ? UnityWebRequest.Get(BaseUrl + uri) 
+        : UnityWebRequest.Post(BaseUrl + uri, data, "application/json");
+
+        yield return request.SendWebRequest();
+
+        var success = request.result == UnityWebRequest.Result.Success;
+        var response = request.downloadHandler?.text ?? "";
+
+        if (!success)
+        {
+            Debug.LogError($"API call to [{uri}] failed: {response}");
+        }
+
+        onComplete?.Invoke(success, response);
     }
     
-    public static UnityWebRequest CallAPI(string uri, APICallType callType, string data = null)
+    public static Coroutine CallAPI(string uri, APICallType callType, Action<bool, string> onComplete, string data = null)
     {
-        var request = callType == APICallType.Get ? UnityWebRequest.Get(BaseUrl + uri) : UnityWebRequest.Post(BaseUrl + uri,data,"application/json");
-        
-        try {
-            request.SendWebRequest();
-        }
-        catch
-        {
-            Debug.LogError($"Error calling API [{uri}] "+request.downloadHandler.text);
-        }
-
-        return request;
+        return _client.StartCoroutine(callAPICoroutine(uri, callType, onComplete, data));
     }
 
     IEnumerator RefreshWorldState(float interval)
     {
         while (true)
         {
-            var companiesRequest = CallAPI("/companies",APICallType.Get);
-            yield return companiesRequest;
-            var companiesResult = JsonConvert.DeserializeObject<List<CompanyDTO>>(companiesRequest.downloadHandler.text);
-            if (companiesResult != null)
+            yield return CallAPI("/companies",APICallType.Get,(success,response) =>
             {
-                CompanyDTOs = companiesResult;
-            }
+                if (!success) Debug.LogError(response);
 
-            var locationsRequest = CallAPI("/world/locations",APICallType.Get);
-            yield return locationsRequest;
-            var locationsResult = JsonConvert.DeserializeObject<List<LocationDTO>>(locationsRequest.downloadHandler.text);
-            if (locationsResult != null)
+                var companiesResult = JsonConvert.DeserializeObject<List<CompanyDTO>>(response);
+                if (companiesResult != null)
+                {
+                    CompanyDTOs = companiesResult;
+                }
+            });
+
+            yield return CallAPI("/world/locations",APICallType.Get,(success,response) =>
             {
-                LocationDTOs = locationsResult;
-            }
+                if (!success) Debug.LogError(response);
 
-            var trucksRequest = CallAPI("/world/trucks",APICallType.Get);
-            yield return trucksRequest;
-            var trucksResult = JsonConvert.DeserializeObject<List<TruckDTO>>(trucksRequest.downloadHandler.text);
-            if (trucksResult != null)
+                var locationsResult = JsonConvert.DeserializeObject<List<LocationDTO>>(response);
+                if (locationsResult != null)
+                {
+                    LocationDTOs = locationsResult;
+                }
+            });
+
+            yield return CallAPI("/world/trucks",APICallType.Get,(success,response) =>
             {
-                TruckDTOs = trucksResult;
-            }
+                if (!success) Debug.LogError(response);
 
-            var contractsRequest = CallAPI("/world/contracts",APICallType.Get);
-            yield return contractsRequest;
-            var contractsResult = JsonConvert.DeserializeObject<List<ContractDTO>>(contractsRequest.downloadHandler.text);
-            if (contractsResult != null)
+                var trucksResult = JsonConvert.DeserializeObject<List<TruckDTO>>(response);
+                if (trucksResult != null)
+                {
+                    TruckDTOs = trucksResult;
+                }
+            });
+
+            yield return CallAPI("/world/contracts",APICallType.Get,(success,response) =>
             {
-                ContractDTOs = contractsResult;
-            }
+                if (!success) Debug.LogError(response);
 
-            var worldTickRequest = CallAPI("/world/tick",APICallType.Get);
-            yield return worldTickRequest;
-            int.TryParse(worldTickRequest.downloadHandler.text,out WorldTick);
+                Debug.Log("Received contracts response: " + response);
+                var contractsResult = JsonConvert.DeserializeObject<List<ContractDTO>>(response);
+                if (contractsResult != null)
+                {
+                    ContractDTOs = contractsResult;
+                }
+            });
+
+            yield return CallAPI("/world/tick",APICallType.Get,(success,response) =>
+            {
+                if (!success) Debug.LogError(response);
+
+                int.TryParse(response, out WorldTick);
+            });
 
             RefreshWorldEntities();
 
@@ -163,6 +189,9 @@ public class Client : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        //Debug.Log("there are " + TruckDTOs.Count + " truck DTOs in the world");
+        //Debug.Log("there are " + trucks.Count + " truck game objects in the world");
+
         foreach (TruckDTO truck in TruckDTOs)
         {
             var truckGO = trucks.FirstOrDefault(t => t.name == truck.Id);

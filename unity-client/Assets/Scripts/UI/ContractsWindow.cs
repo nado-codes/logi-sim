@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 using UnityEngine;
+using UnityEngine.Networking;
 
 public class ContractsWindow : BaseWindow<ContractsWindow>
 {
@@ -19,7 +20,7 @@ public class ContractsWindow : BaseWindow<ContractsWindow>
     {
         if(!IsOpen) 
             return;
-            
+
         var availableContractDTOs = Client.ContractDTOs.Where(dto => dto.AcceptedAtTick == null);
         var contractVMs = availableContractDTOs.Select(dto => ContractViewModel.FromDTO(dto,Client.CompanyDTOs,Client.LocationDTOs,Client.TruckDTOs,Client.WorldTick));
         table.Refresh(contractVMs.ToList());
@@ -38,10 +39,16 @@ public class ContractsWindow : BaseWindow<ContractsWindow>
                 Name = "Accept",
                 Callback = (contractId) =>
                 {
-                    Client.CallAPI($"/contract/assignCompany", APICallType.Post, JsonConvert.SerializeObject(new 
+                    Client.CallAPI("/contract/assignCompany",APICallType.Post,(success,response) =>
+                    {
+                        if (!success) {
+                            Debug.LogError(response);
+                            Debug.LogError($"Failed to accept contract {contractId}: {response}");
+                        }   
+                    },JsonConvert.SerializeObject(new 
                     { 
-                        ContractId = contractId, 
-                        CompanyId = Client.PlayerCompanyId 
+                        contractId, 
+                        companyId = Client.PlayerCompanyId 
                     }));
                 }
             }
