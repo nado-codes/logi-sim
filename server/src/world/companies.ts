@@ -304,7 +304,7 @@ const tryDispatchTrucks = (state: IWorldState, company: ICompany) => {
   let currentCompanyReceivables = sum(commitmentsLedger.map((l) => l.payment));
   let currentCompanyPayables = sum(commitmentsLedger.map((l) => l.totalCost));
 
-  const availableContracts = state.contracts.filter((c) => !c.truckId);
+  const availableContracts = state.contracts.filter((c) => !c.truckId && !c.shipperId);
 
   if (
     notificationConfig.logCompanyNotifications.all ||

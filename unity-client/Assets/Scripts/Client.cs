@@ -51,7 +51,6 @@ public class Client : MonoBehaviour
     private static IEnumerator callAPICoroutine(string uri, APICallType callType, 
     Action<bool, string> onComplete, string data)
     {
-        Debug.Log($"Making API call to {uri} with data: {data}");
         var request = callType == APICallType.Get 
         ? UnityWebRequest.Get(BaseUrl + uri) 
         : UnityWebRequest.Post(BaseUrl + uri, data, "application/json");
@@ -114,8 +113,7 @@ public class Client : MonoBehaviour
             yield return CallAPI("/world/contracts",APICallType.Get,(success,response) =>
             {
                 if (!success) Debug.LogError(response);
-
-                Debug.Log("Received contracts response: " + response);
+                
                 var contractsResult = JsonConvert.DeserializeObject<List<ContractDTO>>(response);
                 if (contractsResult != null)
                 {

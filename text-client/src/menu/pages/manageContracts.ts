@@ -1,4 +1,4 @@
-import axios, { get } from "axios";
+import axios from "axios";
 import {
   IMenuPage,
   IMenuAction,
@@ -169,9 +169,9 @@ export const createManageContractsPage = (
   const createViewContractsInProgressPage = (): IMenuPage => {
     return createMenuPage("Contracts In Progress", false, [], async () => {
       try {
-        const contracts = (await axios.get(`${apiBaseUrl}/world/contracts`))
+        const contracts : IContract[] = (await axios.get(`${apiBaseUrl}/world/contracts`))
           .data;
-        const contractsInProgress = contracts.filter((c: any) => c.truckId);
+        const contractsInProgress = contracts.filter((c) => c.truckId);
 
         if (contractsInProgress.length === 0) {
           console.log(
@@ -180,9 +180,19 @@ export const createManageContractsPage = (
           return;
         }
 
-        console.log(`\nContracts in progress: ${contractsInProgress.length}`);
-        contractsInProgress.forEach((c: any, i: number) => {
-          console.log(` - [${i}] Contract ${highlight.yellow(getContractString(c))}`);
+        const contractStrings = (
+                  await Promise.all(
+                    contracts.map(async ({ id }) =>
+                      axios.get(`${apiBaseUrl}/contract/getString`, {
+                        params: { contractId: id },
+                      }),
+                    ),
+                  )
+                ).map((res) => res.data);
+
+        console.log(`\nAvailable contracts: ${contractsInProgress.length}`);
+        contractStrings.forEach((str: string, i: number) => {
+          console.log(` - [${i}] Contract ${highlight.yellow(str)}`);
         });
       } catch (error) {
         console.log(highlight.error(`Failed to load contracts: ${error}`));

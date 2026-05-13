@@ -255,7 +255,7 @@ export const assignContractToTruck = (
     logInfo(`[CONTRACT] Trying to assign ${contract.resourceType} contract...`);
   }
 
-  if (contract.truckId) {
+  if (contract.truckId || contract.shipperId) {
     logError(
       ` - ERROR: Contract already being shipped - assignment not possible`,
     );

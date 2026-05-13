@@ -1,6 +1,8 @@
 import {
   assignContractToCompany,
   assignContractToTruck,
+  breakContract,
+  CONTRACT_BREAK_TYPE,
   createContract,
   getContractByIdOrNull,
   getContractByLocationIdOrNull,
@@ -155,6 +157,7 @@ export interface IWorld {
 
   assignContractToTruck: (contract: IContract, truck: ITruck) => boolean;
   assignContractToCompany: (contract: IContract, company: ICompany) => boolean;
+  breakContract: (contract: IContract, breakType: CONTRACT_BREAK_TYPE) => void;
   reseedTown: (town: ITown) => void;
 
   deleteTruck: (truck: ITruck) => void;
@@ -329,6 +332,8 @@ export const createWorld = (): IWorld => {
       assignContractToTruck(state, contract, truck),
     assignContractToCompany: (contract: IContract, company: ICompany) =>
       assignContractToCompany(state, contract, company),
+    breakContract: (contract: IContract, breakType: CONTRACT_BREAK_TYPE) =>
+      breakContract(state, contract, breakType),
     reseedTown: (town: ITown) => {
       reseedTown(town);
     },

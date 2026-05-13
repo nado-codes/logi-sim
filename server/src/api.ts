@@ -307,6 +307,23 @@ Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, 
       }
     });
 
+    app.post("/api/contract/break", (req, res) => {
+      try {
+        const { contractId, breakType } = req.body;
+        const contract = world.getContractByIdOrNull(contractId);
+
+        if (!contract) {
+          res.status(404).send({ error: "Contract not found" });
+          return;
+        }
+
+        const result = world.breakContract(contract, breakType);
+        res.send({ success: result });
+      } catch (error) {
+        res.status(400).send({ error: "Failed to break contract" });
+      }
+    });
+
     // LOCATIONS
     app.get<{ id: string }>("/api/location/id/:id", (req, res) => {
       try {
