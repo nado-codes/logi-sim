@@ -81,6 +81,24 @@ export const runCompetitiveSimulation = (options: {
     },
   );
 
+  // .. Player trucks
+  world.createTruck(
+    "Player Grain Truck",
+    playerCompany.id,
+    RESOURCE_TYPE.Grain,
+    1000000,
+    { x: farm.position.x, y: 0, z: 0 },
+    2,
+  );
+  world.createTruck(
+    "Player Flour Truck",
+    playerCompany.id,
+    RESOURCE_TYPE.Flour,
+    1000000,
+    { x: flourMill.position.x, y: 0, z: 0 },
+    2,
+  );
+
   // .. RivalCo trucks
   world.createTruck(
     "Truck 1",

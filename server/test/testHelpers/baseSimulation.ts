@@ -55,6 +55,23 @@ export const runBaseSimulation = (options: {
     },
   );
 
+  world.createTruck(
+    "Truck 1",
+    playerCompany.id,
+    RESOURCE_TYPE.Grain,
+    1000000,
+    { x: 15, y: 0, z: 0 },
+    2,
+  );
+  world.createTruck(
+    "Truck 2",
+    playerCompany.id,
+    RESOURCE_TYPE.Flour,
+    1000000,
+    { x: 15, y: 0, z: 0 },
+    2,
+  );
+
   // .. RivalCo trucks
   world.createTruck(
     "Truck 3",
