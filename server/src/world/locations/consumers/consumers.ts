@@ -6,7 +6,7 @@ import {
   Pos3D,
 } from "@logisim/lib/entities";
 import { processRecipe } from "../../storages";
-import { createBaseLocation, checkInputStorage } from "../locations";
+import { createLocation, checkInputStorage } from "../locations";
 
 export const createBaseConsumer = (
   name: string,
@@ -15,7 +15,7 @@ export const createBaseConsumer = (
   consumes: ResourceMap,
   startFull: boolean,
 ) => {
-  const newConsumer = createBaseLocation(
+  const newConsumer = createLocation(
     name,
     companyId,
     position,

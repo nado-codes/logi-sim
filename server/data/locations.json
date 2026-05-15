@@ -1,0 +1,42 @@
+[
+    {
+        "id": "location-grainfarm",
+        "name": "Grain Farm",
+        "recipe" : {
+            "inputs": {},
+            "outputs": {
+                "Grain": 1000
+            }
+        },
+        "locationType": "producer",
+        "price": 50000
+    },
+    {
+        "id": "location-flourmill",
+        "name": "Flour Mill",
+        "recipe" : {
+            "inputs": {
+                "Grain": 1000
+            },
+            "outputs": {
+                "Flour": 800
+            }
+        },
+        "locationType": "processor",
+        "price" : 50000
+    },
+    {
+        "id": "location-bakery",
+        "name": "Bakery",
+        "recipe" : {
+            "inputs": {
+                "Flour": 800
+            },
+            "outputs": {
+                "Bread": 600
+            }
+        },
+        "locationType": "processor",
+        "price" : 50000
+    }
+]

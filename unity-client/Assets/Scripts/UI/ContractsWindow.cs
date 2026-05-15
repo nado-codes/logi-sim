@@ -7,11 +7,11 @@ using UnityEngine.UI;
 
 public class ContractsWindow : BaseWindow<ContractsWindow>
 {
-    public UITable table;
+    private UITable table;
     public Button companyContractsButton;
     private bool filterCompanyContracts = false;
 
-    private RowAction rowAcceptAction = new RowAction()
+    private UIAction rowAcceptAction = new UIAction()
     {
         Name = "Accept",
         Callback = (contractId) =>
@@ -30,7 +30,7 @@ public class ContractsWindow : BaseWindow<ContractsWindow>
         }
     };
 
-    private RowAction rowBreakAction = new RowAction()
+    private UIAction rowBreakAction = new UIAction()
     {
         Name = "Break",
         Callback = (contractId) =>
@@ -54,6 +54,12 @@ public class ContractsWindow : BaseWindow<ContractsWindow>
     protected override void Start()
     {
         base.Start();
+        table = GetComponentInChildren<UITable>();
+
+        if(table == null)
+        {
+            throw new System.NullReferenceException("TrucksWindow: No UITable found in children");
+        }
 
         if(!companyContractsButton)
         {
@@ -105,7 +111,7 @@ public class ContractsWindow : BaseWindow<ContractsWindow>
 
         btnText.text = filterCompanyContracts ? "Show All Contracts" : "Show Company Contracts";
         btnImage.color = filterCompanyContracts ? Color.green : Color.white;
-        table.SetActions(filterCompanyContracts ? new List<RowAction>() {rowBreakAction} : new List<RowAction>(){
+        table.SetActions(filterCompanyContracts ? new List<UIAction>() {rowBreakAction} : new List<UIAction>(){
             rowAcceptAction
         });
     }
@@ -116,7 +122,7 @@ public class ContractsWindow : BaseWindow<ContractsWindow>
 
         var availableContractDTOs = Client.ContractDTOs.Where(dto => dto.AcceptedAtTick == null);
         var contractVMs = availableContractDTOs.Select(dto => ContractViewModel.FromDTO(dto,Client.CompanyDTOs,Client.LocationDTOs,Client.TruckDTOs,Client.WorldTick));
-        table.Populate(contractVMs.ToList(),new List<RowAction>()
+        table.Populate(contractVMs.ToList(),new List<UIAction>()
         {
             rowAcceptAction
         });

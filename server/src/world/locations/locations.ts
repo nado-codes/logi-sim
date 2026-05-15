@@ -11,18 +11,21 @@ import {
   loadStorageConfig,
   createRecipeStorage,
   getResourceStorage,
+  resourceItemIdToResourceType,
 } from "../storages";
 import { loadConfig } from "../../utils/configUtils";
 import { createWorldEntity } from "../../entities";
 import {
   IRecipe,
   LOCATION_TYPE,
-  IBaseLocation,
+  ILocation,
   WorldEntityType,
   IWorldState,
   Nullable,
   RESOURCE_TYPE,
   Pos3D,
+  ILocationItem,
+  ResourceMap,
 } from "@logisim/lib/entities";
 import {
   highlight,
@@ -31,6 +34,7 @@ import {
   logSuccess,
   vectorsAreEqual,
 } from "@logisim/lib/utils";
+import { loadJSON } from "../../utils/fileUtils";
 
 interface ILocationConfig {
   baseSalePrice: number;
@@ -47,7 +51,7 @@ const storageConfig = loadStorageConfig();
 
 // .. CREATE
 
-export const createBaseLocation = (
+export const createLocation = (
   name: string,
   companyId: string,
   position: Pos3D,
@@ -55,7 +59,7 @@ export const createBaseLocation = (
   locationType: LOCATION_TYPE,
   startWithFullInputs: boolean = false,
   startWithFullOutputs: boolean = false,
-): IBaseLocation => {
+): ILocation => {
   const worldEntity = createWorldEntity(
     WorldEntityType.Location,
     position,
@@ -78,10 +82,29 @@ export const createBaseLocation = (
   };
 };
 
+export const createLocationFromItemId = (state: IWorldState, itemId: string, companyId: string, position: Pos3D) => {
+  const locationsData = loadJSON("data/locations.json") as ILocationItem[];
+  const locationData = locationsData.find((ld) => ld.id === itemId);
+
+  if (!locationData) {
+    throw Error(`[CRITICAL SYSTEM ERROR] Location with id ${itemId} doesn't exist`);
+  }
+
+  return createLocation(
+    locationData.name,
+    companyId,
+    position,
+    locationData.recipe,
+    locationData.locationType
+  );
+};
+
+// .. READ
+
 export const getLocationById = (
   state: IWorldState,
   id: string,
-): IBaseLocation => {
+): ILocation => {
   const location = state.getLocations().find((l) => l.id === id);
 
   if (!location) {
@@ -94,13 +117,11 @@ export const getLocationById = (
 export const getLocationByIdOrNull = (
   state: IWorldState,
   id: Nullable<string>,
-): Nullable<IBaseLocation> => {
+): Nullable<ILocation> => {
   const location = state.getLocations().find((l) => l.id === id);
 
   return location;
 };
-
-// .. READ
 
 export const getLocationByPositionOrNull = (
   state: IWorldState,
@@ -113,7 +134,23 @@ export const getLocationByPositionOrNull = (
   return location;
 };
 
-export const getLocationString = (world: IWorld, location: IBaseLocation) => {
+export const getLocationItemById = (id: string): ILocationItem => {
+  const locationsData = loadJSON("data/locations.json") as ILocationItem[];
+  const locationData = locationsData.find((ld) => ld.id === id);
+
+  if (!locationData) {
+    throw Error(`[CRITICAL SYSTEM ERROR] Location with id ${id} doesn't exist`);
+  }
+
+  return locationData;
+}
+
+export const getLocationItems = (): ILocationItem[] => {
+  const locationsData = loadJSON("data/locations.json") as ILocationItem[];
+  return locationsData;
+}
+
+export const getLocationString = (world: IWorld, location: ILocation) => {
   const locationString = `Position: ${highlight.yellow(location.position.x + "")}`;
 
   const inputs = Object.entries(location.recipe.inputs ?? []).map(
@@ -137,7 +174,7 @@ export const getLocationString = (world: IWorld, location: IBaseLocation) => {
 
 export const checkInputStorage = (
   state: IWorldState,
-  location: IBaseLocation,
+  location: ILocation,
 ) => {
   Object.entries(location.recipe.inputs ?? {}).map(
     ([resourceType, requiredAmount]) => {
@@ -242,7 +279,7 @@ export const checkInputStorage = (
 
 // .. DELETE
 
-export const deleteLocation = (state: IWorldState, location: IBaseLocation) => {
+export const deleteLocation = (state: IWorldState, location: ILocation) => {
   const locationContract = getContractByLocationIdOrNull(state, location.id);
 
   if (notificationConfig.logLocationNotifications) {

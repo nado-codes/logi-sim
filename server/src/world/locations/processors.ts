@@ -1,10 +1,10 @@
-import { createBaseLocation, checkInputStorage } from "./locations";
+import { createLocation, checkInputStorage } from "./locations";
 import { loadNotificationConfig } from "../../notifications";
 import { getOutputStorage, getInputStorage, processRecipe } from "../storages";
 import {
   IWorldState,
   IRecipe,
-  IProcessor,
+  ILocation,
   LOCATION_TYPE,
   Pos3D,
 } from "@logisim/lib/entities";
@@ -32,8 +32,8 @@ export const createProcessor = (
     );
   }
 
-  const newProcessor: IProcessor = {
-    ...createBaseLocation(
+  const newProcessor: ILocation = {
+    ...createLocation(
       name,
       companyId,
       position,

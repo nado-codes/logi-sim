@@ -2,7 +2,7 @@ import { loadNotificationConfig } from "../notifications";
 import {
   createCompanyEntity,
   getCompanyById,
-  transferCompanyFunds as transferCompanyFunds,
+  transferCompanyFunds,
 } from "./companies";
 import { getLocationById } from "./locations/locations";
 import { getTruckById, setTruckContract } from "./trucks";

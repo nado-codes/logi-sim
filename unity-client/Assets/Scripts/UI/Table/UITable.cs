@@ -5,22 +5,13 @@ using TMPro;
 using System.Linq;
 using UnityEngine.UI;
 
-public class RowAction
-{
-    public string Name;
-    public Action<string> Callback;
-}
-public class UITable : MonoBehaviour
-{
-    public GameObject rowPrototype;
-    public GameObject actionButtonPrototype;
 
-    private List<GameObject> rows = new List<GameObject>();
-    private List<RowAction> currentActions = new List<RowAction>();
+public class UITable : BaseUIDataView
+{
 
-    void Start()
+    protected override void Start()
     {
-        if(!rowPrototype)
+        if(!itemPrototype)
         {
             throw new NullReferenceException("Table Row prototype must be set");
         }
@@ -30,104 +21,104 @@ public class UITable : MonoBehaviour
             throw new NullReferenceException("Table Action Button prototype must be set");
         }
 
-        rowPrototype.SetActive(false);
+        itemPrototype.SetActive(false);
         actionButtonPrototype.SetActive(false);
     }
 
-    public void Populate<T>(List<T> items,List<RowAction> actions)  where T: BaseCompanyEntityViewModel
+    public override void Populate<T>(List<T> dataList,List<UIAction> actions)
     {
-        for(var i = 0; i < rows.Count; i++)
-            deleteRow(rows[i]);
+        for(var i = 0; i < items.Count; i++)
+            deleteItem(items[i]);
 
-        foreach(T item in items)
+        foreach(T data in dataList)
         {
-            var row = CreateRow(item);
-            loadActionsToRow(row, actions);
+            var row = createItem(data);
+            loadActionsToItem(row, actions);
         }
         SetActions(actions);
     }
 
-    private GameObject CreateRow<T>(T item) where T: BaseCompanyEntityViewModel
+    protected override GameObject createItem<T>(T item)
     {
-        var row = Instantiate(rowPrototype);
+        var row = Instantiate(itemPrototype);
         row.name = item.Id;
 
-        row.gameObject.transform.SetParent(rowPrototype.transform.parent, false);
+        row.transform.SetParent(itemPrototype.transform.parent, false);
         var rowRect = row.GetComponent<RectTransform>();
-        var protoHeight = rowPrototype.GetComponent<RectTransform>().sizeDelta.y;
-        var protoPos = rowPrototype.GetComponent<RectTransform>().position;
-        rowRect.position = new Vector3(protoPos.x,protoPos.y-(protoHeight*rows.Count));
+        var protoHeight = itemPrototype.GetComponent<RectTransform>().sizeDelta.y;
+        var protoPos = itemPrototype.GetComponent<RectTransform>().position;
+        rowRect.position = new Vector3(protoPos.x,protoPos.y-(protoHeight*items.Count));
         row.SetActive(true);
-        rows.Add(row);
+        items.Add(row);
 
-        loadItemToRow(item,row);
+        loadDataToItem(item,row);
 
         return row;
     }
 
-    public void Refresh<T>(List<T> items)  where T: BaseCompanyEntityViewModel
+    public override void Refresh<T>(List<T> data)
     {
-        foreach(T item in items)
+        foreach(T item in data)
         {
-            var row = rows.Find(r => r.name == item.Id);
+            var row = items.Find(r => r.name == item.Id);
 
             if(row == null) {
-                row = CreateRow(item);
-                loadActionsToRow(row, currentActions);
+                row = createItem(item);
+                loadActionsToItem(row, currentActions);
             }
 
-            loadItemToRow(item,row);
+            loadDataToItem(item,row);
         }
 
-        var rowsToDelete = rows.Where(row => !items.Any(item => item.Id == row.name)).ToList();
+        var rowsToDelete = items.Where(row => !data.Any(item => item.Id == row.name)).ToList();
         foreach(var row in rowsToDelete)
-            deleteRow(row);
+            deleteItem(row);
     }
 
-    public void SetActions(List<RowAction> actions)
+    public override void SetActions(List<UIAction> actions)
     {
         Debug.Log("Setting table actions: "+string.Join(", ", actions.Select(a => a.Name)));
-        foreach(var row in rows) {
-            loadActionsToRow(row, actions);
+        foreach(var row in items) {
+            loadActionsToItem(row, actions);
         }
 
         currentActions = actions;
     }
 
-    private void deleteRow(GameObject rowToDelete)
+    protected override void deleteItem(GameObject rowToDelete)
     {
-        rows.Remove(rowToDelete);
+        items.Remove(rowToDelete);
         DestroyImmediate(rowToDelete);
 
-        foreach(var row in rows)
+        foreach(var row in items)
         {
-            var index = rows.IndexOf(row);
+            var index = items.IndexOf(row);
             var rowRect = row.GetComponent<RectTransform>();
-            var protoHeight = rowPrototype.GetComponent<RectTransform>().sizeDelta.y;
-            var protoPos = rowPrototype.GetComponent<RectTransform>().position;
+            var protoHeight = itemPrototype.GetComponent<RectTransform>().sizeDelta.y;
+            var protoPos = itemPrototype.GetComponent<RectTransform>().position;
             rowRect.position = new Vector3(protoPos.x,protoPos.y-(protoHeight*index));
         }
     }
 
-    private void loadItemToRow<T>(T item, GameObject row) where T: BaseCompanyEntityViewModel
+    protected override void loadDataToItem<T>(T data, GameObject item)
     {
-        var rowCells = row.transform.GetComponentsInChildren<Transform>().Select(t => t.gameObject).Where(go => go.name.Contains("Cell") && !go.name.Contains("Actions")).ToList();
-
-        if(item.Id != row.name)
+        if(data.Id != item.name)
         {
-            Debug.LogWarning("Item ID updated from "+row.name+" to "+item.Id+" - actions will be remapped to new ID");
-            row.name = item.Id;
-            remapRowActions(row);
+            Debug.LogWarning("Item ID updated from "+item.name+" to "+data.Id+" - actions will be remapped to new ID");
+            item.name = data.Id;
+            remapItemActions(item);
         }
+        
+        var rowCells = item.transform.GetComponentsInChildren<Transform>().Select(t => t.gameObject).Where(go => go.name.Contains("Cell") && !go.name.Contains("Actions")).ToList();
             
         foreach(GameObject cell in rowCells)
         {
             var cellName = cell.name.Substring(0,cell.name.IndexOf("Cell"));
-            var itemProp = item.GetType().GetProperty(cellName);
+            var itemProp = data.GetType().GetProperty(cellName);
 
             if(itemProp != null)
             {
-                var value = itemProp.GetValue(item);
+                var value = itemProp.GetValue(data);
                 var cellText = cell.GetComponentInChildren<TextMeshProUGUI>();
 
                 if(cellText == null)
@@ -145,9 +136,9 @@ public class UITable : MonoBehaviour
         }
     }
 
-    private void remapRowActions(GameObject row)
+    protected override void remapItemActions(GameObject item)
     {
-        var actionButtons = row.transform.GetComponentsInChildren<Button>();
+        var actionButtons = item.transform.GetComponentsInChildren<Button>();
 
         foreach(var button in actionButtons)
         {
@@ -156,7 +147,7 @@ public class UITable : MonoBehaviour
             if(action != null)
             {
                 button.onClick.RemoveAllListeners();
-                button.onClick.AddListener(() => action.Callback(row.name));
+                button.onClick.AddListener(() => action.Callback(item.name));
             }
             else
             {
@@ -165,10 +156,10 @@ public class UITable : MonoBehaviour
         }
     }
     
-    private void loadActionsToRow(GameObject row, List<RowAction> actions)
+    protected override void loadActionsToItem(GameObject item, List<UIAction> actions)
     {
-        Debug.Log("Loading actions to row "+row.name);
-        var actionsCell = row.transform.GetComponentsInChildren<Transform>().FirstOrDefault(c => c.name == "ActionsCell").gameObject;
+        Debug.Log("Loading actions to item "+item.name);
+        var actionsCell = item.transform.GetComponentsInChildren<Transform>().FirstOrDefault(c => c.name == "ActionsCell").gameObject;
 
         if(actionsCell == null)
         {
@@ -185,7 +176,7 @@ public class UITable : MonoBehaviour
 
         foreach(var action in actions)
         {
-            Debug.Log(" - Adding action "+action.Name+" to row "+row.name);
+            Debug.Log(" - Adding action "+action.Name+" to item "+item.name);
             var buttonGO = Instantiate(actionButtonPrototype);
             
             var buttonText = buttonGO.GetComponentInChildren<TextMeshProUGUI>();
@@ -204,7 +195,7 @@ public class UITable : MonoBehaviour
 
             buttonGO.name = action.Name+"ActionButton";
             buttonGO.transform.SetParent(actionsCell.transform, false);
-            button.onClick.AddListener(() => action.Callback(row.name));
+            button.onClick.AddListener(() => action.Callback(item.name));
             buttonText.text = action.Name;
             buttonGO.SetActive(true);
             Debug.Log(" - Finished adding action button");

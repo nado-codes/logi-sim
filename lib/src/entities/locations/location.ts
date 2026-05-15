@@ -1,5 +1,6 @@
 import { ICompanyEntity } from "../company";
 import { IWorldEntity } from "../entity";
+import { IBaseItem } from "../item";
 import { IRecipe, IStorage } from "../storage";
 
 export enum LOCATION_TYPE {
@@ -9,12 +10,13 @@ export enum LOCATION_TYPE {
   Town = "Town",
 }
 
-export interface IBaseLocation extends ICompanyEntity, IWorldEntity {
+export interface ILocation extends ICompanyEntity, IWorldEntity {
   storage: IStorage[];
   recipe: IRecipe;
   locationType: LOCATION_TYPE;
 }
 
-export interface IProducer extends IBaseLocation {}
-
-export interface IProcessor extends IBaseLocation {}
+export interface ILocationItem extends IBaseItem {
+  recipe: IRecipe
+  locationType: LOCATION_TYPE;
+}

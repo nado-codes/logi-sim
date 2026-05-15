@@ -15,7 +15,7 @@ import {
   getLocationByIdOrNull,
   getLocationByPositionOrNull,
 } from "./locations/locations";
-import { createAndGetStorage, transferResources } from "./storages";
+import { createAndGetStorage, resourceItemIdToResourceType, transferResources } from "./storages";
 import { loadConfig } from "../utils/configUtils";
 import {
   IWorldState,
@@ -26,6 +26,7 @@ import {
   StorageTransferResult,
   IContract,
   Pos3D,
+  IVehicleItem,
 } from "@logisim/lib/entities";
 import {
   logSuccess,
@@ -35,6 +36,7 @@ import {
   vectorsAreEqual,
   logError,
 } from "@logisim/lib/utils";
+import { loadJSON } from "../utils/fileUtils";
 
 interface ITruckConfig {
   baseOperatingCost: number;
@@ -91,6 +93,28 @@ export const createTruck = (
   return newTruck;
 };
 
+export const createTruckFromItemId = (state: IWorldState, itemId: string, companyId: string, position: Pos3D) => {
+  const trucksData = loadJSON("data/trucks.json") as IVehicleItem[];
+  const truckData = trucksData.find((td) => td.id === itemId);
+
+  if(truckData === undefined) {
+    throw Error(`Truck with itemId ${itemId} doesn't exist`);
+  }
+
+  const { name, resourceItemId, resourceCapacity, speed } = truckData;
+
+  return createTruck(
+    state,
+    name,
+    companyId,
+    resourceItemIdToResourceType(resourceItemId),
+    resourceCapacity,
+    position,
+    speed,
+    0
+  );
+};
+
 // .. READ
 export const getTrucks = (state: IWorldState) => {
   return state.trucks;
@@ -114,6 +138,22 @@ export const getTruckByPositionOrNull = (
 
   return truck;
 };
+
+export const getTruckItemById = (id: string): IVehicleItem => {
+  const trucksData = loadJSON("data/trucks.json") as IVehicleItem[];
+  const truckData = trucksData.find((td) => td.id === id);
+
+  if(truckData === undefined) {
+    throw Error(`Truck with itemId ${id} doesn't exist`);
+  } 
+
+  return truckData;
+}
+
+export const getTruckItems = (): IVehicleItem[] => {
+  const trucksData = loadJSON("data/trucks.json") as IVehicleItem[];
+  return trucksData;
+}
 
 export const getTruckString = (state: IWorldState, truck: ITruck) => {
   const truckLocation = getLocationByPositionOrNull(state, truck.position);

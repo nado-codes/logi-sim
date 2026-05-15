@@ -1,5 +1,5 @@
 import { loadNotificationConfig } from "../../notifications";
-import { createBaseLocation } from "./locations";
+import { createLocation } from "./locations";
 import {
   getOutputStorage,
   getResourceCapacity,
@@ -28,7 +28,7 @@ export const createProducer = (
 ) => {
   const recipe: IRecipe = { outputs: { [produces]: productionRate } };
 
-  const newProducer = createBaseLocation(
+  const newProducer = createLocation(
     name,
     companyId,
     position,

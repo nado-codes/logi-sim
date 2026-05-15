@@ -1,6 +1,6 @@
-import { IBaseLocation } from "./location";
+import { ILocation } from "./location";
 
-export interface IBaseConsumer extends IBaseLocation {}
+export interface IBaseConsumer extends ILocation {}
 
 export enum CONSUMER_TYPE {
   Sink = "Sink",

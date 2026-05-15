@@ -1,15 +1,12 @@
 using System;
 using System.Collections.Generic;
 
-public class TruckViewModel : BaseCompanyEntityViewModel, INamedEntity
+public class TruckViewModel : BaseCompanyEntityViewModel
 {
-    public string Name{get;set;}
-
     public string ResourceName{ get; set; }
     public string ResourceCount { get; set; }
     public string ResourceCapacity { get; set; }
     public string DestinationName { get; set; }
-    
 
     public static TruckViewModel FromDTO(
     TruckDTO dto,

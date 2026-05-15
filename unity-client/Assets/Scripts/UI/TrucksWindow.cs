@@ -3,11 +3,17 @@ using System.Linq;
 
 public class TrucksWindow : BaseWindow<TrucksWindow>
 {
-    public UITable Table;
+    private UITable table;
     protected override void Start()
     {
         base.Start();
-        Table = GetComponentInChildren<UITable>();
+        table = GetComponentInChildren<UITable>();
+
+        if(table == null)
+        {
+            throw new System.NullReferenceException("TrucksWindow: No UITable found in children");
+        }
+
         Close();
     }
 
@@ -18,7 +24,7 @@ public class TrucksWindow : BaseWindow<TrucksWindow>
 
         var companyTrucks = Client.TruckDTOs.Where(t => t.CompanyId == Client.PlayerCompanyId).ToList();
         var truckVMs = companyTrucks.Select(dto => TruckViewModel.FromDTO(dto,Client.CompanyDTOs,Client.LocationDTOs));
-        Table.Refresh(truckVMs.ToList());
+        table.Refresh(truckVMs.ToList());
     }
 
     public new void Open()
@@ -27,7 +33,7 @@ public class TrucksWindow : BaseWindow<TrucksWindow>
 
         var companyTrucks = Client.TruckDTOs.Where(t => t.CompanyId == Client.PlayerCompanyId).ToList();
         var truckVMs = companyTrucks.Select(dto => TruckViewModel.FromDTO(dto,Client.CompanyDTOs,Client.LocationDTOs));
-        Table.Populate(truckVMs.ToList(),new List<RowAction>());
+        table.Populate(truckVMs.ToList(),new List<UIAction>());
     }
 
     public new void Close()

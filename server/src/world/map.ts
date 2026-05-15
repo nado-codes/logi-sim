@@ -6,7 +6,7 @@ import {
   IWorldState,
   WorldEntityType,
   IGeographicEntity,
-  IBaseLocation,
+  ILocation,
   IVehicle,
   ICompanyEntity,
 } from "@logisim/lib/entities";
@@ -94,7 +94,7 @@ export const getMap = (state: IWorldState) => {
         map += geographyTag;
         spaces += 1;
       } else if (entityAtPos.type === WorldEntityType.Location) {
-        const locationAtPos = entityAtPos as IBaseLocation;
+        const locationAtPos = entityAtPos as ILocation;
         const contract = getContractByLocationIdOrNull(state, locationAtPos.id);
         const locationTag = TagDictionary[locationAtPos.locationType].tag;
 

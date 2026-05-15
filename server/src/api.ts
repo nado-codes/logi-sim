@@ -4,7 +4,7 @@ import {
   transferCompanyFundsToState,
   transferCompanyFundsFromState,
 } from "./world/companies";
-import { ITown, LOCATION_TYPE } from "@logisim/lib/entities";
+import { ILocation, ITown, LOCATION_TYPE } from "@logisim/lib/entities";
 import { logEntries } from "@logisim/lib/utils";
 import Anthropic from "@anthropic-ai/sdk";
 import path from "path";
@@ -189,6 +189,14 @@ Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, 
       }
     });
 
+    app.get("/api/truck/items", (req, res) => {
+      try {
+        res.send(world.getTruckItems());
+      } catch (error) {
+        res.status(400).send({ error: "Failed to get truck items" });
+      }
+    });
+
     app.post("/api/truck/create", (req, res) => {
       try {
         const {
@@ -226,21 +234,25 @@ Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, 
       }
     });
 
-    app.post("/api/truck/buy", (req, res) => {
+    app.post("/api/truck/purchase", (req, res) => {
       try {
-        const { companyId, resourceType } = req.body;
-        const { name, speed, capacity } = req.body;
-        world.createTruck(
-          name || `Truck ${Math.random().toString(36).substr(2, 9)}`,
-          companyId,
-          resourceType,
-          capacity || 100,
-          { x: 0, y: 0, z: 0 },
-          speed || 2,
-        );
-        res.send({ success: true });
+        const { itemId, companyId, position } = req.body;
+
+        const company = world.getCompanyById(companyId);
+        const truckItem = world.getTruckItemById(itemId);
+
+        if(company.money < truckItem.price) {
+          res.status(400).send({ error: "Insufficient funds to purchase truck" });
+          return;
+        }
+
+        transferCompanyFundsToState(company, truckItem.price);
+
+        const truck = world.createTruckFromItemId(itemId, companyId, position);
+
+        res.send({ success: true, truck });
       } catch (error) {
-        res.status(400).send({ error: "Failed to create truck" });
+        res.status(400).send({ error: "Failed to create truck from item id" });
       }
     });
 
@@ -271,6 +283,7 @@ Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, 
         res.status(400).send({ error: "Failed to get contract string" });
       }
     });
+
     app.post("/api/contract/assignCompany", (req, res) => {
       try {
         const { contractId, companyId } = req.body;
@@ -333,6 +346,14 @@ Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, 
       }
     });
 
+    app.get("/api/location/items", (req, res) => {
+      try {
+        res.send(world.getLocationItems());
+      } catch (error) {
+        res.status(400).send({ error: "Failed to get location items" });
+      }
+    });
+
     app.post("/api/location/create-producer", (req, res) => {
       try {
         const {
@@ -378,6 +399,26 @@ Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, 
         res.send({ success: true });
       } catch (error) {
         res.status(400).send({ error: "Failed to create processor" });
+      }
+    });
+
+    app.post("/api/location/purchase", (req, res) => {
+      try {
+        const { itemId, companyId, position } = req.body;
+
+        const company = world.getCompanyById(companyId);
+        const locationItem = world.getLocationItemById(itemId);
+
+        if(company.money < locationItem.price) {
+          res.status(400).send({ error: "Insufficient funds to purchase location" });
+          return;
+        }
+
+        const location = world.createLocationFromItemId(itemId, companyId, position);
+        res.send({ success: true, location });
+      }
+      catch (error) {
+        res.status(400).send({ error: "Failed to purchase location: "+(error as Error).message });
       }
     });
 

@@ -344,6 +344,19 @@ export const transferResources = (
   return result;
 };
 
+export const resourceItemIdToResourceType = (itemId: string) => {
+  switch(itemId) {
+    case "resource-grain":
+      return RESOURCE_TYPE.Grain;
+    case "resource-flour":
+      return RESOURCE_TYPE.Flour;
+    case "resource-bread":
+      return RESOURCE_TYPE.Bread;
+    default:
+      throw Error(`Unknown resource itemId ${itemId}`);
+  }
+};
+
 const _addResources = (amount: number, to: IStorage) => {
   if (to.resourceCount + amount > to.resourceCapacity) {
     if (notificationConfig.logStorageNotifications) {

@@ -16,8 +16,9 @@ public class Client : MonoBehaviour
 {
     public static readonly string BaseUrl = "http://localhost:3001/api";
 
-    public static string PlayerCompanyId => CompanyDTOs.FirstOrDefault(c => c.Name == "State")?.Id;
+    public static string PlayerCompanyId => CompanyDTOs.FirstOrDefault(c => c.Name == "NadoCo Logistics")?.Id;
     
+    // Entity DTOS
     public static List<TruckDTO> TruckDTOs = new List<TruckDTO>();
     private static List<GameObject> trucks = new List<GameObject>();
     public static List<LocationDTO> LocationDTOs = new List<LocationDTO>();
@@ -25,6 +26,10 @@ public class Client : MonoBehaviour
     public static List<CompanyDTO> CompanyDTOs = new List<CompanyDTO>();
     public static List<ContractDTO> ContractDTOs = new List<ContractDTO>();
     public static int WorldTick = 0;
+
+    // Marketplace Item DTOS
+    public static List<TruckItemDTO> TruckItemDTOs = new List<TruckItemDTO>();
+    public static List<LocationItemDTO> LocationItemDTOs = new List<LocationItemDTO>();
 
     public GameObject boxTruckProto, flatbedTruckProto;
     public GameObject processorProto, bakeryProto;
@@ -46,6 +51,7 @@ public class Client : MonoBehaviour
     {
         _client = this;
         StartCoroutine(RefreshWorldState(.4f));
+        StartCoroutine(RefreshMarketplaceState());
     }
 
     private static IEnumerator callAPICoroutine(string uri, APICallType callType, 
@@ -71,6 +77,31 @@ public class Client : MonoBehaviour
     public static Coroutine CallAPI(string uri, APICallType callType, Action<bool, string> onComplete, string data = null)
     {
         return _client.StartCoroutine(callAPICoroutine(uri, callType, onComplete, data));
+    }
+
+    IEnumerator RefreshMarketplaceState()
+    {
+        yield return CallAPI("/location/items",APICallType.Get,(success,response) =>
+        {
+            if (!success) Debug.LogError(response);
+
+            var locationsResult = JsonConvert.DeserializeObject<List<LocationItemDTO>>(response);
+            if (locationsResult != null)
+            {
+                LocationItemDTOs = locationsResult;
+            }
+        });
+
+        yield return CallAPI("/truck/items",APICallType.Get,(success,response) =>
+        {
+            if (!success) Debug.LogError(response);
+
+            var trucksResult = JsonConvert.DeserializeObject<List<TruckItemDTO>>(response);
+            if (trucksResult != null)
+            {
+                TruckItemDTOs = trucksResult;
+            }
+        });
     }
 
     IEnumerator RefreshWorldState(float interval)

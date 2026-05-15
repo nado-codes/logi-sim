@@ -10,17 +10,23 @@ import {
   updateContracts,
 } from "./contracts";
 import {
+  createLocationFromItemId,
   deleteLocation,
   getLocationById,
   getLocationByIdOrNull,
+  getLocationItemById,
+  getLocationItems,
 } from "./locations/locations";
 import { createProcessor, updateProcessors } from "./locations/processors";
 import { createProducer, updateProducers } from "./locations/producers";
 import {
   createTruck,
+  createTruckFromItemId,
   deleteTruck,
   getTruckById,
   getTruckByPositionOrNull,
+  getTruckItemById,
+  getTruckItems,
   getTruckString,
   updateTrucks,
 } from "./trucks";
@@ -49,7 +55,7 @@ import {
   IWorldEntity,
   IContract,
   ITruck,
-  IBaseLocation,
+  ILocation,
   ICompany,
   ICoastline,
   IWater,
@@ -62,8 +68,8 @@ import {
   defaultCompanyOptions,
   ITown,
   Pos3D,
-  IProducer,
-  IProcessor,
+  ILocationItem,
+  IVehicleItem,
 } from "@logisim/lib/entities";
 import { Color, highlight } from "@logisim/lib/utils";
 
@@ -85,11 +91,15 @@ export interface IWorld {
   getTrucks: () => ITruck[];
   getTruckById: (id: string) => ITruck;
   getTruckByPositionOrNull: (position: Pos3D) => Nullable<ITruck>;
+  getTruckItemById: (itemId: string) => IVehicleItem;
+  getTruckItems: () => IVehicleItem[];
   getTruckString: (truck: ITruck) => string;
 
-  getLocations: () => IBaseLocation[];
-  getLocationById: (id: string) => IBaseLocation;
-  getLocationByIdOrNull: (id: Nullable<string>) => Nullable<IBaseLocation>;
+  getLocations: () => ILocation[];
+  getLocationById: (id: string) => ILocation;
+  getLocationByIdOrNull: (id: Nullable<string>) => Nullable<ILocation>;
+  getLocationItemById: (itemId: string) => ILocationItem;
+  getLocationItems: () => ILocationItem[];
 
   getCompanies: () => ICompany[];
   getCompanyById: (id: string) => ICompany;
@@ -118,7 +128,7 @@ export interface IWorld {
     produces: RESOURCE_TYPE,
     productionRate: number,
     startFull?: boolean,
-  ) => IProducer;
+  ) => ILocation;
 
   createProcessor: (
     name: string,
@@ -127,7 +137,9 @@ export interface IWorld {
     recipe: IRecipe,
     startWithFullInputs?: boolean,
     startWithFullOutputs?: boolean,
-  ) => IProcessor;
+  ) => ILocation;
+
+  createLocationFromItemId: (itemId: string, companyId: string, position: Pos3D) => ILocation;
 
   createTown: (
     name: string,
@@ -145,6 +157,8 @@ export interface IWorld {
     dueTicks: number,
   ) => IContract;
 
+  createTruckFromItemId: (itemId: string,companyId:string,position: Pos3D) => ITruck,
+
   createTruck: (
     name: string,
     companyId: string,
@@ -161,7 +175,7 @@ export interface IWorld {
   reseedTown: (town: ITown) => void;
 
   deleteTruck: (truck: ITruck) => void;
-  deleteLocation: (location: IBaseLocation) => void;
+  deleteLocation: (location: ILocation) => void;
 }
 
 const createInitialState = (): IWorldState => {
@@ -225,13 +239,17 @@ export const createWorld = (): IWorld => {
     getTruckById: (id: string) => getTruckById(state, id),
     getTruckByPositionOrNull: (position: Pos3D) =>
       getTruckByPositionOrNull(state, position),
+    getTruckItemById: (itemId: string) => getTruckItemById(itemId),
+    getTruckItems: () => getTruckItems(),
     getTruckString: (truck: ITruck) => getTruckString(state, truck),
 
     getLocations: () => state.getLocations(),
     getLocationById: (id: string) => getLocationById(state, id),
     getLocationByIdOrNull: (id: Nullable<string>) =>
       getLocationByIdOrNull(state, id),
-
+    getLocationItemById: (itemId: string) => getLocationItemById(itemId),
+    getLocationItems: () => getLocationItems(),
+    
     getCompanies: () => state.companies,
     getCompanyById: (id: string) => getCompanyById(state, id),
     getCompanyByIdOrNull: (id: string) => getCompanyByIdOrNull(state, id),
@@ -286,6 +304,8 @@ export const createWorld = (): IWorld => {
         startWithFullInputs,
         startWithFullOutputs,
       ),
+    
+    createLocationFromItemId: (itemId: string, companyId: string, position: Pos3D) => createLocationFromItemId(state, itemId, companyId, position),
 
     createTown: (name: string, companyId: string, position: Pos3D) =>
       createTown(state, name, companyId, position),
@@ -328,6 +348,8 @@ export const createWorld = (): IWorld => {
         resourceCount,
       ),
 
+    createTruckFromItemId: (itemId: string, companyId: string, position: Pos3D) => createTruckFromItemId(state, itemId, companyId, position),
+
     assignContractToTruck: (contract: IContract, truck: ITruck) =>
       assignContractToTruck(state, contract, truck),
     assignContractToCompany: (contract: IContract, company: ICompany) =>
@@ -339,7 +361,7 @@ export const createWorld = (): IWorld => {
     },
 
     deleteTruck: (truck: ITruck) => deleteTruck(state, truck),
-    deleteLocation: (location: IBaseLocation) =>
+    deleteLocation: (location: ILocation) =>
       deleteLocation(state, location),
   };
 };
