@@ -25,7 +25,6 @@ import {
   RESOURCE_TYPE,
   Pos3D,
   ILocationItem,
-  ResourceMap,
 } from "@logisim/lib/entities";
 import {
   highlight,
@@ -90,13 +89,15 @@ export const createLocationFromItemId = (state: IWorldState, itemId: string, com
     throw Error(`[CRITICAL SYSTEM ERROR] Location with id ${itemId} doesn't exist`);
   }
 
-  return createLocation(
+  const location = createLocation(
     locationData.name,
     companyId,
     position,
     locationData.recipe,
     locationData.locationType
-  );
+  )
+
+  return {...location,itemId};
 };
 
 // .. READ

@@ -55,40 +55,12 @@ export const runBaseSimulation = (options: {
     },
   );
 
-  world.createTruck(
-    "Truck 1",
-    playerCompany.id,
-    RESOURCE_TYPE.Grain,
-    1000000,
-    { x: 15, y: 0, z: 0 },
-    2,
-  );
-  world.createTruck(
-    "Truck 2",
-    playerCompany.id,
-    RESOURCE_TYPE.Flour,
-    1000000,
-    { x: 15, y: 0, z: 0 },
-    2,
-  );
+  world.createTruckFromItemId("truck-grain", playerCompany.id, { x: 15, y: 0, z: 0 });
+  world.createTruckFromItemId("truck-flour", playerCompany.id, { x: 15, y: 0, z: 0 });
 
   // .. RivalCo trucks
-  world.createTruck(
-    "Truck 3",
-    competitorCompany.id,
-    RESOURCE_TYPE.Grain,
-    1000000,
-    { x: 15, y: 0, z: 0 },
-    2,
-  );
-  world.createTruck(
-    "Truck 4",
-    competitorCompany.id,
-    RESOURCE_TYPE.Flour,
-    1000000,
-    { x: 15, y: 0, z: 0 },
-    2,
-  );
+  world.createTruckFromItemId("truck-grain", competitorCompany.id, { x: 15, y: 0, z: 0 });
+  world.createTruckFromItemId("truck-flour", competitorCompany.id, { x: 15, y: 0, z: 0 });
 
   setLogContextProvider(() => `Tick ${world.getCurrentTick()}`);
 
@@ -116,17 +88,6 @@ export const runBaseSimulation = (options: {
         Math.round(world.getCurrentTick() / checkpointFactor)
     ) {
       return;
-    }
-
-    const nonStateCompanies = world
-      .getCompanies()
-      .filter((c) => c.name !== "State");
-
-    nonStateCompanies.forEach((c1) => {
-      console.log(`  - ${c1.name} = ${c1.money}`);
-    });
-
-    if (world.getCurrentTick() > 750) {
     }
 
     const lastSnapshotDuration = new Date(Date.now() - lastSnapshot);

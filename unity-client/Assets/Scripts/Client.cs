@@ -5,6 +5,7 @@ using System.Linq;
 using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.Networking;
+using UnityEngine.SceneManagement;
 
 public enum APICallType
     {
@@ -50,8 +51,15 @@ public class Client : MonoBehaviour
     void Start()
     {
         _client = this;
+        SceneManager.sceneUnloaded += OnSceneUnloaded;
         StartCoroutine(RefreshWorldState(.4f));
         StartCoroutine(RefreshMarketplaceState());
+    }
+
+    void OnSceneUnloaded(Scene scene)
+    {
+        trucks.Clear();
+        locations.Clear();
     }
 
     private static IEnumerator callAPICoroutine(string uri, APICallType callType, 
@@ -215,12 +223,8 @@ public class Client : MonoBehaviour
         }
     }
 
-    // Update is called once per frame
     void Update()
     {
-        //Debug.Log("there are " + TruckDTOs.Count + " truck DTOs in the world");
-        //Debug.Log("there are " + trucks.Count + " truck game objects in the world");
-
         foreach (TruckDTO truck in TruckDTOs)
         {
             var truckGO = trucks.FirstOrDefault(t => t.name == truck.Id);
@@ -241,5 +245,16 @@ public class Client : MonoBehaviour
                 }
             }
         }
+    }
+
+    public void SwitchToOperatorView()
+    {
+        SceneManager.LoadScene("OutdoorsScene");
+    }
+
+    public void SwitchToOfficeView()
+    {
+        
+        SceneManager.LoadScene("OfficeScene");
     }
 }

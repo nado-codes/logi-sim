@@ -20,6 +20,7 @@ export interface INotificationConfig {
   logProducerNotifications: boolean;
   logConsumerNotifications: boolean;
   logContractNotifications: boolean;
+  logMarketplaceNotifications: boolean;
   logTruckNotifications: TruckNotifications;
   logProductionNotifications: boolean;
   logLocationNotifications: boolean;
@@ -33,6 +34,7 @@ const defaultConfig: INotificationConfig = {
   logProducerNotifications: false,
   logConsumerNotifications: false,
   logContractNotifications: false,
+  logMarketplaceNotifications: false,
   logTruckNotifications: {
     all: false,
     loading: false,

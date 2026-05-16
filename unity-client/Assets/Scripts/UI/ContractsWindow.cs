@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System;
 using Newtonsoft.Json;
 using TMPro;
 using UnityEngine;
@@ -8,10 +9,12 @@ using UnityEngine.UI;
 public class ContractsWindow : BaseWindow<ContractsWindow>
 {
     private UITable table;
+    private ContractDispatchDropdown dispatchDropdown;
+
     public Button companyContractsButton;
     private bool filterCompanyContracts = false;
 
-    private UIAction rowAcceptAction = new UIAction()
+    private UIItemAction contractAcceptAction = new UIItemAction()
     {
         Name = "Accept",
         Callback = (contractId) =>
@@ -30,7 +33,7 @@ public class ContractsWindow : BaseWindow<ContractsWindow>
         }
     };
 
-    private UIAction rowBreakAction = new UIAction()
+    private UIItemAction contractBreakAction = new UIItemAction()
     {
         Name = "Break",
         Callback = (contractId) =>
@@ -49,25 +52,25 @@ public class ContractsWindow : BaseWindow<ContractsWindow>
             }));
         }
     };
-    
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     protected override void Start()
     {
         base.Start();
         table = GetComponentInChildren<UITable>();
+        dispatchDropdown = GetComponentInChildren<ContractDispatchDropdown>();
 
         if(table == null)
         {
-            throw new System.NullReferenceException("TrucksWindow: No UITable found in children");
+            throw new NullReferenceException("ContractsWindow: No UITable found in children");
         }
-
-        if(!companyContractsButton)
+        if(dispatchDropdown == null)
         {
-            Debug.LogError("ContractsWindow: Company Contracts Button is not assigned in the inspector");
+            throw new NullReferenceException("ContractsWindow: No ContractDispatchDropdown found in children");
         }
-        else
+        if(companyContractsButton == null)
         {
-            companyContractsButton.onClick.AddListener(ToggleCompanyContractsFilter);
+            throw new NullReferenceException("ContractsWindow: Company Contracts Button is not assigned in the inspector");
         }
 
         Close();
@@ -93,6 +96,18 @@ public class ContractsWindow : BaseWindow<ContractsWindow>
         table.Refresh(contractVMs.ToList());
     }
 
+    private UIItemAction getContractDispatchAction()
+    {
+        return new UIItemAction()
+        {
+            Name = "Dispatch",
+            Callback = (contractId) =>
+            {
+                dispatchDropdown.Open(contractId);
+            }
+        };
+    }
+
     public void ToggleCompanyContractsFilter()
     {
         filterCompanyContracts = !filterCompanyContracts;
@@ -111,8 +126,8 @@ public class ContractsWindow : BaseWindow<ContractsWindow>
 
         btnText.text = filterCompanyContracts ? "Show All Contracts" : "Show Company Contracts";
         btnImage.color = filterCompanyContracts ? Color.green : Color.white;
-        table.SetActions(filterCompanyContracts ? new List<UIAction>() {rowBreakAction} : new List<UIAction>(){
-            rowAcceptAction
+        table.SetActionFactory(filterCompanyContracts ? (contractId) => new List<UIItemAction>() {getContractDispatchAction(),contractBreakAction} : (contractId) => new List<UIItemAction>(){
+            contractAcceptAction
         });
     }
 
@@ -122,9 +137,9 @@ public class ContractsWindow : BaseWindow<ContractsWindow>
 
         var availableContractDTOs = Client.ContractDTOs.Where(dto => dto.AcceptedAtTick == null);
         var contractVMs = availableContractDTOs.Select(dto => ContractViewModel.FromDTO(dto,Client.CompanyDTOs,Client.LocationDTOs,Client.TruckDTOs,Client.WorldTick));
-        table.Populate(contractVMs.ToList(),new List<UIAction>()
+        table.Populate(contractVMs.ToList(),(contractId) => new List<UIItemAction>
         {
-            rowAcceptAction
+            contractAcceptAction
         });
     }
 

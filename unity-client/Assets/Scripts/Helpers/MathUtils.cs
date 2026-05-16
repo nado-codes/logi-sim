@@ -13,6 +13,8 @@ public struct Pos3D
         this.y = y;
         this.z = z;
     }
+
+    public static float Distance(Pos3D a, Pos3D b) => MathUtils.Distance(a.x,a.y,a.z,b.x,b.y,b.z);
 }
 public static class MathUtils
 {

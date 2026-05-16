@@ -103,7 +103,7 @@ export const createTruckFromItemId = (state: IWorldState, itemId: string, compan
 
   const { name, resourceItemId, resourceCapacity, speed } = truckData;
 
-  return createTruck(
+  const truck = createTruck(
     state,
     name,
     companyId,
@@ -113,6 +113,10 @@ export const createTruckFromItemId = (state: IWorldState, itemId: string, compan
     speed,
     0
   );
+
+  truck.itemId = itemId;
+
+  return truck;
 };
 
 // .. READ

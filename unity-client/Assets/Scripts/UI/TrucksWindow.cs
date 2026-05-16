@@ -1,9 +1,51 @@
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
+using UnityEngine;
 
 public class TrucksWindow : BaseWindow<TrucksWindow>
 {
     private UITable table;
+
+    private UIItemAction rowSellAction = new UIItemAction()
+    {
+        Name = "Sell",
+        Callback = (truckId) =>
+        {
+            Client.CallAPI("/truck/sell",APICallType.Post,(success,response) =>
+            {
+                if (!success) {
+                    Debug.LogError(response);
+                    Debug.LogError($"Failed to sell truck {truckId}: {response}");
+                }   
+            },JsonConvert.SerializeObject(new 
+            { 
+                truckId, 
+                companyId = Client.PlayerCompanyId 
+            }));
+        }
+    };
+
+    private UIItemAction rowDispatchAction = new UIItemAction()
+    {
+        Name = "Dispatch",
+        Callback = (truckId) =>
+        {
+            /* Client.CallAPI("/contract/break",APICallType.Post,(success,response) =>
+            {
+                if (!success) {
+                    Debug.LogError(response);
+                    Debug.LogError($"Failed to break contract {contractId}: {response}");
+                }   
+            },JsonConvert.SerializeObject(new 
+            { 
+                contractId, 
+                companyId = Client.PlayerCompanyId,
+                breakType = ContractBreakType.Shipper 
+            })); */
+        }
+    };
+
     protected override void Start()
     {
         base.Start();
@@ -33,7 +75,7 @@ public class TrucksWindow : BaseWindow<TrucksWindow>
 
         var companyTrucks = Client.TruckDTOs.Where(t => t.CompanyId == Client.PlayerCompanyId).ToList();
         var truckVMs = companyTrucks.Select(dto => TruckViewModel.FromDTO(dto,Client.CompanyDTOs,Client.LocationDTOs));
-        table.Populate(truckVMs.ToList(),new List<UIAction>());
+        table.Populate(truckVMs.ToList(),(truckId) => new List<UIItemAction>(){rowSellAction});
     }
 
     public new void Close()

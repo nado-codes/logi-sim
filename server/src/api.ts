@@ -260,6 +260,17 @@ Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, 
       try {
         const { truckId } = req.body;
         const truck = world.getTruckById(truckId);
+
+        if(truck.itemId) {
+          const truckItem = world.getTruckItemById(truck.itemId);
+          const truckCompany = world.getCompanyById(truck.companyId);
+          transferCompanyFundsFromState(truckCompany, truckItem.price);
+        }
+        else {
+          res.status(400).send({ error: "Truck cannot be sold because it doesn't have an associated item" });
+          return;
+        }
+
         world.deleteTruck(truck);
         res.send({ success: true });
       } catch (error) {

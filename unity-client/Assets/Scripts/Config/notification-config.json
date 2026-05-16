@@ -1,0 +1,8 @@
+{
+    "logUINotifications" : {
+        "actions" : {
+            "create" : false,
+            "execute" : true
+        }
+    }
+}

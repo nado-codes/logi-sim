@@ -234,6 +234,16 @@ export const updateContracts = (state: IWorldState) => {
 };
 
 export const assignContractToCompany = (state:IWorldState, contract: IContract, company: ICompany) => {
+  if (notificationConfig.logContractNotifications) {
+    logInfo(`[CONTRACT] Trying to assign ${contract.resourceType} contract to company...`);
+  }
+
+  if (contract.shipperId) {
+    logError(
+      ` - ERROR: Contract already taken by another company - assignment not possible`,
+    );
+    return false;
+  }
 
   contract.shipperId = company.id;
   contract.acceptedAtTick = state.currentTick;
@@ -252,12 +262,12 @@ export const assignContractToTruck = (
   truck: ITruck,
 ) => {
   if (notificationConfig.logContractNotifications) {
-    logInfo(`[CONTRACT] Trying to assign ${contract.resourceType} contract...`);
+    logInfo(`[CONTRACT] Trying to assign ${contract.resourceType} contract to truck...`);
   }
 
-  if (contract.truckId || contract.shipperId) {
+  if (contract.truckId) {
     logError(
-      ` - ERROR: Contract already being shipped - assignment not possible`,
+      ` - ERROR: Contract already being shipped by another truck - assignment not possible`,
     );
     return false;
   }

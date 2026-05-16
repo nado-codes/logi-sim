@@ -8,36 +8,6 @@ using UnityEngine.UI;
 
 public class UITable : BaseUIDataView
 {
-
-    protected override void Start()
-    {
-        if(!itemPrototype)
-        {
-            throw new NullReferenceException("Table Row prototype must be set");
-        }
-
-        if(!actionButtonPrototype)
-        {
-            throw new NullReferenceException("Table Action Button prototype must be set");
-        }
-
-        itemPrototype.SetActive(false);
-        actionButtonPrototype.SetActive(false);
-    }
-
-    public override void Populate<T>(List<T> dataList,List<UIAction> actions)
-    {
-        for(var i = 0; i < items.Count; i++)
-            deleteItem(items[i]);
-
-        foreach(T data in dataList)
-        {
-            var row = createItem(data);
-            loadActionsToItem(row, actions);
-        }
-        SetActions(actions);
-    }
-
     protected override GameObject createItem<T>(T item)
     {
         var row = Instantiate(itemPrototype);
@@ -54,35 +24,6 @@ public class UITable : BaseUIDataView
         loadDataToItem(item,row);
 
         return row;
-    }
-
-    public override void Refresh<T>(List<T> data)
-    {
-        foreach(T item in data)
-        {
-            var row = items.Find(r => r.name == item.Id);
-
-            if(row == null) {
-                row = createItem(item);
-                loadActionsToItem(row, currentActions);
-            }
-
-            loadDataToItem(item,row);
-        }
-
-        var rowsToDelete = items.Where(row => !data.Any(item => item.Id == row.name)).ToList();
-        foreach(var row in rowsToDelete)
-            deleteItem(row);
-    }
-
-    public override void SetActions(List<UIAction> actions)
-    {
-        Debug.Log("Setting table actions: "+string.Join(", ", actions.Select(a => a.Name)));
-        foreach(var row in items) {
-            loadActionsToItem(row, actions);
-        }
-
-        currentActions = actions;
     }
 
     protected override void deleteItem(GameObject rowToDelete)
@@ -135,30 +76,12 @@ public class UITable : BaseUIDataView
             }
         }
     }
-
-    protected override void remapItemActions(GameObject item)
+    protected override void loadActionsToItem(GameObject item, List<UIItemAction> actions)
     {
-        var actionButtons = item.transform.GetComponentsInChildren<Button>();
-
-        foreach(var button in actionButtons)
+        if(notificationConfig.logUINotifications.actions.Create)
         {
-            var action = currentActions.FirstOrDefault(a => a.Name+"ActionButton" == button.gameObject.name);
-
-            if(action != null)
-            {
-                button.onClick.RemoveAllListeners();
-                button.onClick.AddListener(() => action.Callback(item.name));
-            }
-            else
-            {
-                Debug.LogError("Could not find action for button "+button.gameObject.name+" when remapping row actions");
-            }
-        }
-    }
-    
-    protected override void loadActionsToItem(GameObject item, List<UIAction> actions)
-    {
-        Debug.Log("Loading actions to item "+item.name);
+            Debug.Log("Loading actions to item "+item.name);
+        }   
         var actionsCell = item.transform.GetComponentsInChildren<Transform>().FirstOrDefault(c => c.name == "ActionsCell").gameObject;
 
         if(actionsCell == null)
@@ -176,11 +99,15 @@ public class UITable : BaseUIDataView
 
         foreach(var action in actions)
         {
-            Debug.Log(" - Adding action "+action.Name+" to item "+item.name);
+            if(notificationConfig.logUINotifications.actions.Create)
+            {
+                Debug.Log(" - Adding action "+action.Name+" to item "+item.name);
+            }
             var buttonGO = Instantiate(actionButtonPrototype);
             
             var buttonText = buttonGO.GetComponentInChildren<TextMeshProUGUI>();
-            if(!buttonText)            {
+            if(!buttonText)            
+            {
                 Debug.LogError("No TextMeshProUGUI component found in action button prototype");
                 DestroyImmediate(buttonGO);
                 continue;
@@ -194,11 +121,19 @@ public class UITable : BaseUIDataView
             }
 
             buttonGO.name = action.Name+"ActionButton";
-            buttonGO.transform.SetParent(actionsCell.transform, false);
-            button.onClick.AddListener(() => action.Callback(item.name));
+            buttonGO.transform.SetParent(actionsCell.transform,true);
+            var actionButtonProtoPos = actionButtonPrototype.GetComponent<RectTransform>().localPosition;
+            var actionButtonProtoWidth = actionButtonPrototype.GetComponent<RectTransform>().sizeDelta.x;
+            buttonGO.GetComponent<RectTransform>().localPosition = new Vector3(actionButtonProtoPos.x+((actionButtonProtoWidth+itemSpacingPx)*actionButtonGOs.Count),0);
+            button.onClick.AddListener(() => action.Invoke(item.name));
             buttonText.text = action.Name;
             buttonGO.SetActive(true);
-            Debug.Log(" - Finished adding action button");
+            actionButtonGOs.Add(buttonGO);
+
+            if(notificationConfig.logUINotifications.actions.Create)
+            {
+                Debug.Log(" - Finished adding action button");
+            }
         }
     }
 

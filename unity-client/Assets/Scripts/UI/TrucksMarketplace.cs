@@ -7,7 +7,7 @@ public class TrucksMarketplace : BaseWindow<TrucksMarketplace>
 {
     private UIList list;
 
-    private UIAction purchaseTruckAction = new UIAction()
+    private UIItemAction purchaseTruckAction = new UIItemAction()
     {
         Name = "Purchase",
         Callback = (itemId) =>
@@ -51,7 +51,7 @@ public class TrucksMarketplace : BaseWindow<TrucksMarketplace>
             truckVM.Specs = $" - Carries {truckVM.ResourceCapacity} of {truckVM.ResourceName} at {truckVM.Speed} m/s";
             return truckVM;
         }).ToList();
-        list.Populate(truckItemVMs,new List<UIAction>(){ purchaseTruckAction });
+        list.Populate(truckItemVMs,(truckItemId) => new List<UIItemAction>(){ purchaseTruckAction });
     }
 
     public new void Close()

@@ -3,12 +3,13 @@
   "logProcessorNotifications": false,
   "logProducerNotifications": false,
   "logConsumerNotifications": false,
-  "logContractNotifications": true,
+  "logContractNotifications": false,
+  "logMarketplaceNotifications": true,
   "logTruckNotifications": {
     "all": false,
     "loading": false,
     "unloading": false,
-    "movement": false,
+    "movement": true,
     "costs": false
   },
   "logProductionNotifications": false,
