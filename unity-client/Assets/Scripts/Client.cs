@@ -236,7 +236,7 @@ public class Client : MonoBehaviour
 
                 if (truckDestGO != null)
                 {
-                    var dirToDestination = truckDestGO.transform.position - truck.Position.ToVector3();
+                    var dirToDestination = truckDestGO.transform.position - truckGO.transform.position;
 
                     if (dirToDestination != Vector3.zero)
                     {

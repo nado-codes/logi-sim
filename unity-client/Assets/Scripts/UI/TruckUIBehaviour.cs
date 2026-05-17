@@ -3,13 +3,6 @@ using TMPro;
 
 public class TruckUIBehaviour : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-
-    }
-
-    // Update is called once per frame
     void Update()
     {
         var camera = Camera.main;
@@ -18,13 +11,17 @@ public class TruckUIBehaviour : MonoBehaviour
             transform.LookAt(transform.position + camera.transform.rotation * Vector3.forward, camera.transform.rotation * Vector3.up);
         }
 
-        var truck = Client.TruckDTOs.Find(truck => truck.Id == gameObject.name);
+        var truck = Client.TruckDTOs.Find(truck => truck.Id == transform.parent.gameObject.name);
         if (truck != null)
         {
+            var truckCompany = Client.CompanyDTOs.Find(company => company.Id == truck.CompanyId);
+            if(truckCompany.Id != Client.PlayerCompanyId) 
+                return;
+
             var txName = transform.Find("txName").GetComponent<TextMeshProUGUI>();
             txName.text = truck.Name;
 
-            var truckCompany = Client.CompanyDTOs.Find(company => company.Id == truck.CompanyId);
+            
             var txCompanyName = transform.Find("txCompanyName").GetComponent<TextMeshProUGUI>();
             txCompanyName.text = truckCompany != null ? truckCompany.Name : "Unknown Company";
 
