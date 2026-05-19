@@ -4,7 +4,7 @@ using UnityEngine;
 public class BaseWindow<T> : MonoBehaviour
 {
     private static BaseWindow<T> _instance;
-    public bool IsOpen = false;
+    protected bool isOpen = false;
 
     protected virtual void Start()
     {
@@ -14,12 +14,12 @@ public class BaseWindow<T> : MonoBehaviour
     public void Open()
     {
         _instance.gameObject.SetActive(true);
-        IsOpen = true;
+        isOpen = true;
     }
 
     public void Close()
     {
         _instance.gameObject.SetActive(false);
-        IsOpen = false;
+        isOpen = false;
     }
 }

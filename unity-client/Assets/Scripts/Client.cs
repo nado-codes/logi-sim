@@ -17,7 +17,7 @@ public class Client : MonoBehaviour
 {
     public static readonly string BaseUrl = "http://localhost:3001/api";
 
-    public static string PlayerCompanyId => CompanyDTOs.FirstOrDefault(c => c.Name == "NadoCo Logistics")?.Id;
+    public static string? ActiveCompanyId = null;
     
     // Entity DTOS
     public static List<TruckDTO> TruckDTOs = new List<TruckDTO>();
@@ -54,6 +54,19 @@ public class Client : MonoBehaviour
         SceneManager.sceneUnloaded += OnSceneUnloaded;
         StartCoroutine(RefreshWorldState(.4f));
         StartCoroutine(RefreshMarketplaceState());
+
+        CallAPI("/companies",APICallType.Get,(success,response) =>
+        {
+            if (!success) Debug.LogError(response);
+
+            var companiesResult = JsonConvert.DeserializeObject<List<CompanyDTO>>(response);
+            if (companiesResult != null)
+            {
+                CompanyDTOs = companiesResult;
+            }
+
+            ActiveCompanyId = CompanyDTOs.FirstOrDefault(c => c.Name == "NadoCo Logistics")?.Id;
+        });
     }
 
     void OnSceneUnloaded(Scene scene)

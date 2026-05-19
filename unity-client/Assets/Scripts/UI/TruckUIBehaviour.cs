@@ -15,7 +15,7 @@ public class TruckUIBehaviour : MonoBehaviour
         if (truck != null)
         {
             var truckCompany = Client.CompanyDTOs.Find(company => company.Id == truck.CompanyId);
-            if(truckCompany.Id != Client.PlayerCompanyId) 
+            if(truckCompany.Id != Client.ActiveCompanyId) 
                 return;
 
             var txName = transform.Find("txName").GetComponent<TextMeshProUGUI>();

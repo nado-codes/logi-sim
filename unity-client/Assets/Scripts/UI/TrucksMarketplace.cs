@@ -22,7 +22,7 @@ public class TrucksMarketplace : BaseWindow<TrucksMarketplace>
             },JsonConvert.SerializeObject(new 
             { 
                 itemId, 
-                companyId = Client.PlayerCompanyId,
+                companyId = Client.ActiveCompanyId,
                 position = new Pos3D(0,0,0) // For now we just spawn the truck at 0,0,0 and let the player move it to the desired location
             }));
         }
@@ -43,6 +43,9 @@ public class TrucksMarketplace : BaseWindow<TrucksMarketplace>
 
     public new void Open()
     {
+        if(isOpen)
+            return;
+
         base.Open();
 
         var truckItemVMs = Client.TruckItemDTOs.Select(dto =>

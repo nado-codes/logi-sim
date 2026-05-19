@@ -28,7 +28,7 @@ public class ContractsWindow : BaseWindow<ContractsWindow>
             },JsonConvert.SerializeObject(new 
             { 
                 contractId, 
-                companyId = Client.PlayerCompanyId 
+                companyId = Client.ActiveCompanyId 
             }));
         }
     };
@@ -47,7 +47,7 @@ public class ContractsWindow : BaseWindow<ContractsWindow>
             },JsonConvert.SerializeObject(new 
             { 
                 contractId, 
-                companyId = Client.PlayerCompanyId,
+                companyId = Client.ActiveCompanyId,
                 breakType = ContractBreakType.Shipper 
             }));
         }
@@ -79,13 +79,13 @@ public class ContractsWindow : BaseWindow<ContractsWindow>
     // Update is called once per frame
     void Update()
     {
-        if(!IsOpen) 
+        if(!isOpen) 
             return;
 
         var availableContractDTOs = new List<ContractDTO>();
         if (filterCompanyContracts)
         {
-            availableContractDTOs = Client.ContractDTOs.Where(dto => dto.ShipperId == Client.PlayerCompanyId).ToList();
+            availableContractDTOs = Client.ContractDTOs.Where(dto => dto.ShipperId == Client.ActiveCompanyId).ToList();
         }
         else
         {
@@ -133,6 +133,9 @@ public class ContractsWindow : BaseWindow<ContractsWindow>
 
     public new void Open()
     {
+        if(isOpen)
+            return;
+            
         base.Open();
 
         var availableContractDTOs = Client.ContractDTOs.Where(dto => dto.AcceptedAtTick == null);

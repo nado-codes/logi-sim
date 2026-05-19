@@ -21,7 +21,7 @@ public class TrucksWindow : BaseWindow<TrucksWindow>
             },JsonConvert.SerializeObject(new 
             { 
                 truckId, 
-                companyId = Client.PlayerCompanyId 
+                companyId = Client.ActiveCompanyId 
             }));
         }
     };
@@ -61,19 +61,19 @@ public class TrucksWindow : BaseWindow<TrucksWindow>
 
     void Update()
     {
-        if(!IsOpen) 
-            return;
-
-        var companyTrucks = Client.TruckDTOs.Where(t => t.CompanyId == Client.PlayerCompanyId).ToList();
+        var companyTrucks = Client.TruckDTOs.Where(t => t.CompanyId == Client.ActiveCompanyId).ToList();
         var truckVMs = companyTrucks.Select(dto => TruckViewModel.FromDTO(dto,Client.CompanyDTOs,Client.LocationDTOs));
         table.Refresh(truckVMs.ToList());
     }
 
     public new void Open()
     {
+        if(isOpen)
+            return;
+            
         base.Open();
 
-        var companyTrucks = Client.TruckDTOs.Where(t => t.CompanyId == Client.PlayerCompanyId).ToList();
+        var companyTrucks = Client.TruckDTOs.Where(t => t.CompanyId == Client.ActiveCompanyId).ToList();
         var truckVMs = companyTrucks.Select(dto => TruckViewModel.FromDTO(dto,Client.CompanyDTOs,Client.LocationDTOs));
         table.Populate(truckVMs.ToList(),(truckId) => new List<UIItemAction>(){rowSellAction});
     }

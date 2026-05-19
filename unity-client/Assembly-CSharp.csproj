@@ -96,6 +96,7 @@
     <Compile Include="Assets\Scripts\Interfaces\ICompanyEntity.cs" />
     <Compile Include="Assets\Scripts\ViewModels\ContractViewModel.cs" />
     <Compile Include="Assets\Scripts\UI\TrucksMarketplace.cs" />
+    <Compile Include="Assets\Scripts\UI\CompanySelectionDropdown.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />

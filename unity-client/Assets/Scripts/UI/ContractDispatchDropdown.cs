@@ -9,6 +9,9 @@ public class ContractDispatchDropdown : UIDropdown
 {
     protected override void OnOpen(string contractId)
     {
+        if(isOpen)
+            return;
+            
         var contract = Client.ContractDTOs.Find(c => c.Id == contractId);
 
         if(contract == null)
@@ -17,7 +20,7 @@ public class ContractDispatchDropdown : UIDropdown
             return;
         }
 
-        var companyTrucks = Client.TruckDTOs.Where(t => t.CompanyId == Client.PlayerCompanyId);
+        var companyTrucks = Client.TruckDTOs.Where(t => t.CompanyId == Client.ActiveCompanyId);
         var validTrucks = companyTrucks.Where(t => t.Storage != null && t.Storage.ResourceType == contract.ResourceType);
         var idleTrucks = validTrucks.Where(t => string.IsNullOrEmpty(t.ContractId));
         var supplier = Client.LocationDTOs.FirstOrDefault(l => l.Id == contract.SupplierId);

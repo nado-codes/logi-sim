@@ -1,11 +1,15 @@
 using UnityEngine;
 using TMPro;
 using System.Linq;
+using System;
 
 public class CompanyInfo : MonoBehaviour
 {
     private TextMeshProUGUI companyNameText;
     private TextMeshProUGUI companyMoneyText;
+
+    private float companyMoneyTarget = .1f;
+    private float companyMoneyCurrent = 0;
 
     void Start()
     {
@@ -20,19 +24,34 @@ public class CompanyInfo : MonoBehaviour
         {
             Debug.LogError("Company Money TextMeshProUGUI component not found in children.");
         }
+
+        UpdateCompanyInfo();
+        companyMoneyCurrent = companyMoneyTarget;
     }
 
-    void Update()
+    void UpdateCompanyInfo()
     {
-        var company = Client.CompanyDTOs.FirstOrDefault(c => c.Id == Client.PlayerCompanyId);
+        if(Client.ActiveCompanyId == null)
+            return;
+
+        var company = Client.CompanyDTOs.FirstOrDefault(c => c.Id == Client.ActiveCompanyId);
 
         if(company == null)
         {
             Debug.LogError("Player's company not found in CompanyDTOs.");
+            return;
         }
 
         companyNameText.text = company.Name;
-        companyMoneyText.text = company.Money.ToString("C");
+        companyMoneyTarget = company.Money;
+    }
+
+    void Update()
+    {
+        UpdateCompanyInfo();
+        companyMoneyCurrent = Mathf.Lerp(companyMoneyCurrent,companyMoneyTarget,Time.deltaTime);
+
+        companyMoneyText.text = companyMoneyCurrent.ToString("C");
     }
 
     public void SwitchCompany(string companyId)

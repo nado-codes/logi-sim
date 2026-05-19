@@ -8,6 +8,7 @@ using UnityEngine.UI;
 public abstract class UIDropdown : BaseUIDataView
 {
     private RectTransform panelContainer;
+    protected bool isOpen = false;
 
     protected override void Start()
     {
@@ -19,6 +20,8 @@ public abstract class UIDropdown : BaseUIDataView
         {
             throw new NullReferenceException("Can't find PanelContainer on UIDropdown");
         }
+
+        Close();
     }
 
     protected override GameObject createItem<T>(T data)
@@ -144,11 +147,11 @@ public abstract class UIDropdown : BaseUIDataView
             Debug.LogWarning("No matching field found in the item for property "+prop);
         }
     }
-    
+
     private void sizeToItems()
     {
         var protoHeight = itemPrototype.GetComponent<RectTransform>().sizeDelta.y;
-        var updatedHeight = (protoHeight+itemSpacingPx)*items.Count;
+        var updatedHeight = (protoHeight/2+itemSpacingPx)*items.Count;
 
         panelContainer.sizeDelta = new Vector2(panelContainer.sizeDelta.x,updatedHeight);
     }
@@ -159,6 +162,7 @@ public abstract class UIDropdown : BaseUIDataView
         gameObject.SetActive(true);
         OnOpen(itemId);
         sizeToItems();
+        isOpen = true;
     }
 
     protected abstract void OnOpen(string itemId);
@@ -166,6 +170,7 @@ public abstract class UIDropdown : BaseUIDataView
     public void Close()
     {
         gameObject.SetActive(false);
+        isOpen = false;
     }
 
     
