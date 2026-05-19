@@ -5,7 +5,6 @@ using Newtonsoft.Json;
 using UnityEngine;
 using TMPro;
 using UnityEngine.Networking;
-using UnityEditor.PackageManager;
 using System;
 
 public class AITrainer : MonoBehaviour
