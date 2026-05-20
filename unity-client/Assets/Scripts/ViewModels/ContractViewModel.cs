@@ -3,17 +3,19 @@ using System.Collections.Generic;
 using UnityEngine;
 using Newtonsoft.Json;
 
+#nullable enable
+
 public class ContractViewModel : BaseCompanyEntityViewModel
 {
-    public string ShipperName {get;set;}
-    public string SupplierName { get; set; }
-    public string DestinationName { get; set; }
+    public string ShipperName {get;set;} = default!;
+    public string SupplierName { get; set; } = default!;
+    public string DestinationName { get; set; } = default!;
     public string? TruckName { get; set; }
-    public string ResourceName { get; set; }
-    public string TotalAmount { get; set; }
-    public string Payment { get; set; }
-    public string DueInTicks { get; set; }
-    public string Distance {get;set;}
+    public string ResourceName { get; set; } = default!;
+    public string TotalAmount { get; set; } = default!;
+    public string Payment { get; set; } = default!;
+    public string DueInTicks { get; set; } = default!;
+    public string Distance {get;set;} = default!;
     public string? DeliveredTick { get; set; }
     public string? AcceptedAtTick { get; set; }
 

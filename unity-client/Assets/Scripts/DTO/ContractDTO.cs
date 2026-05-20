@@ -1,8 +1,10 @@
+#nullable enable
+
 public class ContractDTO : CompanyEntityDTO
 {
-    public string ShipperId {get; set;}
-    public string SupplierId { get; set; }
-    public string DestinationId { get; set; }
+    public string? ShipperId {get; set;}
+    public string SupplierId { get; set; } = default!;
+    public string DestinationId { get; set; } = default!;
     public string? TruckId { get; set; }
     public ResourceType ResourceType { get; set; }
     public int TotalAmount { get; set; }

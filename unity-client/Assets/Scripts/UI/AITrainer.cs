@@ -21,9 +21,6 @@ public class AITrainer : MonoBehaviour
     // User-controlled tutorial toggles
     private bool canWelcome = false;
     private bool canTeachContracts = true;
-    private bool canTeachDispatch = false;
-    private bool canTeachFleetManagement = false;
-    private bool canTeachIndustryManagement = false;
     private bool isActive = false;
 
     private List<ContractDTO> contractDTOs = new List<ContractDTO>();
