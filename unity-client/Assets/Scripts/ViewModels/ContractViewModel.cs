@@ -46,21 +46,23 @@ public class ContractViewModel : BaseCompanyEntityViewModel
             throw new NullReferenceException($"Destination with id ${dto.DestinationId} doesn't exist");
         }
 
-        return new ContractViewModel
-        {
-            Id = dto.Id,
-            CompanyName = company.Name,
-            SupplierName = supplier.Name,
-            DestinationName = destination.Name,
-            ShipperName = shipper?.Name ?? "N/A",
-            TruckName = truck?.Name ?? "N/A",
-            ResourceName = dto.ResourceType.ToString(),
-            TotalAmount = dto.TotalAmount.ToString("N0"),
-            Payment = dto.Payment.ToString("C"),
-            DueInTicks = (dto.ExpectedTick - currentTick).ToString()+" ticks",
-            Distance = MathUtils.Distance(supplier.Position.x,supplier.Position.y,supplier.Position.z,destination.Position.x,destination.Position.y,destination.Position.z).ToString()+"km",
-            DeliveredTick = "Tick "+dto.DeliveredTick.ToString(),
-            AcceptedAtTick = "Tick "+dto.AcceptedAtTick.ToString()
-        };
+        return FromDTO(dto,() => {
+            return new ContractViewModel
+            {
+                Id = dto.Id,
+                CompanyName = company.Name,
+                SupplierName = supplier.Name,
+                DestinationName = destination.Name,
+                ShipperName = shipper?.Name ?? "N/A",
+                TruckName = truck?.Name ?? "N/A",
+                ResourceName = dto.ResourceType.ToString(),
+                TotalAmount = dto.TotalAmount.ToString("N0"),
+                Payment = dto.Payment.ToString("C"),
+                DueInTicks = (dto.ExpectedTick - currentTick).ToString()+" ticks",
+                Distance = MathUtils.Distance(supplier.Position.x,supplier.Position.y,supplier.Position.z,destination.Position.x,destination.Position.y,destination.Position.z).ToString()+"km",
+                DeliveredTick = "Tick "+dto.DeliveredTick.ToString(),
+                AcceptedAtTick = "Tick "+dto.AcceptedAtTick.ToString()
+            };
+        });
     }
 }

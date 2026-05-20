@@ -9,9 +9,9 @@ public class ContractDispatchDropdown : UIDropdown
 {
     protected override void OnOpen(string contractId)
     {
-        if(isOpen)
+        if(canvasGroupToggle.IsVisible)
             return;
-            
+
         var contract = Client.ContractDTOs.Find(c => c.Id == contractId);
 
         if(contract == null)

@@ -61,6 +61,9 @@ public class TrucksWindow : BaseWindow<TrucksWindow>
 
     void Update()
     {
+        if(!canvasGroupToggle.IsVisible)
+            return;
+
         var companyTrucks = Client.TruckDTOs.Where(t => t.CompanyId == Client.ActiveCompanyId).ToList();
         var truckVMs = companyTrucks.Select(dto => TruckViewModel.FromDTO(dto,Client.CompanyDTOs,Client.LocationDTOs));
         table.Refresh(truckVMs.ToList());
@@ -68,9 +71,9 @@ public class TrucksWindow : BaseWindow<TrucksWindow>
 
     public new void Open()
     {
-        if(isOpen)
+        if(canvasGroupToggle.IsVisible)
             return;
-            
+
         base.Open();
 
         var companyTrucks = Client.TruckDTOs.Where(t => t.CompanyId == Client.ActiveCompanyId).ToList();

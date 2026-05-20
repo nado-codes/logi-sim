@@ -43,7 +43,7 @@ public class TrucksMarketplace : BaseWindow<TrucksMarketplace>
 
     public new void Open()
     {
-        if(isOpen)
+        if(canvasGroupToggle.IsVisible)
             return;
 
         base.Open();

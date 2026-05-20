@@ -89,9 +89,9 @@
     <Compile Include="Assets\Scripts\Interfaces\INamedEntity.cs" />
     <Compile Include="Assets\Scripts\UI\UITable.cs" />
     <Compile Include="Assets\Scripts\DTO\Entity\CompanyEntityDTO.cs" />
-    <Compile Include="Assets\Scripts\UI\PromptWindow.cs" />
     <Compile Include="Assets\Scripts\Interfaces\IViewModel.cs" />
     <Compile Include="Assets\Scripts\DTO\CompanyDTO.cs" />
+    <Compile Include="Assets\Scripts\UI\CanvasGroupToggle.cs" />
     <Compile Include="Assets\Scripts\UI\UIList.cs" />
     <Compile Include="Assets\Scripts\Interfaces\ICompanyEntity.cs" />
     <Compile Include="Assets\Scripts\ViewModels\ContractViewModel.cs" />

@@ -1,25 +1,22 @@
-using TMPro;
 using UnityEngine;
 
+[RequireComponent(typeof(CanvasGroupToggle))]
 public class BaseWindow<T> : MonoBehaviour
 {
-    private static BaseWindow<T> _instance;
-    protected bool isOpen = false;
+    protected CanvasGroupToggle canvasGroupToggle {get; private set;}
 
     protected virtual void Start()
     {
-        _instance = this;
+        canvasGroupToggle = GetComponent<CanvasGroupToggle>();
     }
 
     public void Open()
     {
-        _instance.gameObject.SetActive(true);
-        isOpen = true;
+        canvasGroupToggle.Show();
     }
 
     public void Close()
     {
-        _instance.gameObject.SetActive(false);
-        isOpen = false;
+       canvasGroupToggle.Hide();
     }
 }

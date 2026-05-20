@@ -5,10 +5,11 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
+[RequireComponent(typeof(CanvasGroupToggle))]
 public abstract class UIDropdown : BaseUIDataView
 {
+    protected CanvasGroupToggle canvasGroupToggle {get; private set;}
     private RectTransform panelContainer;
-    protected bool isOpen = false;
 
     protected override void Start()
     {
@@ -21,6 +22,7 @@ public abstract class UIDropdown : BaseUIDataView
             throw new NullReferenceException("Can't find PanelContainer on UIDropdown");
         }
 
+        canvasGroupToggle = GetComponent<CanvasGroupToggle>();
         Close();
     }
 
@@ -159,18 +161,16 @@ public abstract class UIDropdown : BaseUIDataView
     {
         var rectTransform = GetComponent<RectTransform>();
         rectTransform.position = Input.mousePosition;
-        gameObject.SetActive(true);
+        canvasGroupToggle.Show();
         OnOpen(itemId);
         sizeToItems();
-        isOpen = true;
     }
 
     protected abstract void OnOpen(string itemId);
 
     public void Close()
     {
-        gameObject.SetActive(false);
-        isOpen = false;
+        canvasGroupToggle.Hide();
     }
 
     

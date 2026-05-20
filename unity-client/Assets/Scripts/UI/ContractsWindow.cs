@@ -76,12 +76,8 @@ public class ContractsWindow : BaseWindow<ContractsWindow>
         Close();
     }
 
-    // Update is called once per frame
     void Update()
     {
-        if(!isOpen) 
-            return;
-
         var availableContractDTOs = new List<ContractDTO>();
         if (filterCompanyContracts)
         {
@@ -133,9 +129,9 @@ public class ContractsWindow : BaseWindow<ContractsWindow>
 
     public new void Open()
     {
-        if(isOpen)
+        if(canvasGroupToggle.IsVisible)
             return;
-            
+
         base.Open();
 
         var availableContractDTOs = Client.ContractDTOs.Where(dto => dto.AcceptedAtTick == null);

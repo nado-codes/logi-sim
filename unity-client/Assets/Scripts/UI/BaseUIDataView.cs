@@ -15,7 +15,7 @@ public abstract class BaseUIDataView : MonoBehaviour
     protected NotificationConfig notificationConfig = Utils.LoadNotificationConfig();
 
     protected List<GameObject> items = new List<GameObject>();
-    protected Func<string, List<UIItemAction>> actionFactory;
+    protected Func<string, List<UIItemAction>> actionFactory = (_) => new List<UIItemAction>();
 
     protected virtual void Start()
     {
@@ -55,6 +55,11 @@ public abstract class BaseUIDataView : MonoBehaviour
 
     public void Refresh<T>(List<T> dataList) where T: BaseViewModel
     {
+        if(actionFactory == null)
+        {
+            throw new NullReferenceException("Action Factory cannot be null");
+        }
+
         foreach(T data in dataList)
         {
             var item = items.Find(r => r.name == data.Id);

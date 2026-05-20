@@ -10,7 +10,7 @@ public class CompanySelectionDropdown : UIDropdown
 
     protected override void OnOpen(string playerId)
     {
-        if(isOpen)
+        if(canvasGroupToggle.IsVisible)
             return;
 
         var companiesVMs = Client.CompanyDTOs.Select(c => CompanyViewModel.FromDTO(c)).ToList();
