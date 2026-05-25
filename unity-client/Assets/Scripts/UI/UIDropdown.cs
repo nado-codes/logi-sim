@@ -161,9 +161,9 @@ public abstract class UIDropdown : BaseUIDataView
     {
         var rectTransform = GetComponent<RectTransform>();
         rectTransform.position = Input.mousePosition;
-        canvasGroupToggle.Show();
         OnOpen(itemId);
         sizeToItems();
+        canvasGroupToggle.Show();
     }
 
     protected abstract void OnOpen(string itemId);
