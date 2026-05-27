@@ -14,6 +14,12 @@ type CompanyNotifications = {
   ai: boolean;
 };
 
+type TownNotifications = {
+  all: boolean;
+  confidence: boolean;
+  population: boolean;
+}
+
 export interface INotificationConfig {
   logStorageNotifications: boolean;
   logProcessorNotifications: boolean;
@@ -25,6 +31,7 @@ export interface INotificationConfig {
   logProductionNotifications: boolean;
   logLocationNotifications: boolean;
   logCompanyNotifications: CompanyNotifications;
+  logTownNotifications: TownNotifications;
   printLogs: boolean;
 }
 
@@ -48,6 +55,11 @@ const defaultConfig: INotificationConfig = {
     all: false,
     government: false,
     ai: false,
+  },
+  logTownNotifications: {
+    all : false,
+    population: false,
+    confidence: false
   },
   printLogs: false,
 };

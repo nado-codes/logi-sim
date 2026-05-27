@@ -19,5 +19,10 @@
     "government": false,
     "ai": false
   },
+  "logTownNotifications": {
+    "all": false,
+    "population": false,
+    "confidence": false
+  },
   "printLogs": true
 }

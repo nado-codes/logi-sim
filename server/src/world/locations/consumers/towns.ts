@@ -9,8 +9,8 @@ import {
   RESOURCE_TYPE,
   Pos3D,
 } from "@logisim/lib/entities";
-import { clamp } from "@logisim/lib/utils";
-import { get } from "node:http";
+import { clamp, logInfo, logSuccess, logWarning } from "@logisim/lib/utils";
+import { loadNotificationConfig } from "../../../notifications";
 
 interface ITownConfig {
   populationGrowthThreshold: number;
@@ -62,6 +62,7 @@ export const loadTownConfig = () => {
 
 const townConfig = loadTownConfig();
 const storageConfig = loadStorageConfig();
+const notificationConfig = loadNotificationConfig();
 
 export const createTown = (
   state: IWorldState,
@@ -72,8 +73,7 @@ export const createTown = (
   // .. tier to be used to determine what resources are demanded
 
   const consumes: ResourceMap = {
-    Flour: townConfig.baselinePopulation / townConfig.ptrRatio,
-    Bread: (townConfig.baselinePopulation / townConfig.ptrRatio) * 0.5, // .. town consumes half as much bread as flour
+    Flour: townConfig.baselinePopulation / townConfig.ptrRatio
   };
 
   const newTown = {
@@ -90,12 +90,11 @@ export const createTown = (
 
 export const townHasSpace = (town: ITown) => {
   const spaceTaken = town.population * townConfig.avgDwellingSize;
+  logInfo("[TOWN] Checking available space of "+town.name+" - "+spaceTaken+" space taken against a catchment radius of "+townConfig.townCatchmentRadius*2+"...");
   return spaceTaken < townConfig.townCatchmentRadius * 2;
 };
 
 const updateTownConfidence = (town: ITown) => {
-  // .. customers care if the shelves are empty whenever they go to buy something
-  // .. if shelves are empty a lot of times in a row, confidence should fall
 
   const inputStorage = getInputStorage(town.recipe, town.storage);
   const stockLevels = inputStorage.map(
@@ -126,6 +125,10 @@ const updateTownPopulation = (town: ITown) => {
     townConfig.populationScalingExponent,
   );
 
+  if(notificationConfig.logTownNotifications.all || notificationConfig.logTownNotifications.population) {
+    logInfo("[TOWN] Updating population for "+town.name+"...");
+  }
+
   if (
     town.confidence >= townConfig.populationGrowthThreshold &&
     townHasSpace(town)
@@ -133,14 +136,20 @@ const updateTownPopulation = (town: ITown) => {
     const growthRate = townConfig.basePopulationGrowthRate * multiplier;
     const gain = Math.max(town.population, 1) * growthRate;
     town.population += gain;
+    logSuccess(" - Town population has increased by "+gain);
   } else if (town.confidence < townConfig.confidenceCriticalThreshold) {
     const declineRate = townConfig.confidenceCriticalDeclineRate * multiplier;
     const loss = town.population * declineRate;
     town.population -= loss;
+    logWarning(" - Town population has decreased by "+loss+" due to CRITICAL confidence");
   } else if (town.confidence < townConfig.confidenceWarningThreshold) {
     const declineRate = townConfig.confidenceWarningDeclineRate * multiplier;
     const loss = town.population * declineRate;
     town.population -= loss;
+    logWarning(" - Town population has decreased by "+loss+" due to low confidence");
+  }
+  else {
+    logWarning(" - Town population is unchanged because there's no space available");
   }
 
   town.population = Math.round(town.population);
@@ -152,6 +161,7 @@ const updateTownPopulation = (town: ITown) => {
       1,
       Math.round(town.population / townConfig.ptrRatio),
     );
+    logInfo(" - Resource consumption for "+resourceType+" was set to "+newConsumptionRate+" to reflect population");
 
     townInputs[resourceType] = newConsumptionRate;
 
@@ -163,6 +173,7 @@ const updateTownPopulation = (town: ITown) => {
         newConsumptionRate * storageConfig.recipeBufferStorageMultiplier;
       s.resourceCapacity = Math.max(s.resourceCount, newStorageCapacity);
     });
+    logInfo(" - Resource storage for "+resourceType+" was set to "+resourceStorage[0].resourceCapacity+" to reflect population");
   });
 };
 
