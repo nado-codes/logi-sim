@@ -239,11 +239,10 @@ export const checkInputStorage = (state: IWorldState, location: ILocation) => {
             location.position,
           );
 
-          Math.abs(location.position.x - closestSupplier.position.x);
-
           for (const supplier of suppliers) {
-            const distance = Math.abs(
-              location.position.x - supplier.position.x,
+            const distance = getDistanceBetweenPositions(
+              supplier.position,
+              location.position,
             );
 
             if (distance < closestDistance) {
