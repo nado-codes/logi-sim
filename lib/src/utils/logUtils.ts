@@ -8,19 +8,26 @@ interface LogEntry {
 
 export const logEntries: LogEntry[] = [];
 
-let contextProvider: (() => string) | null = null;
+interface ILogContextData {
+  timestamp: string;
+  printLogs?: boolean;
+}
 
-export const setLogContextProvider = (provider: () => string) => {
+let contextProvider: (() => ILogContextData) | null = null;
+
+export const setLogContextProvider = (provider: () => ILogContextData) => {
   contextProvider = provider;
 };
 
 const log = (entry: string) => {
-  const context = contextProvider
+  const context: ILogContextData = contextProvider
     ? contextProvider()
-    : `${new Date().toISOString().slice(11, 19)}`; // fallback to wall clock
+    : { timestamp: `${new Date().toISOString().slice(11, 19)}` }; // fallback to wall clock
 
-  console.log(`[${context}] `, entry);
-  logEntries.push({ timestamp: context, entry });
+  if (context.printLogs) {
+    console.log(`[${context.timestamp}] `, entry);
+  }
+  logEntries.push({ timestamp: context.timestamp, entry });
 };
 export const logError = (text: string | number) => {
   const entry = `\x1b[31m${text}\x1b[0m`; // red

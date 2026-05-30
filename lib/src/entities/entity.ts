@@ -20,6 +20,8 @@ export type Pos3D = {
   z: number;
 };
 
+export const Pos3DZero : Pos3D = {x: 0, y: 0, z: 0};
+
 export interface IWorldEntity extends INamedEntity {
   type: WorldEntityType;
   position: Pos3D;
