@@ -32,6 +32,7 @@ import {
   logInfo,
   logSuccess,
   vectorsAreEqual,
+  getDistanceBetweenPositions,
 } from "@logisim/lib/utils";
 import { loadJSON } from "../../utils/fileUtils";
 
@@ -81,12 +82,19 @@ export const createLocation = (
   };
 };
 
-export const createLocationFromItemId = (state: IWorldState, itemId: string, companyId: string, position: Pos3D) => {
+export const createLocationFromItemId = (
+  state: IWorldState,
+  itemId: string,
+  companyId: string,
+  position: Pos3D,
+) => {
   const locationsData = loadJSON("data/locations.json") as ILocationItem[];
   const locationData = locationsData.find((ld) => ld.id === itemId);
 
   if (!locationData) {
-    throw Error(`[CRITICAL SYSTEM ERROR] Location with id ${itemId} doesn't exist`);
+    throw Error(
+      `[CRITICAL SYSTEM ERROR] Location with id ${itemId} doesn't exist`,
+    );
   }
 
   const location = createLocation(
@@ -94,18 +102,15 @@ export const createLocationFromItemId = (state: IWorldState, itemId: string, com
     companyId,
     position,
     locationData.recipe,
-    locationData.locationType
-  )
+    locationData.locationType,
+  );
 
-  return {...location,itemId};
+  return { ...location, itemId };
 };
 
 // .. READ
 
-export const getLocationById = (
-  state: IWorldState,
-  id: string,
-): ILocation => {
+export const getLocationById = (state: IWorldState, id: string): ILocation => {
   const location = state.getLocations().find((l) => l.id === id);
 
   if (!location) {
@@ -144,12 +149,12 @@ export const getLocationItemById = (id: string): ILocationItem => {
   }
 
   return locationData;
-}
+};
 
 export const getLocationItems = (): ILocationItem[] => {
   const locationsData = loadJSON("data/locations.json") as ILocationItem[];
   return locationsData;
-}
+};
 
 export const getLocationString = (world: IWorld, location: ILocation) => {
   const locationString = `Position: ${highlight.yellow(location.position.x + "")}`;
@@ -173,10 +178,7 @@ export const getLocationString = (world: IWorld, location: ILocation) => {
 
 // .. UPDATE
 
-export const checkInputStorage = (
-  state: IWorldState,
-  location: ILocation,
-) => {
+export const checkInputStorage = (state: IWorldState, location: ILocation) => {
   Object.entries(location.recipe.inputs ?? {}).map(
     ([resourceType, requiredAmount]) => {
       const inputStorage = getResourceStorage(
@@ -232,9 +234,12 @@ export const checkInputStorage = (
           }
 
           let closestSupplier = suppliers[0];
-          let closestDistance = Math.abs(
-            location.position.x - closestSupplier.position.x,
+          let closestDistance = getDistanceBetweenPositions(
+            closestSupplier.position,
+            location.position,
           );
+
+          Math.abs(location.position.x - closestSupplier.position.x);
 
           for (const supplier of suppliers) {
             const distance = Math.abs(

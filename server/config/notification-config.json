@@ -17,10 +17,10 @@
   "logCompanyNotifications": {
     "all": false,
     "government": false,
-    "ai": false
+    "ai": true
   },
   "logTownNotifications": {
-    "all": true,
+    "all": false,
     "population": false,
     "confidence": false
   },

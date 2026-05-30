@@ -1,5 +1,7 @@
 import { Pos3D } from "../entities";
 import { Color } from "./color";
+import * as fs from "fs";
+import * as path from "path";
 
 interface LogEntry {
   timestamp: string;
@@ -27,8 +29,19 @@ const log = (entry: string) => {
   if (context.printLogs) {
     console.log(`[${context.timestamp}] `, entry);
   }
+
   logEntries.push({ timestamp: context.timestamp, entry });
+
+  if (logEntries.length % 2 === 1) {
+    //saveLogs();
+  }
 };
+
+export const saveLogs = () => {
+  const _path = path.resolve(`logs.json`);
+  fs.writeFileSync(_path, JSON.stringify(logEntries), "utf-8");
+};
+
 export const logError = (text: string | number) => {
   const entry = `\x1b[31m${text}\x1b[0m`; // red
   log(entry);

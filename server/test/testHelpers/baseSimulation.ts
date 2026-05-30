@@ -55,14 +55,33 @@ export const runBaseSimulation = (options: {
     },
   );
 
-  world.createTruckFromItemId("truck-grain", playerCompany.id, { x: 15, y: 0, z: 0 });
-  world.createTruckFromItemId("truck-flour", playerCompany.id, { x: 15, y: 0, z: 0 });
+  world.createTruckFromItemId("truck-grain", playerCompany.id, {
+    x: 15,
+    y: 0,
+    z: 0,
+  });
+  world.createTruckFromItemId("truck-flour", playerCompany.id, {
+    x: 15,
+    y: 0,
+    z: 0,
+  });
 
   // .. RivalCo trucks
-  world.createTruckFromItemId("truck-grain", competitorCompany.id, { x: 15, y: 0, z: 0 });
-  world.createTruckFromItemId("truck-flour", competitorCompany.id, { x: 15, y: 0, z: 0 });
+  world.createTruckFromItemId("truck-grain", competitorCompany.id, {
+    x: 15,
+    y: 0,
+    z: 0,
+  });
+  world.createTruckFromItemId("truck-flour", competitorCompany.id, {
+    x: 15,
+    y: 0,
+    z: 0,
+  });
 
-  setLogContextProvider(() => `Tick ${world.getCurrentTick()}`);
+  setLogContextProvider(() => ({
+    timestamp: `Tick ${world.getCurrentTick()}`,
+    printLogs: true,
+  }));
 
   const checkpointFactor = options.simTarget / 10;
 

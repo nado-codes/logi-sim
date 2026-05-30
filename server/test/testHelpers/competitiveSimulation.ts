@@ -126,7 +126,7 @@ export const runCompetitiveSimulation = (options: {
 
   setLogContextProvider(() => ({
     timestamp: `Tick ${world.getCurrentTick()}`,
-    printLogs: false,
+    printLogs: true,
   }));
 
   const checkpointFactor = options.simTarget / 10;
