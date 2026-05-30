@@ -35,7 +35,7 @@ const createContract = () => {
 };
 
 setInterval(createContract, 3000);
-setInterval(world.update, 500);
+setInterval(world.update, 1);
 
 const api = logisimApi(world);
 api.start();

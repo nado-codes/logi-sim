@@ -1,12 +1,7 @@
 import { createWorld } from "./world/world";
 import { logisimApi } from "./api";
 import { RESOURCE_TYPE } from "@logisim/lib/entities";
-import {
-  logInfo,
-  Color,
-  highlight,
-  setLogContextProvider,
-} from "@logisim/lib/utils";
+import { logInfo, Color, setLogContextProvider } from "@logisim/lib/utils";
 
 // .. CREATE
 
@@ -37,20 +32,26 @@ const competitorCompany2 = world.createCompany(
   },
 );
 
-//world.createWater({ x: 60, y: 0, z: 0 });
-world.createTown("FlourVille", stateCompany.id, { x: 63, y: 0, z: 0 }, true);
+world.createTown("FlourVille", stateCompany.id, { x: 75, y: 0, z: 0 }, true);
+world.createTown(
+  "TruckTropolis",
+  stateCompany.id,
+  { x: 75, y: 0, z: 50 },
+  true,
+);
+world.createTown("Contractia", stateCompany.id, { x: 25, y: 0, z: 0 }, true);
 
 world.createProducer(
   "Farm",
   stateCompany.id,
-  { x: 10, y: 0, z: 0 },
+  { x: 10, y: 0, z: 25 },
   RESOURCE_TYPE.Grain,
-  25,
+  2500,
 );
 world.createProcessor(
   "Flour Mill",
   stateCompany.id,
-  { x: 25, y: 0, z: 0 },
+  { x: 25, y: 0, z: 25 },
   {
     inputs: {
       [RESOURCE_TYPE.Grain]: 6,
@@ -58,19 +59,6 @@ world.createProcessor(
     outputs: {
       [RESOURCE_TYPE.Flour]: 300,
     }, //
-  },
-);
-world.createProcessor(
-  "Bakery",
-  stateCompany.id,
-  { x: 45, y: 0, z: 0 },
-  {
-    inputs: {
-      [RESOURCE_TYPE.Flour]: 6,
-    },
-    outputs: {
-      [RESOURCE_TYPE.Bread]: 30,
-    },
   },
 );
 
@@ -159,7 +147,10 @@ world.createTruck(
   2,
 );
 
-setLogContextProvider(() => `Tick ${world.getCurrentTick()}`);
+setLogContextProvider(() => ({
+  timestamp: `Tick ${world.getCurrentTick()}`,
+  printLogs: true,
+}));
 
 const api = logisimApi(world);
 api.start();

@@ -4,12 +4,12 @@
   "logProducerNotifications": false,
   "logConsumerNotifications": false,
   "logContractNotifications": false,
-  "logMarketplaceNotifications": true,
+  "logMarketplaceNotifications": false,
   "logTruckNotifications": {
     "all": false,
     "loading": false,
     "unloading": false,
-    "movement": true,
+    "movement": false,
     "costs": false
   },
   "logProductionNotifications": false,
@@ -20,7 +20,7 @@
     "ai": false
   },
   "logTownNotifications": {
-    "all": false,
+    "all": true,
     "population": false,
     "confidence": false
   },

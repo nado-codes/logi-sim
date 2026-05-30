@@ -8,7 +8,7 @@ import {
   createMenuPage,
 } from "../menu";
 import { IUserSession } from "@logisim/lib";
-import { LOCATION_TYPE, RESOURCE_TYPE } from "@logisim/lib/entities";
+import { IContract, LOCATION_TYPE, RESOURCE_TYPE } from "@logisim/lib/entities";
 import { highlight, logSuccess } from "@logisim/lib/utils";
 
 const locationSalePrice = 100000; // Base location sale price
@@ -72,7 +72,7 @@ export const createManageLocationsPage = (
             : [],
           async () => {
             try {
-              const contracts = (
+              const contracts : IContract[] = (
                 await axios.get(`${apiBaseUrl}/world/contracts`)
               ).data;
 
@@ -104,11 +104,8 @@ export const createManageLocationsPage = (
                 );
               });
 
-              const activeContracts = contracts.filter(
-                (c: any) =>
-                  c.supplierId === location.id ||
-                  c.destinationId === location.id,
-              );
+              const currentTick = (await axios.get(`${apiBaseUrl}/world/tick`)).data;
+              const activeContracts = contracts.filter((c) => (c.supplierId === location.id || c.destinationId === location.id) && c.expectedTick <= currentTick && !c.deliveredTick);
 
               console.log(" - Active Contracts: ");
 

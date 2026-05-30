@@ -40,12 +40,14 @@ export const runCompetitiveSimulation = (options: {
     },
   );
 
-  const town = world.createTown(
-    "FlourVille",
+  world.createTown("FlourVille", stateCompany.id, { x: 75, y: 0, z: 0 }, true);
+  /*world.createTown(
+    "TruckTropolis",
     stateCompany.id,
-    { x: 63, y: 0, z: 0 },
+    { x: 75, y: 0, z: 50 },
     true,
-  );
+  );*/
+  //world.createTown("Contractia", stateCompany.id, { x: 25, y: 0, z: 0 }, true);
 
   const farm = world.createProducer(
     "Farm",
@@ -65,19 +67,6 @@ export const runCompetitiveSimulation = (options: {
       outputs: {
         [RESOURCE_TYPE.Flour]: 300,
       }, //
-    },
-  );
-  const bakery = world.createProcessor(
-    "Bakery",
-    stateCompany.id,
-    { x: 25, y: 0, z: 0 },
-    {
-      inputs: {
-        [RESOURCE_TYPE.Flour]: 6,
-      },
-      outputs: {
-        [RESOURCE_TYPE.Bread]: 12,
-      },
     },
   );
 
@@ -116,14 +105,6 @@ export const runCompetitiveSimulation = (options: {
     { x: flourMill.position.x, y: 0, z: 0 },
     2,
   );
-  world.createTruck(
-    "Truck 3",
-    competitorCompany.id,
-    RESOURCE_TYPE.Bread,
-    1000000,
-    { x: bakery.position.x, y: 0, z: 0 },
-    2,
-  );
 
   // .. RivalCo trucks
   world.createTruck(
@@ -142,18 +123,14 @@ export const runCompetitiveSimulation = (options: {
     { x: flourMill.position.x, y: 0, z: 0 },
     2,
   );
-  world.createTruck(
-    "Truck 5",
-    competitorCompany2.id,
-    RESOURCE_TYPE.Bread,
-    1000000,
-    { x: bakery.position.x, y: 0, z: 0 },
-    2,
-  );
 
-  setLogContextProvider(() => `Tick ${world.getCurrentTick()}`);
+  setLogContextProvider(() => ({
+    timestamp: `Tick ${world.getCurrentTick()}`,
+    printLogs: false,
+  }));
 
   const checkpointFactor = options.simTarget / 10;
+  let forceExit = false;
 
   const update = () => {
     if (world.getCurrentTick() >= options.simTarget) {
@@ -165,7 +142,9 @@ export const runCompetitiveSimulation = (options: {
 
     world.update();
 
-    options.onTick?.(world);
+    if (!options.onTick?.(world)) {
+      forceExit = true;
+    }
   };
 
   let lastSnapshot = Date.now();
@@ -203,7 +182,7 @@ export const runCompetitiveSimulation = (options: {
     console.log(highlight.cyan(`Simulating...`));
   }
 
-  while (world.getCurrentTick() < options.simTarget) {
+  while (world.getCurrentTick() < options.simTarget && !forceExit) {
     trySnapshot();
     update();
   }

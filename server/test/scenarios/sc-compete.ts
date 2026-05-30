@@ -1,9 +1,38 @@
+import { ITown, LOCATION_TYPE } from "@logisim/lib/entities";
 import { setGlobalSeed } from "../../../lib/dist/utils/mathUtils";
 import { logisimApi } from "../../src/api";
 import { runCompetitiveSimulation } from "../testHelpers/competitiveSimulation";
+import { logError } from "@logisim/lib/utils";
 
 setGlobalSeed("competitive-scenario-seed");
-const world = runCompetitiveSimulation({ simTarget: 100000 });
+const world = runCompetitiveSimulation({
+  simTarget: 50000,
+  onTick: (world) => {
+    const towns: ITown[] = world
+      .getLocations()
+      .filter((l) => l.locationType == LOCATION_TYPE.Town)
+      .map((l) => l as ITown);
+
+    if (towns.some((t) => t.population > 50)) {
+      logError("At least one town is doing okay");
+      return true;
+    }
+
+    logError("All towns died");
+    return false;
+  },
+});
+
+const towns: ITown[] = world
+  .getLocations()
+  .filter((l) => l.locationType == LOCATION_TYPE.Town)
+  .map((l) => l as ITown);
+
+towns.forEach((t) => {
+  console.log("==" + t.name.toUpperCase() + "==");
+  console.log(" - population: ", t.population);
+  console.log(" - confidence: ", t.confidence);
+});
 
 const api = logisimApi(world);
 api.start();
