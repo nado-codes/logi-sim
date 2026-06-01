@@ -5,5 +5,12 @@ describe("pos distance must be legit", () => {
   const posA: Pos3D = { x: 0, y: 0, z: 0 };
   const posB: Pos3D = { x: 5, y: 5, z: 5 };
 
-  it("should be correct", () => {});
+  // x 5-0 = 5(2) = 25
+  // y 5-0 = 5(2) = 25
+  // z 5-0 = 5(2) = 25
+  // = sqrt(75) = 
+
+  it("should be correct", () => {
+    const distance = 
+  });
 });
