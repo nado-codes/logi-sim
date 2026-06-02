@@ -31,7 +31,7 @@ import {
   logWarning,
   logInfo,
   logSuccess,
-  vectorsAreEqual,
+  positionsAreEqual,
   getDistanceBetweenPositions,
 } from "@logisim/lib/utils";
 import { loadJSON } from "../../utils/fileUtils";
@@ -135,7 +135,7 @@ export const getLocationByPositionOrNull = (
 ) => {
   const location = state
     .getLocations()
-    .find((l) => vectorsAreEqual(l.position, position));
+    .find((l) => positionsAreEqual(l.position, position));
 
   return location;
 };

@@ -1,5 +1,5 @@
 import { IWorldState, Pos3D } from "@logisim/lib/entities";
-import { vectorsAreEqual } from "@logisim/lib/utils";
+import { positionsAreEqual } from "@logisim/lib/utils";
 
 export const getWorldEntityByPositionOrNull = (
   state: IWorldState,
@@ -11,5 +11,5 @@ export const getWorldEntityByPositionOrNull = (
     ...state.trucks,
   ];
 
-  return worldEntities.find((e) => vectorsAreEqual(e.position, position));
+  return worldEntities.find((e) => positionsAreEqual(e.position, position));
 };
