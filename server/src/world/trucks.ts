@@ -277,9 +277,8 @@ export const updateTrucks = (state: IWorldState) => {
         );
 
         if (
-          (loadResult === StorageTransferResult.SUCCESS ||
-            loadResult === StorageTransferResult.DESTINATION_FULL,
-          amountLeftToLoad <= 0)
+          loadResult === StorageTransferResult.SUCCESS ||
+          loadResult === StorageTransferResult.DESTINATION_FULL
         ) {
           if (
             notificationConfig.logTruckNotifications.all ||
@@ -294,7 +293,7 @@ export const updateTrucks = (state: IWorldState) => {
             truck.debugMessage = "LD-FN";
           }
           truck.destinationId = truckContract.destinationId;
-        } else if (StorageTransferResult.SOURCE_EMPTY) {
+        } else if (loadResult === StorageTransferResult.SOURCE_EMPTY) {
           if (
             notificationConfig.logTruckNotifications.all ||
             notificationConfig.logTruckNotifications.loading

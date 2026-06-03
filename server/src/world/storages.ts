@@ -345,7 +345,7 @@ export const transferResources = (
 };
 
 export const resourceItemIdToResourceType = (itemId: string) => {
-  switch(itemId) {
+  switch (itemId) {
     case "resource-grain":
       return RESOURCE_TYPE.Grain;
     case "resource-flour":

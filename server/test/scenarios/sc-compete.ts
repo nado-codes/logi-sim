@@ -71,5 +71,7 @@ towns.forEach((t) => {
   console.log(" - confidence: ", t.confidence);
 });
 
+setInterval(world.update, 200);
+
 const api = logisimApi(world);
 api.start();

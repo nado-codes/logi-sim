@@ -266,7 +266,7 @@ export const checkInputStorage = (state: IWorldState, location: ILocation) => {
               location.id,
               closestSupplier.id,
               inputStorage[0].resourceType,
-              requiredAmount * 100,
+              inputStorageCapacity - inputStorageCount,
               dueTicks,
             );
           }
