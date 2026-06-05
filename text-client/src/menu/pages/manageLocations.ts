@@ -48,140 +48,124 @@ export const createManageLocationsPage = (
           return false;
         }
 
-        const createReseedTownAction = (): IMenuAction => ({
-          title: "Reseed Town",
-          type: MenuItemType.Action,
-          action: async () => {
-            try {
-              await axios.post(`${apiBaseUrl}/town/reseed`, {
-                locationId: location.id,
-              });
-              logSuccess("Town reseeded successfully");
-            } catch (error) {
-              const err = error as Error;
-              logMenuError(`Failed to reseed town: ${err.message}`);
-            }
-          },
-        });
+        return createMenuPage(`${location.name}`, false, [], async () => {
+          try {
+            const contracts: IContract[] = (
+              await axios.get(`${apiBaseUrl}/world/contracts`)
+            ).data;
 
-        return createMenuPage(
-          `${location.name}`,
-          false,
-          location.locationType === LOCATION_TYPE.Town
-            ? [createReseedTownAction()]
-            : [],
-          async () => {
-            try {
-              const contracts : IContract[] = (
-                await axios.get(`${apiBaseUrl}/world/contracts`)
-              ).data;
-
-              // Location type specific info
-              if (location.locationType === LOCATION_TYPE.Town) {
-                console.log(
-                  ` - Population: ${highlight.yellow(location.population + "")}`,
-                );
-                console.log(
-                  ` - Confidence: ${highlight.yellow(location.confidence + "")}`,
-                );
-              }
-
-              const inputStrings = Object.entries(
-                location.recipe?.inputs ?? {},
-              ).map(([k, v]) => `${v} ${k}`);
-              const outputStrings = Object.entries(
-                location.recipe?.outputs ?? {},
-              ).map(([k, v]) => `${v} ${k}`);
+            // Location type specific info
+            if (location.locationType === LOCATION_TYPE.Town) {
               console.log(
-                ` - Recipe: ${highlight.yellow(inputStrings.length > 0 ? inputStrings.join(",") : "∞")} -> ${highlight.yellow(outputStrings.length > 0 ? outputStrings.join(",") : "∞")}`,
+                ` - Population: ${highlight.yellow(location.population + "")}`,
               );
+              console.log(
+                ` - Confidence: ${highlight.yellow(location.confidence + "")}`,
+              );
+            }
 
-              console.log(" - Storage: ");
+            const inputStrings = Object.entries(
+              location.recipe?.inputs ?? {},
+            ).map(([k, v]) => `${v} ${k}`);
+            const outputStrings = Object.entries(
+              location.recipe?.outputs ?? {},
+            ).map(([k, v]) => `${v} ${k}`);
+            console.log(
+              ` - Recipe: ${highlight.yellow(inputStrings.length > 0 ? inputStrings.join(",") : "∞")} -> ${highlight.yellow(outputStrings.length > 0 ? outputStrings.join(",") : "∞")}`,
+            );
 
-              location.storage.forEach((s: any) => {
-                console.log(
-                  `  - Type: ${highlight.yellow(s.resourceType)} | Stored: ${highlight.yellow(s.resourceCount + "")} | Capacity: ${highlight.yellow(s.resourceCapacity + "")}`,
+            console.log(" - Storage: ");
+
+            location.storage.forEach((s: any) => {
+              console.log(
+                `  - Type: ${highlight.yellow(s.resourceType)} | Stored: ${highlight.yellow(s.resourceCount + "")} | Capacity: ${highlight.yellow(s.resourceCapacity + "")}`,
+              );
+            });
+
+            const currentTick = (await axios.get(`${apiBaseUrl}/world/tick`))
+              .data;
+            const activeContracts = contracts.filter(
+              (c) =>
+                (c.supplierId === location.id ||
+                  c.destinationId === location.id) &&
+                c.expectedTick <= currentTick &&
+                !c.deliveredTick,
+            );
+
+            console.log(" - Active Contracts: ");
+
+            if (activeContracts.length <= 0) {
+              console.log(`  - ${highlight.yellow("None")}`);
+            } else {
+              activeContracts.forEach(async (c: any) => {
+                const contractDestination = locations.find(
+                  (l: any) => l.id === c.destinationId,
                 );
-              });
+                const contractSupplier = locations.find(
+                  (l: any) => l.id === c.supplierId,
+                );
 
-              const currentTick = (await axios.get(`${apiBaseUrl}/world/tick`)).data;
-              const activeContracts = contracts.filter((c) => (c.supplierId === location.id || c.destinationId === location.id) && c.expectedTick <= currentTick && !c.deliveredTick);
-
-              console.log(" - Active Contracts: ");
-
-              if (activeContracts.length <= 0) {
-                console.log(`  - ${highlight.yellow("None")}`);
-              } else {
-                activeContracts.forEach(async (c: any) => {
-                  const contractDestination = locations.find(
-                    (l: any) => l.id === c.destinationId,
-                  );
-                  const contractSupplier = locations.find(
-                    (l: any) => l.id === c.supplierId,
-                  );
-
-                  if (c.supplierId === location.id) {
-                    if (c.truckId) {
-                      try {
-                        const trucks = (
-                          await axios.get(`${apiBaseUrl}/world/trucks`)
-                        ).data;
-                        const companies = (
-                          await axios.get(`${apiBaseUrl}/companies`)
-                        ).data;
-                        const shipper = trucks.find(
-                          (t: any) => t.id === c.truckId,
-                        );
-                        const shipperCompany = companies.find(
-                          (comp: any) => comp.id === shipper?.companyId,
-                        );
-                        console.log(
-                          `  - Supplying ${highlight.yellow(c.totalAmount + " " + c.resourceType)} to ${highlight.yellow(contractDestination?.name)} with ${highlight.yellow(shipperCompany?.name)}`,
-                        );
-                      } catch (e) {
-                        // Ignore error
-                      }
-                    } else {
-                      console.log(
-                        `  - Supplying ${highlight.yellow(c.totalAmount + " " + c.resourceType)} to ${highlight.yellow(contractDestination?.name)} - waiting for shipper`,
+                if (c.supplierId === location.id) {
+                  if (c.truckId) {
+                    try {
+                      const trucks = (
+                        await axios.get(`${apiBaseUrl}/world/trucks`)
+                      ).data;
+                      const companies = (
+                        await axios.get(`${apiBaseUrl}/companies`)
+                      ).data;
+                      const shipper = trucks.find(
+                        (t: any) => t.id === c.truckId,
                       );
-                    }
-                  } else if (c.destinationId === location.id) {
-                    if (c.truckId) {
-                      try {
-                        const trucks = (
-                          await axios.get(`${apiBaseUrl}/world/trucks`)
-                        ).data;
-                        const companies = (
-                          await axios.get(`${apiBaseUrl}/companies`)
-                        ).data;
-                        const shipper = trucks.find(
-                          (t: any) => t.id === c.truckId,
-                        );
-                        const shipperCompany = companies.find(
-                          (comp: any) => comp.id === shipper?.companyId,
-                        );
-                        console.log(
-                          `  - Awaiting delivery of ${highlight.yellow(c.totalAmount + " " + c.resourceType)} from ${highlight.yellow(contractSupplier?.name)} by ${highlight.yellow(shipperCompany?.name)}`,
-                        );
-                      } catch (e) {
-                        // Ignore error
-                      }
-                    } else {
-                      console.log(
-                        `  - Awaiting delivery of ${highlight.yellow(c.totalAmount + " " + c.resourceType)} from ${highlight.yellow(contractSupplier?.name)} - waiting for shipper`,
+                      const shipperCompany = companies.find(
+                        (comp: any) => comp.id === shipper?.companyId,
                       );
+                      console.log(
+                        `  - Supplying ${highlight.yellow(c.totalAmount + " " + c.resourceType)} to ${highlight.yellow(contractDestination?.name)} with ${highlight.yellow(shipperCompany?.name)}`,
+                      );
+                    } catch (e) {
+                      // Ignore error
                     }
+                  } else {
+                    console.log(
+                      `  - Supplying ${highlight.yellow(c.totalAmount + " " + c.resourceType)} to ${highlight.yellow(contractDestination?.name)} - waiting for shipper`,
+                    );
                   }
-                });
-              }
-            } catch (error) {
-              console.log(
-                highlight.error(`Failed to load location details: ${error}`),
-              );
+                } else if (c.destinationId === location.id) {
+                  if (c.truckId) {
+                    try {
+                      const trucks = (
+                        await axios.get(`${apiBaseUrl}/world/trucks`)
+                      ).data;
+                      const companies = (
+                        await axios.get(`${apiBaseUrl}/companies`)
+                      ).data;
+                      const shipper = trucks.find(
+                        (t: any) => t.id === c.truckId,
+                      );
+                      const shipperCompany = companies.find(
+                        (comp: any) => comp.id === shipper?.companyId,
+                      );
+                      console.log(
+                        `  - Awaiting delivery of ${highlight.yellow(c.totalAmount + " " + c.resourceType)} from ${highlight.yellow(contractSupplier?.name)} by ${highlight.yellow(shipperCompany?.name)}`,
+                      );
+                    } catch (e) {
+                      // Ignore error
+                    }
+                  } else {
+                    console.log(
+                      `  - Awaiting delivery of ${highlight.yellow(c.totalAmount + " " + c.resourceType)} from ${highlight.yellow(contractSupplier?.name)} - waiting for shipper`,
+                    );
+                  }
+                }
+              });
             }
-          },
-        );
+          } catch (error) {
+            console.log(
+              highlight.error(`Failed to load location details: ${error}`),
+            );
+          }
+        });
       } catch (error) {
         logMenuError(`Failed to load locations: ${error}`);
         return false;

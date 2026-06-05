@@ -135,6 +135,7 @@ export const createContract = (
     destinationId,
     supplierId,
     resourceType,
+    deliveredAmount: 0,
     totalAmount: amount,
     payment,
     expectedTick: Math.round(state.currentTick + dueTicks),
@@ -233,9 +234,15 @@ export const updateContracts = (state: IWorldState) => {
   });
 };
 
-export const assignContractToCompany = (state:IWorldState, contract: IContract, company: ICompany) => {
+export const assignContractToCompany = (
+  state: IWorldState,
+  contract: IContract,
+  company: ICompany,
+) => {
   if (notificationConfig.logContractNotifications) {
-    logInfo(`[CONTRACT] Trying to assign ${contract.resourceType} contract to company...`);
+    logInfo(
+      `[CONTRACT] Trying to assign ${contract.resourceType} contract to company...`,
+    );
   }
 
   if (contract.shipperId) {
@@ -262,7 +269,9 @@ export const assignContractToTruck = (
   truck: ITruck,
 ) => {
   if (notificationConfig.logContractNotifications) {
-    logInfo(`[CONTRACT] Trying to assign ${contract.resourceType} contract to truck...`);
+    logInfo(
+      `[CONTRACT] Trying to assign ${contract.resourceType} contract to truck...`,
+    );
   }
 
   if (contract.truckId) {
@@ -319,14 +328,10 @@ export const completeContract = (state: IWorldState, contract: IContract) => {
     return false;
   }
 
-  const resourceCount = getResourceCount(
-    contract.resourceType,
-    destination.storage,
-  );
-  if (resourceCount < contract.totalAmount) {
+  if (contract.deliveredAmount < contract.totalAmount) {
     if (notificationConfig.logContractNotifications) {
       logWarning(
-        ` - WARNING: Requirements not satisfied - ${destination.name} needs ${contract.totalAmount} ${contract.resourceType} - only ${resourceCount} available`,
+        ` - WARNING: Requirements not satisfied - ${destination.name} needs ${contract.totalAmount} ${contract.resourceType} - only ${contract.deliveredAmount} delivered so far`,
       );
     }
     return false;

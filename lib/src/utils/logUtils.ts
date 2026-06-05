@@ -31,10 +31,6 @@ const log = (entry: string) => {
   }
 
   logEntries.push({ timestamp: context.timestamp, entry });
-
-  if (logEntries.length % 2 === 1) {
-    //saveLogs();
-  }
 };
 
 export const saveLogs = () => {

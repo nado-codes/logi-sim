@@ -179,107 +179,105 @@ export const getLocationString = (world: IWorld, location: ILocation) => {
 // .. UPDATE
 
 export const checkInputStorage = (state: IWorldState, location: ILocation) => {
-  Object.entries(location.recipe.inputs ?? {}).map(
-    ([resourceType, requiredAmount]) => {
-      const inputStorage = getResourceStorage(
-        resourceType as RESOURCE_TYPE,
-        location.storage,
-      );
-      const inputStorageCount = inputStorage
-        .map((s) => s.resourceCount)
-        .reduce((c, v) => c + v);
-      const inputStorageCapacity = inputStorage
-        .map((s) => s.resourceCapacity)
-        .reduce((c, v) => c + v);
+  Object.entries(location.recipe.inputs ?? {}).map(([resourceType]) => {
+    const inputStorage = getResourceStorage(
+      resourceType as RESOURCE_TYPE,
+      location.storage,
+    );
+    const inputStorageCount = inputStorage
+      .map((s) => s.resourceCount)
+      .reduce((c, v) => c + v);
+    const inputStorageCapacity = inputStorage
+      .map((s) => s.resourceCapacity)
+      .reduce((c, v) => c + v);
 
-      const contract = getContractByResource(
-        state,
-        location.id,
-        resourceType as RESOURCE_TYPE,
-      );
+    const contract = getContractByResource(
+      state,
+      location.id,
+      resourceType as RESOURCE_TYPE,
+    );
 
-      if (
-        inputStorageCount <
-        inputStorageCapacity * storageConfig.storageLowThreshold
-      ) {
-        if (!contract) {
-          if (notificationConfig.logLocationNotifications) {
-            logWarning(
-              `[LOCATION WARNING] ${location.name} doesn't have enough ${inputStorage[0].resourceType} ${inputStorageCount > 0 ? `(only ${inputStorageCount} available) ` : ""}- so we'll create a contract`,
-            );
-          }
+    if (
+      inputStorageCount <
+      inputStorageCapacity * storageConfig.storageLowThreshold
+    ) {
+      if (!contract) {
+        if (notificationConfig.logLocationNotifications) {
+          logWarning(
+            `[LOCATION WARNING] ${location.name} doesn't have enough ${inputStorage[0].resourceType} ${inputStorageCount > 0 ? `(only ${inputStorageCount} available) ` : ""}- so we'll create a contract`,
+          );
+        }
 
-          if (notificationConfig.logLocationNotifications) {
-            logInfo(
-              `[LOCATION INFO] ${location.name} is searching for a supplier...`,
-            );
-          }
-          const suppliers = state.getLocations().filter((s) => {
-            const hasResources = s.storage.some(
-              (st) => st.resourceType === resourceType && st.resourceCount > 0,
-            );
+        if (notificationConfig.logLocationNotifications) {
+          logInfo(
+            `[LOCATION INFO] ${location.name} is searching for a supplier...`,
+          );
+        }
+        const suppliers = state.getLocations().filter((s) => {
+          const hasResources = s.storage.some(
+            (st) => st.resourceType === resourceType && st.resourceCount > 0,
+          );
 
-            if (s.id !== location.id) {
-              if (notificationConfig.logLocationNotifications) {
-                logInfo(
-                  ` - Contacted ${s.name} -> ${hasResources ? "Found some resources!" : "Nothing available"}`,
-                );
-              }
+          if (s.id !== location.id) {
+            if (notificationConfig.logLocationNotifications) {
+              logInfo(
+                ` - Contacted ${s.name} -> ${hasResources ? "Found some resources!" : "Nothing available"}`,
+              );
             }
-            return hasResources && s.id !== location.id;
-          });
-
-          if (suppliers.length === 0) {
-            return undefined;
           }
+          return hasResources && s.id !== location.id;
+        });
 
-          let closestSupplier = suppliers[0];
-          let closestDistance = getDistanceBetweenPositions(
-            closestSupplier.position,
+        if (suppliers.length === 0) {
+          return undefined;
+        }
+
+        let closestSupplier = suppliers[0];
+        let closestDistance = getDistanceBetweenPositions(
+          closestSupplier.position,
+          location.position,
+        );
+
+        for (const supplier of suppliers) {
+          const distance = getDistanceBetweenPositions(
+            supplier.position,
             location.position,
           );
 
-          for (const supplier of suppliers) {
-            const distance = getDistanceBetweenPositions(
-              supplier.position,
-              location.position,
-            );
-
-            if (distance < closestDistance) {
-              closestSupplier = supplier;
-              closestDistance = distance;
-            }
-          }
-
-          if (!closestSupplier) {
-            if (notificationConfig.logLocationNotifications) {
-              logWarning(`- No nearby suppliers to resupply ${location.name}`);
-            }
-          } else {
-            // .. if there's literally NO STOCK left, we need to create an URGENT contract (due sooner, more needs to be transported)
-            const truckSpeed = 2;
-            const dueTicks = closestDistance / truckSpeed;
-
-            createContract(
-              state,
-              location.companyId,
-              location.id,
-              closestSupplier.id,
-              inputStorage[0].resourceType,
-              inputStorageCapacity - inputStorageCount,
-              dueTicks,
-            );
-          }
-        } else if (!contract.truckId) {
-          if (notificationConfig.logLocationNotifications) {
-            logWarning(
-              `- ${location.name} was unable to create a contract because one already exists and is NOT being shipped`,
-            );
+          if (distance < closestDistance) {
+            closestSupplier = supplier;
+            closestDistance = distance;
           }
         }
+
+        if (!closestSupplier) {
+          if (notificationConfig.logLocationNotifications) {
+            logWarning(`- No nearby suppliers to resupply ${location.name}`);
+          }
+        } else {
+          // .. if there's literally NO STOCK left, we need to create an URGENT contract (due sooner, more needs to be transported)
+          const truckSpeed = 2;
+          const dueTicks = closestDistance / truckSpeed;
+
+          createContract(
+            state,
+            location.companyId,
+            location.id,
+            closestSupplier.id,
+            inputStorage[0].resourceType,
+            inputStorageCapacity - inputStorageCount,
+            dueTicks,
+          );
+        }
+      } else if (!contract.truckId) {
+        if (notificationConfig.logLocationNotifications) {
+          logWarning(
+            `- ${location.name} was unable to create a contract because one already exists and is NOT being shipped`,
+          );
+        }
       }
-    },
-  );
+    }
+  });
 };
 
 // .. DELETE

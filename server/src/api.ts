@@ -49,11 +49,11 @@ export const logisimApi = (world: IWorld) => {
 
     app.post("/api/ai/dialogue", async (req, res) => {
       try {
-      const { situation, context } = req.body;
-      console.log("PROCESSING API DIALOGUE: ");
-      console.log(" - Situation: ",situation);
-      console.log(" - Context: ",context);
-      const characterPrompt = `You are Sam, a freight logistics employee at the player's company. You've been working here for about three years. You're not management, you're not a mentor figure — you're just the guy who's been here long enough to know how things work, and the boss asked you to show the new hire the ropes.
+        const { situation, context } = req.body;
+        console.log("PROCESSING API DIALOGUE: ");
+        console.log(" - Situation: ", situation);
+        console.log(" - Context: ", context);
+        const characterPrompt = `You are Sam, a freight logistics employee at the player's company. You've been working here for about three years. You're not management, you're not a mentor figure — you're just the guy who's been here long enough to know how things work, and the boss asked you to show the new hire the ropes.
 
 ## Who You Are
 
@@ -124,30 +124,29 @@ Bad:
 
 Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, no emotes, no character name prefix. Just the words Sam would say.`;
 
-      const dateBefore = Date.now();
-      const response = await client.messages.create({
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 150,
-        system: characterPrompt,
-        messages: [
-          {
-            role: "user",
-            content: `Situation: ${situation}\n\nGame state: ${JSON.stringify(context)}`,
-          },
-        ],
-      });
-      const dateAfter = Date.now();
-      const dateMSDifference = dateAfter - dateBefore;
+        const dateBefore = Date.now();
+        const response = await client.messages.create({
+          model: "claude-haiku-4-5-20251001",
+          max_tokens: 150,
+          system: characterPrompt,
+          messages: [
+            {
+              role: "user",
+              content: `Situation: ${situation}\n\nGame state: ${JSON.stringify(context)}`,
+            },
+          ],
+        });
+        const dateAfter = Date.now();
+        const dateMSDifference = dateAfter - dateBefore;
 
-      res.json({
-        dialogue: response.content.filter((c) => c.type === "text")[0].text,
-        ms: `${dateMSDifference}`,
-      });
-    }
-    catch(err) {
-      var error :Error = err as Error;
-      res.status(500).send(error.message);
-    }
+        res.json({
+          dialogue: response.content.filter((c) => c.type === "text")[0].text,
+          ms: `${dateMSDifference}`,
+        });
+      } catch (err) {
+        var error: Error = err as Error;
+        res.status(500).send(error.message);
+      }
     });
 
     // COMPANIES
@@ -241,8 +240,10 @@ Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, 
         const company = world.getCompanyById(companyId);
         const truckItem = world.getTruckItemById(itemId);
 
-        if(company.money < truckItem.price) {
-          res.status(400).send({ error: "Insufficient funds to purchase truck" });
+        if (company.money < truckItem.price) {
+          res
+            .status(400)
+            .send({ error: "Insufficient funds to purchase truck" });
           return;
         }
 
@@ -261,13 +262,17 @@ Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, 
         const { truckId } = req.body;
         const truck = world.getTruckById(truckId);
 
-        if(truck.itemId) {
+        if (truck.itemId) {
           const truckItem = world.getTruckItemById(truck.itemId);
           const truckCompany = world.getCompanyById(truck.companyId);
           transferCompanyFundsFromState(truckCompany, truckItem.price);
-        }
-        else {
-          res.status(400).send({ error: "Truck cannot be sold because it doesn't have an associated item" });
+        } else {
+          res
+            .status(400)
+            .send({
+              error:
+                "Truck cannot be sold because it doesn't have an associated item",
+            });
           return;
         }
 
@@ -309,7 +314,13 @@ Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, 
         const result = world.assignContractToCompany(contract, company);
         res.send({ success: result });
       } catch (error) {
-        res.status(400).send({ error: "Failed to assign contract to company: "+( error as Error).message });
+        res
+          .status(400)
+          .send({
+            error:
+              "Failed to assign contract to company: " +
+              (error as Error).message,
+          });
       }
     });
 
@@ -420,16 +431,25 @@ Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, 
         const company = world.getCompanyById(companyId);
         const locationItem = world.getLocationItemById(itemId);
 
-        if(company.money < locationItem.price) {
-          res.status(400).send({ error: "Insufficient funds to purchase location" });
+        if (company.money < locationItem.price) {
+          res
+            .status(400)
+            .send({ error: "Insufficient funds to purchase location" });
           return;
         }
 
-        const location = world.createLocationFromItemId(itemId, companyId, position);
+        const location = world.createLocationFromItemId(
+          itemId,
+          companyId,
+          position,
+        );
         res.send({ success: true, location });
-      }
-      catch (error) {
-        res.status(400).send({ error: "Failed to purchase location: "+(error as Error).message });
+      } catch (error) {
+        res
+          .status(400)
+          .send({
+            error: "Failed to purchase location: " + (error as Error).message,
+          });
       }
     });
 
@@ -441,26 +461,6 @@ Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, 
         res.send({ success: true });
       } catch (error) {
         res.status(400).send({ error: "Failed to delete location" });
-      }
-    });
-
-    app.post("/api/town/reseed", (req, res) => {
-      try {
-        const { locationId } = req.body;
-        const location = world.getLocationById(locationId);
-
-        if (location.locationType !== LOCATION_TYPE.Town) {
-          res.status(400).send({ error: "Location is not a town" });
-          return;
-        }
-
-        world.reseedTown(location as ITown);
-        res.send({ success: true });
-      } catch (error) {
-        const err = error as Error;
-        res
-          .status(400)
-          .send({ error: `Failed to reseed town: ${err.message}` });
       }
     });
 

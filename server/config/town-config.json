@@ -12,10 +12,10 @@
   "majorConfidenceChange": 3,
   "catastrophicConfidenceChange": 5,
   "ptrRatio": 100,
-  "stockCriticalThreshold": 0.4,
-  "stockLowThreshold": 0.6,
-  "stockOkThreshold": 0.9,
-  "stockSafeThreshold": 1,
+  "stockCriticalThreshold": 0.2,
+  "stockLowThreshold": 0.4,
+  "stockOkThreshold": 0.6,
+  "stockSafeThreshold": 0.75,
   "avgDwellingSize": 0.01,
   "townCatchmentRadius": 80
 }

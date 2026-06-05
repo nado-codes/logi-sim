@@ -41,13 +41,13 @@ export const runCompetitiveSimulation = (options: {
   );
 
   world.createTown("FlourVille", stateCompany.id, { x: 75, y: 0, z: 0 }, true);
-  /*world.createTown(
+  world.createTown(
     "TruckTropolis",
     stateCompany.id,
-    { x: 75, y: 0, z: 50 },
+    { x: 60, y: 0, z: 50 },
     true,
-  );*/
-  //world.createTown("Contractia", stateCompany.id, { x: 25, y: 0, z: 0 }, true);
+  );
+  world.createTown("Contractia", stateCompany.id, { x: 40, y: 0, z: 0 }, true);
 
   const farm = world.createProducer(
     "Farm",
@@ -126,7 +126,7 @@ export const runCompetitiveSimulation = (options: {
 
   setLogContextProvider(() => ({
     timestamp: `Tick ${world.getCurrentTick()}`,
-    printLogs: true,
+    printLogs: false,
   }));
 
   const checkpointFactor = options.simTarget / 10;

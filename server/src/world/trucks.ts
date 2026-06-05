@@ -307,6 +307,7 @@ export const updateTrucks = (state: IWorldState) => {
       } else if (
         positionsAreEqual(truck.position, contractDestination.position)
       ) {
+        const amountDelivered = truck.storage.resourceCount;
         const unloadResult = transferResources(
           state,
           truck.storage.resourceCount,
@@ -314,6 +315,7 @@ export const updateTrucks = (state: IWorldState) => {
           [truck.storage],
           contractDestination.storage,
         );
+        truckContract.deliveredAmount += amountDelivered;
 
         if (unloadResult === StorageTransferResult.SUCCESS) {
           if (
@@ -326,7 +328,18 @@ export const updateTrucks = (state: IWorldState) => {
             truck.debugMessage = "UL-FN";
           }
 
-          if (completeContract(state, truckContract)) {
+          if (truckContract.deliveredAmount < truckContract.totalAmount) {
+            truck.destinationId = contractSupplier.id; // Go back to supplier for next load
+            if (
+              notificationConfig.logTruckNotifications.all ||
+              notificationConfig.logTruckNotifications.unloading
+            ) {
+              logInfo(
+                `[TRUCK] ${truck.name} will return to ${contractSupplier.name} to load the rest of the ${truckContract.resourceType} (${truckContract.totalAmount - truckContract.deliveredAmount} left)`,
+              );
+              truck.debugMessage = "UL-RT";
+            }
+          } else if (completeContract(state, truckContract)) {
             stopTruck(truck);
             truck.contractId = undefined;
 
