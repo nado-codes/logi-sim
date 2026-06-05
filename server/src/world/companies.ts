@@ -23,6 +23,7 @@ import {
   logWarning,
   sum,
   random,
+  getDistanceBetweenPositions,
 } from "@logisim/lib/utils";
 
 const geographyConfig = loadGeographyConfig();
@@ -304,7 +305,9 @@ const tryDispatchTrucks = (state: IWorldState, company: ICompany) => {
   let currentCompanyReceivables = sum(commitmentsLedger.map((l) => l.payment));
   let currentCompanyPayables = sum(commitmentsLedger.map((l) => l.totalCost));
 
-  const availableContracts = state.contracts.filter((c) => !c.truckId && !c.shipperId);
+  const availableContracts = state.contracts.filter(
+    (c) => !c.truckId && !c.shipperId,
+  );
 
   if (
     notificationConfig.logCompanyNotifications.all ||
@@ -344,11 +347,17 @@ const tryDispatchTrucks = (state: IWorldState, company: ICompany) => {
     );
 
     const destination = getLocationById(state, c.destinationId);
-    const totalTravelDistance =
-      Math.abs(destination.position.x - supplier.position.x) +
-      Math.abs(supplier.position.x - nearestTruck.position.x);
+    const supplierConsumerDistance = getDistanceBetweenPositions(
+      supplier.position,
+      destination.position,
+    );
+    const supplierTruckDistance = getDistanceBetweenPositions(
+      supplier.position,
+      nearestTruck.position,
+    );
     const contractDeliveryCost =
-      totalTravelDistance * truckConfig.baseOperatingCost;
+      (supplierConsumerDistance + supplierTruckDistance) *
+      truckConfig.baseOperatingCost;
 
     const updatedCompanyPayables =
       currentCompanyPayables + contractDeliveryCost;

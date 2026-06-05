@@ -39,6 +39,9 @@ import {
   positionToString,
   positionsAreEqual,
   logError,
+  getDistanceBetweenPositions,
+  getVectorBetweenPositions,
+  normaliseVector,
 } from "@logisim/lib/utils";
 import { loadJSON } from "../utils/fileUtils";
 
@@ -185,7 +188,7 @@ export const getTruckString = (state: IWorldState, truck: ITruck) => {
 
   const locationString = truckLocation
     ? `Location: ${highlight.yellow(truckLocation.name)}`
-    : `Position: ${highlight.yellow(truck.position.x + "")}`;
+    : `Position: ${highlight.yellow(positionToString(truck.position))}`;
   const contractString = `Contract: ${truckContract ? highlight.yellow(`${contractSupplier?.name}-->${contractDestination?.name}`) : highlight.yellow("None")}`;
 
   const truckCompany = getCompanyById(state, truck.companyId);
@@ -200,18 +203,21 @@ const updateTruckPosition = (state: IWorldState, truck: ITruck) => {
     return;
   }
 
-  const distance = truck.position.x - truckDestination.position.x;
-  const direction = Math.sign(distance);
+  const distanceToDestination = getDistanceBetweenPositions(
+    truck.position,
+    truckDestination.position,
+  );
+  const directionToDestination = normaliseVector(
+    getVectorBetweenPositions(truck.position, truckDestination.position),
+  );
 
-  if (truck.position.x != truckDestination.position.x) {
-    truck.position.x -= direction * truck.speed;
-
-    // .. TODO: Why do trucks get stuck after loading? Ideally, trucks should load and then depart immediately
-    // .. trucks getting stuck causes economic deadlocks
-    if (
-      Math.abs(truck.position.x - truckDestination.position.x) < truck.speed
-    ) {
-      truck.position = structuredClone(truckDestination.position); // Snap to destination
+  if (!positionsAreEqual(truck.position, truckDestination.position)) {
+    if (distanceToDestination <= truck.speed) {
+      truck.position = structuredClone(truckDestination.position);
+    } else {
+      truck.position.x += directionToDestination.x * truck.speed;
+      truck.position.y += directionToDestination.y * truck.speed;
+      truck.position.z += directionToDestination.z * truck.speed;
     }
 
     if (positionsAreEqual(truck.position, truckDestination.position)) {
@@ -230,7 +236,7 @@ const updateTruckPosition = (state: IWorldState, truck: ITruck) => {
         notificationConfig.logTruckNotifications.movement
       ) {
         logInfo(
-          `[TRUCK] ${truck.name} moved ${truck.speed} distance units and is ${Math.abs(distance)} units away from the destination`,
+          `[TRUCK] ${truck.name} moved ${truck.speed} distance units and is ${distanceToDestination} units away from the destination`,
         );
         truck.debugMessage = "MV";
       }
