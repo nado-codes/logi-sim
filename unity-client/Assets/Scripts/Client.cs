@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.SceneManagement;
@@ -249,7 +250,15 @@ public class Client : MonoBehaviour
 
             if(townGO != null)
             {
-                var numHouses = townGO.transform.childCount-1;
+                var houses = townGO.transform.GetComponentsInChildren<Transform>().Where(t => t.name.StartsWith("House_"));
+                var numExpectedHouses = Mathf.Clamp(town.Population / 100, 3, 10);
+                var housesToDelete = houses.Count() - numExpectedHouses;
+
+                for(int i = 0; i < housesToDelete; i++)
+                {
+                    Debug.Log($"Destroying house {houses.ElementAt(i).name} in town {town.Name} due to population decrease");
+                    Destroy(houses.ElementAt(i).gameObject);
+                }
 
                 continue;
             }
@@ -263,10 +272,13 @@ public class Client : MonoBehaviour
             for(int i = 0; i < housesToSpawn; i++)
             {
                 var houseProto = i % 2 == 0 ? house1Proto : house2Proto;
-                var position = UnityEngine.Random.insideUnitCircle * UnityEngine.Random.Range(0.5f, 1.5f);
+                var position = UnityEngine.Random.insideUnitCircle * 25;
+                var position3D = new Vector3(position.x, 0, position.y);
+                Debug.DrawLine(townGO.transform.position, townGO.transform.position + new Vector3(position.x, 5, position.y), Color.red, 10f);
                 var houseGO = Instantiate(houseProto, townGO.transform.position, Quaternion.identity);
                 houseGO.transform.parent = townGO.transform;
-                houseGO.transform.localPosition = position * positionScaleFactor;
+                houseGO.transform.localPosition = position3D + (position3D.normalized * 25);
+                houseGO.name = $"House_{i+1}";
             }
         }
     }

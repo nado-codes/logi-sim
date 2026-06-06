@@ -105,6 +105,12 @@ export const createLocationFromItemId = (
     locationData.locationType,
   );
 
+  if (location.locationType === LOCATION_TYPE.Producer) {
+    state.producers.push(location);
+  } else if (location.locationType === LOCATION_TYPE.Processor) {
+    state.processors.push(location);
+  }
+
   return { ...location, itemId };
 };
 

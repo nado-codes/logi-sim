@@ -1,9 +1,6 @@
 import { createWorld } from "./world/world";
 import { logisimApi } from "./api";
-import { RESOURCE_TYPE } from "@logisim/lib/entities";
 import { logInfo, Color, setLogContextProvider } from "@logisim/lib/utils";
-
-// .. CREATE
 
 export const world = createWorld();
 
@@ -41,111 +38,52 @@ world.createTown(
 );
 world.createTown("Contractia", stateCompany.id, { x: 25, y: 0, z: 0 }, true);
 
-world.createProducer(
-  "Farm",
-  stateCompany.id,
-  { x: 10, y: 0, z: 25 },
-  RESOURCE_TYPE.Grain,
-  2500,
-);
-world.createProcessor(
-  "Flour Mill",
-  stateCompany.id,
-  { x: 25, y: 0, z: 25 },
-  {
-    inputs: {
-      [RESOURCE_TYPE.Grain]: 6,
-    },
-    outputs: {
-      [RESOURCE_TYPE.Flour]: 300,
-    }, //
-  },
-);
+world.createLocationFromItemId("location-grainfarm", stateCompany.id, {
+  x: 10,
+  y: 0,
+  z: 25,
+});
+world.createLocationFromItemId("location-flourmill", stateCompany.id, {
+  x: 25,
+  y: 0,
+  z: 25,
+});
 
-world.createTruck(
-  "Truck 1",
-  playerCompany.id,
-  RESOURCE_TYPE.Grain,
-  1000000,
-  { x: 10, y: 0, z: 0 },
-  2,
-);
-world.createTruck(
-  "Truck 2",
-  playerCompany.id,
-  RESOURCE_TYPE.Flour,
-  1000000,
-  { x: 15, y: 0, z: 0 },
-  2,
-);
+// .. Player trucks
+world.createTruckFromItemId("truck-grain", playerCompany.id, {
+  x: 10,
+  y: 0,
+  z: 0,
+});
+world.createTruckFromItemId("truck-flour", playerCompany.id, {
+  x: 15,
+  y: 0,
+  z: 0,
+});
 
 // .. RivalCo trucks
-world.createTruck(
-  "Truck 3",
-  competitorCompany.id,
-  RESOURCE_TYPE.Grain,
-  1000000,
-  { x: 15, y: 0, z: 0 },
-  2,
-);
-world.createTruck(
-  "Truck 4",
-  competitorCompany.id,
-  RESOURCE_TYPE.Flour,
-  1000000,
-  { x: 15, y: 0, z: 0 },
-  2,
-);
-world.createTruck(
-  "Truck 5",
-  competitorCompany.id,
-  RESOURCE_TYPE.Bread,
-  1000000,
-  { x: 15, y: 0, z: 0 },
-  2,
-);
-world.createTruck(
-  "Truck 6",
-  competitorCompany.id,
-  RESOURCE_TYPE.Grain,
-  1000000,
-  { x: 15, y: 0, z: 0 },
-  2,
-);
+world.createTruckFromItemId("truck-grain", competitorCompany.id, {
+  x: 10,
+  y: 0,
+  z: 0,
+});
+world.createTruckFromItemId("truck-flour", competitorCompany.id, {
+  x: 20,
+  y: 0,
+  z: 0,
+});
 
 // .. Disruptor Inc trucks
-world.createTruck(
-  "Truck 7",
-  competitorCompany2.id,
-  RESOURCE_TYPE.Grain,
-  1000000,
-  { x: 15, y: 0, z: 0 },
-  2,
-);
-world.createTruck(
-  "Truck 8",
-  competitorCompany2.id,
-  RESOURCE_TYPE.Flour,
-  1000000,
-  { x: 15, y: 0, z: 0 },
-  2,
-);
-world.createTruck(
-  "Truck 9",
-  competitorCompany2.id,
-  RESOURCE_TYPE.Bread,
-  1000000,
-  { x: 15, y: 0, z: 0 },
-  2,
-);
-world.createTruck(
-  "Truck 10",
-  competitorCompany2.id,
-  RESOURCE_TYPE.Grain,
-  1000000,
-  { x: 15, y: 0, z: 0 },
-  2,
-);
+world.createTruckFromItemId("truck-grain", competitorCompany2.id, {
+  x: 25,
+  y: 0,
+  z: 0,
+});
+world.createTruckFromItemId("truck-flour", competitorCompany2.id, {
+  x: 30,
+  y: 0,
+  z: 0,
+});
 
 setLogContextProvider(() => ({
   timestamp: `Tick ${world.getCurrentTick()}`,
