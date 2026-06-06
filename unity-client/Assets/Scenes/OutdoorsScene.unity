@@ -308,6 +308,8 @@ MonoBehaviour:
     type: 3}
   townProto: {fileID: 8744534182939949508, guid: d1f3c55947b59f04e9b138ca828f88bf,
     type: 3}
+  house1Proto: {fileID: 100000, guid: 1f284b42849610642bfb5d418a57840b, type: 3}
+  house2Proto: {fileID: 100000, guid: 10ba41f0223c3104bad126af2b380971, type: 3}
   SpawnEntities: 1
 --- !u!1 &54257345
 GameObject:

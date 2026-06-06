@@ -23,6 +23,7 @@ public class Client : MonoBehaviour
     public static List<TruckDTO> TruckDTOs = new List<TruckDTO>();
     private static List<GameObject> trucks = new List<GameObject>();
     public static List<LocationDTO> LocationDTOs = new List<LocationDTO>();
+    public static List<TownDTO> TownDTOs = new List<TownDTO>();
     private static List<GameObject> locations = new List<GameObject>();
     public static List<CompanyDTO> CompanyDTOs = new List<CompanyDTO>();
     public static List<ContractDTO> ContractDTOs = new List<ContractDTO>();
@@ -35,7 +36,7 @@ public class Client : MonoBehaviour
     public GameObject boxTruckProto, flatbedTruckProto;
     public GameObject processorProto, bakeryProto;
     public GameObject farmProto;
-    public GameObject townProto;
+    public GameObject townProto, house1Proto, house2Proto;
     public bool SpawnEntities = false;
     const float positionScaleFactor = 5f;
 
@@ -151,6 +152,17 @@ public class Client : MonoBehaviour
                 }
             });
 
+            yield return CallAPI("/world/towns",APICallType.Get,(success,response) =>
+            {
+                if (!success) Debug.LogError(response);
+
+                var townsResult = JsonConvert.DeserializeObject<List<TownDTO>>(response);
+                if (townsResult != null)
+                {
+                    TownDTOs = townsResult;
+                }
+            });
+
             yield return CallAPI("/world/trucks",APICallType.Get,(success,response) =>
             {
                 if (!success) Debug.LogError(response);
@@ -203,7 +215,7 @@ public class Client : MonoBehaviour
             trucks.Add(newTruck);
         }
 
-        foreach (LocationDTO location in LocationDTOs)
+        foreach (LocationDTO location in LocationDTOs.Where(l => l.LocationType != LocationType.Town))
         {
             var locationGO = locations.FirstOrDefault(l => l.name == location.Id);
 
@@ -225,14 +237,37 @@ public class Client : MonoBehaviour
                     locationGO = Instantiate(processorProto, location.Position.ToVector3(), Quaternion.identity);
                 }
             }
-            else
-            {
-                locationGO = Instantiate(townProto, location.Position.ToVector3(), Quaternion.identity);
-            }
 
             locationGO.name = location.Id;
             locationGO.transform.position *= positionScaleFactor;
             locations.Add(locationGO);
+        }
+
+        foreach(TownDTO town in TownDTOs)
+        {
+            var townGO = locations.FirstOrDefault(l => l.name == town.Id);
+
+            if(townGO != null)
+            {
+                var numHouses = townGO.transform.childCount-1;
+
+                continue;
+            }
+
+            townGO = Instantiate(townProto, town.Position.ToVector3(), Quaternion.identity);
+            townGO.name = town.Id;
+            townGO.transform.position *= positionScaleFactor;
+            locations.Add(townGO);
+
+            var housesToSpawn = Mathf.Clamp(town.Population / 100, 3, 10);
+            for(int i = 0; i < housesToSpawn; i++)
+            {
+                var houseProto = i % 2 == 0 ? house1Proto : house2Proto;
+                var position = UnityEngine.Random.insideUnitCircle * UnityEngine.Random.Range(0.5f, 1.5f);
+                var houseGO = Instantiate(houseProto, townGO.transform.position, Quaternion.identity);
+                houseGO.transform.parent = townGO.transform;
+                houseGO.transform.localPosition = position * positionScaleFactor;
+            }
         }
     }
 

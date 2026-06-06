@@ -20,7 +20,7 @@ export const runCompetitiveSimulation = (options: {
   logInfo("LogiSim v0.6.1 - SC-COMPETE");
 
   const stateCompany = world.createCompany("State", 100000, Color.Magenta, {
-    isAiEnabled: true,
+    isAiEnabled: false,
     hasUnlimitedMoney: true,
   });
   const playerCompany = world.createCompany(
@@ -71,58 +71,40 @@ export const runCompetitiveSimulation = (options: {
   );
 
   // .. Player trucks
-  world.createTruck(
-    "Player Grain Truck",
-    playerCompany.id,
-    RESOURCE_TYPE.Grain,
-    1000000,
-    { x: farm.position.x, y: 0, z: 0 },
-    2,
-  );
-  world.createTruck(
-    "Player Flour Truck",
-    playerCompany.id,
-    RESOURCE_TYPE.Flour,
-    1000000,
-    { x: flourMill.position.x, y: 0, z: 0 },
-    2,
-  );
+  world.createTruckFromItemId(`truck-flour`, playerCompany.id, {
+    x: 0,
+    y: 0,
+    z: 0,
+  });
+  world.createTruckFromItemId(`truck-grain`, playerCompany.id, {
+    x: 0,
+    y: 0,
+    z: 0,
+  });
 
   // .. RivalCo trucks
-  world.createTruck(
-    "Truck 1",
-    competitorCompany.id,
-    RESOURCE_TYPE.Grain,
-    1000000,
-    { x: farm.position.x, y: 0, z: 0 },
-    2,
-  );
-  world.createTruck(
-    "Truck 2",
-    competitorCompany.id,
-    RESOURCE_TYPE.Flour,
-    1000000,
-    { x: flourMill.position.x, y: 0, z: 0 },
-    2,
-  );
+  world.createTruckFromItemId(`truck-grain`, competitorCompany.id, {
+    x: 0,
+    y: 0,
+    z: 0,
+  });
+  world.createTruckFromItemId(`truck-flour`, competitorCompany.id, {
+    x: 0,
+    y: 0,
+    z: 0,
+  });
 
-  // .. RivalCo trucks
-  world.createTruck(
-    "Truck 4",
-    competitorCompany2.id,
-    RESOURCE_TYPE.Grain,
-    1000000,
-    { x: farm.position.x, y: 0, z: 0 },
-    2,
-  );
-  world.createTruck(
-    "Truck 5",
-    competitorCompany2.id,
-    RESOURCE_TYPE.Flour,
-    1000000,
-    { x: flourMill.position.x, y: 0, z: 0 },
-    2,
-  );
+  // .. Disruptor Inc trucks
+  world.createTruckFromItemId(`truck-grain`, competitorCompany2.id, {
+    x: 0,
+    y: 0,
+    z: 0,
+  });
+  world.createTruckFromItemId(`truck-flour`, competitorCompany2.id, {
+    x: 0,
+    y: 0,
+    z: 0,
+  });
 
   setLogContextProvider(() => ({
     timestamp: `Tick ${world.getCurrentTick()}`,

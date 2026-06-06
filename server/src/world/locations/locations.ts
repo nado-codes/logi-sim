@@ -217,6 +217,9 @@ export const checkInputStorage = (state: IWorldState, location: ILocation) => {
           const hasResources = s.storage.some(
             (st) => st.resourceType === resourceType && st.resourceCount > 0,
           );
+          const consumes = (
+            s.recipe.inputs ? Object.keys(s.recipe.inputs) : []
+          ).map((res) => res as RESOURCE_TYPE);
 
           if (s.id !== location.id) {
             if (notificationConfig.logLocationNotifications) {
@@ -225,7 +228,11 @@ export const checkInputStorage = (state: IWorldState, location: ILocation) => {
               );
             }
           }
-          return hasResources && s.id !== location.id;
+          return (
+            hasResources &&
+            s.id !== location.id &&
+            !consumes.includes(resourceType as RESOURCE_TYPE)
+          );
         });
 
         if (suppliers.length === 0) {

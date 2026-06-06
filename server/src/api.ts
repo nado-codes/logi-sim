@@ -43,6 +43,11 @@ export const logisimApi = (world: IWorld) => {
       res.send(world.getLocations());
     });
 
+    app.get("/api/world/towns", (req, res) => {
+      var locations = world.getLocations();
+      res.send(locations.filter((l) => l.locationType === LOCATION_TYPE.Town));
+    });
+
     app.get("/api/logs", (req, res) => {
       res.send(logEntries);
     });
@@ -267,12 +272,10 @@ Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, 
           const truckCompany = world.getCompanyById(truck.companyId);
           transferCompanyFundsFromState(truckCompany, truckItem.price);
         } else {
-          res
-            .status(400)
-            .send({
-              error:
-                "Truck cannot be sold because it doesn't have an associated item",
-            });
+          res.status(400).send({
+            error:
+              "Truck cannot be sold because it doesn't have an associated item",
+          });
           return;
         }
 
@@ -314,13 +317,10 @@ Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, 
         const result = world.assignContractToCompany(contract, company);
         res.send({ success: result });
       } catch (error) {
-        res
-          .status(400)
-          .send({
-            error:
-              "Failed to assign contract to company: " +
-              (error as Error).message,
-          });
+        res.status(400).send({
+          error:
+            "Failed to assign contract to company: " + (error as Error).message,
+        });
       }
     });
 
@@ -445,11 +445,9 @@ Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, 
         );
         res.send({ success: true, location });
       } catch (error) {
-        res
-          .status(400)
-          .send({
-            error: "Failed to purchase location: " + (error as Error).message,
-          });
+        res.status(400).send({
+          error: "Failed to purchase location: " + (error as Error).message,
+        });
       }
     });
 

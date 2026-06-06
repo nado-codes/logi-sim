@@ -2,7 +2,7 @@ import { ITown, LOCATION_TYPE, RESOURCE_TYPE } from "@logisim/lib/entities";
 import { setGlobalSeed } from "../../../lib/dist/utils/mathUtils";
 import { logisimApi } from "../../src/api";
 import { runCompetitiveSimulation } from "../testHelpers/competitiveSimulation";
-import { logError, logInfo, logSuccess, saveLogs } from "@logisim/lib/utils";
+import { logError, logInfo, saveLogs } from "@logisim/lib/utils";
 
 setGlobalSeed("competitive-scenario-seed");
 const world = runCompetitiveSimulation({
@@ -32,25 +32,24 @@ const world = runCompetitiveSimulation({
     let events: Record<string, string>[] = [];
 
     if (world.getCurrentTick() % 100 === 0) {
-      allAICompanies.forEach((c) => {
-        const allCompanyTrucks = world
-          .getTrucks()
-          .filter((t) => t.companyId === c.id);
-        if (allCompanyTrucks.length < 5) {
-          world.createTruck(
-            `Truck ${allCompanyTrucks.length}`,
-            c.id,
-            RESOURCE_TYPE.Flour,
-            1000,
-            { x: 50, y: 0, z: 25 },
-            2,
-          );
-          events.push({
-            type: "FlourTruckCreated",
-            company: c.name,
-          });
-        }
-      });
+      allAICompanies
+        .filter((c) => c.name !== "The State")
+        .forEach((c) => {
+          const allCompanyTrucks = world
+            .getTrucks()
+            .filter((t) => t.companyId === c.id);
+          if (allCompanyTrucks.length < 5) {
+            world.createTruckFromItemId(`truck-flour`, c.id, {
+              x: 0,
+              y: 0,
+              z: 0,
+            });
+            events.push({
+              type: "FlourTruckCreated",
+              company: c.name,
+            });
+          }
+        });
     }
 
     const logData = {
