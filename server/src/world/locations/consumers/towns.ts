@@ -196,7 +196,7 @@ const updateTownPopulation = (town: ITown) => {
     }
   }
 
-  town.population = Math.round(town.population);
+  town.population = Math.ceil(town.population);
 
   // e.g. 1 flour serves 10 (population-to-resource (PTR) ratio 1:10)
   const townInputs: ResourceMap = town.recipe.inputs ?? {};

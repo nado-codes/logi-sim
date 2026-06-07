@@ -244,41 +244,81 @@ public class Client : MonoBehaviour
             locations.Add(locationGO);
         }
 
+        
+
         foreach(TownDTO town in TownDTOs)
         {
             var townGO = locations.FirstOrDefault(l => l.name == town.Id);
 
-            if(townGO != null)
+            if(townGO == null)
             {
-                var houses = townGO.transform.GetComponentsInChildren<Transform>().Where(t => t.name.StartsWith("House_"));
-                var numExpectedHouses = Mathf.Clamp(town.Population / 100, 3, 10);
-                var housesToDelete = houses.Count() - numExpectedHouses;
-
-                for(int i = 0; i < housesToDelete; i++)
-                {
-                    Debug.Log($"Destroying house {houses.ElementAt(i).name} in town {town.Name} due to population decrease");
-                    Destroy(houses.ElementAt(i).gameObject);
-                }
-
-                continue;
+                townGO = Instantiate(townProto, town.Position.ToVector3(), Quaternion.identity);
+                townGO.name = town.Id;
+                townGO.transform.position *= positionScaleFactor;
+                locations.Add(townGO);
             }
 
-            townGO = Instantiate(townProto, town.Position.ToVector3(), Quaternion.identity);
-            townGO.name = town.Id;
-            townGO.transform.position *= positionScaleFactor;
-            locations.Add(townGO);
+            const int maxPopulationPerHouse = 1000;
+            var houses = townGO.transform.GetComponentsInChildren<Transform>().Where(t => t.name.StartsWith("House_")).ToList();
+            var numExpectedHouses = Math.Max(1, Math.Ceiling((double)town.Population / maxPopulationPerHouse));
+            var housesToDelete = houses.Count() - numExpectedHouses;
+            Debug.Log($"Town {town.Name} has population {town.Population} requiring {numExpectedHouses} houses. Currently has {houses.Count()} houses, so will delete {housesToDelete} existing houses due to population decrease.");
 
-            var housesToSpawn = Mathf.Clamp(town.Population / 100, 3, 10);
+            for(int i = 0; i < housesToDelete; i++)
+            {
+                //Debug.Log($"Destroying house {houses.ElementAt(i).name} in town {town.Name} due to population decrease");
+                Destroy(houses.ElementAt(i).gameObject);
+            }
+
+            var housesToSpawn = numExpectedHouses - houses.Count();
+            const float minHouseDistance = 25f; // tweak to taste
+            const float minTownHallDistance = 5f;
+            const int maxSpawnAttempts = 10;
+            float minSpawnRadius = minHouseDistance;
+            Debug.Log($"Town {town.Name} has population {town.Population} requiring {numExpectedHouses} houses. Currently has {houses.Count()} houses, so will spawn {housesToSpawn} new houses.");
+            
             for(int i = 0; i < housesToSpawn; i++)
             {
-                var houseProto = i % 2 == 0 ? house1Proto : house2Proto;
-                var position = UnityEngine.Random.insideUnitCircle * 25;
-                var position3D = new Vector3(position.x, 0, position.y);
-                Debug.DrawLine(townGO.transform.position, townGO.transform.position + new Vector3(position.x, 5, position.y), Color.red, 10f);
-                var houseGO = Instantiate(houseProto, townGO.transform.position, Quaternion.identity);
+                Vector3 finalPosition = Vector3.zero;
+                bool placed = false;
+
+                for(int attempt = 0; attempt < maxSpawnAttempts; attempt++)
+                {
+                    var position = UnityEngine.Random.insideUnitCircle;
+                    var position3D = new Vector3(position.x, 0, position.y) * positionScaleFactor;
+                    var candidate = position3D + (position3D.normalized * (minTownHallDistance + UnityEngine.Random.Range(minSpawnRadius, minSpawnRadius + minHouseDistance))); 
+                                 
+                    bool tooClose = false;
+                    foreach(var existingHouse in houses)
+                    {
+                        if(Vector3.Distance(existingHouse.transform.localPosition, candidate) < minHouseDistance)
+                        {
+                            tooClose = true;
+                            break;
+                        }
+                    }
+
+                    if(!tooClose)
+                    {
+                        finalPosition = candidate;
+                        placed = true;
+                        break;
+                    }
+                }
+
+                if(!placed) {
+                    minSpawnRadius += minHouseDistance; // expand search radius for next attempt if we keep finding positions that are too close
+                    continue; // skip this house if we can't find space
+                }
+
+                var randomHouseType = UnityEngine.Random.Range(0, 2);
+                var houseProto = randomHouseType == 0 ? house1Proto : house2Proto;
+                var houseGO = Instantiate(houseProto, townGO.transform.position, 
+                                          Quaternion.LookRotation(-finalPosition));
                 houseGO.transform.parent = townGO.transform;
-                houseGO.transform.localPosition = position3D + (position3D.normalized * 25);
+                houseGO.transform.localPosition = finalPosition;
                 houseGO.name = $"House_{i+1}";
+                houses.Add(houseGO.transform);
             }
         }
     }
