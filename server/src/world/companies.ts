@@ -122,7 +122,7 @@ export const transferCompanyFunds = (
   toCompany: ICompany,
   amount: number,
 ): COMPANY_OP_RESULT => {
-  if (fromCompany.money >= amount) {
+  if (fromCompany.money >= amount || fromCompany.options.hasUnlimitedMoney) {
     if (!fromCompany.options.hasUnlimitedMoney) {
       fromCompany.money -= Math.abs(amount);
     }
@@ -149,7 +149,7 @@ export const transferCompanyFundsToState = (
   fromCompany: ICompany,
   amount: number,
 ): COMPANY_OP_RESULT => {
-  if (fromCompany.money >= amount) {
+  if (fromCompany.money >= amount || fromCompany.options.hasUnlimitedMoney) {
     if (!fromCompany.options.hasUnlimitedMoney) {
       fromCompany.money -= Math.abs(amount);
     }

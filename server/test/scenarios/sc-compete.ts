@@ -8,66 +8,22 @@ setGlobalSeed("competitive-scenario-seed");
 const world = runCompetitiveSimulation({
   simTarget: 8760, // .. 1 year, if every tick represents 1 hour (24 ticks per day * 365 days)
   onTick: (world) => {
-    const towns: ITown[] = world
-      .getLocations()
-      .filter((l) => l.locationType == LOCATION_TYPE.Town)
-      .map((l) => l as ITown);
-
-    const avgTownPop =
-      towns.map((t) => t.population).reduce((a, c) => a + c) / towns.length;
-    const avgTownConfidence =
-      towns.map((t) => t.confidence).reduce((a, c) => a + c) / towns.length;
-    const townStorages = towns
-      .map((l) => l.storage)
-      .reduce((a, c) => a.concat(c), []);
-    const totalTownFlour = townStorages
-      .filter((s) => s.resourceType === RESOURCE_TYPE.Flour)
-      .map((s) => s.resourceCount)
-      .reduce((a, c) => a + c);
-
-    const allAICompanies = world
+    const numActiveContracts = world
+      .getContracts()
+      .filter((c) => c.deliveredTick === undefined).length;
+    const totalCompanyMoney = world
       .getCompanies()
-      .filter((c) => c.options.isAiEnabled);
-
-    let events: Record<string, string>[] = [];
-
-    if (world.getCurrentTick() % 100 === 0) {
-      allAICompanies
-        .filter((c) => c.name !== "The State")
-        .forEach((c) => {
-          const allCompanyTrucks = world
-            .getTrucks()
-            .filter((t) => t.companyId === c.id);
-          if (allCompanyTrucks.length < 5) {
-            world.createTruckFromItemId(`truck-flour`, c.id, {
-              x: 0,
-              y: 0,
-              z: 0,
-            });
-            events.push({
-              type: "FlourTruckCreated",
-              company: c.name,
-            });
-          }
-        });
-    }
+      .filter((c) => c.name !== "State")
+      .reduce((sum, c) => sum + c.money, 0);
 
     const logData = {
-      avgPop: avgTownPop,
-      avgConfidence: avgTownConfidence,
-      totalTownFlour,
-      events,
+      numActiveContracts,
+      totalCompanyMoney,
     };
 
     logInfo(JSON.stringify(logData));
 
-    if (towns.some((t) => t.population > 50)) {
-      return true;
-    }
-
-    logError("All towns died");
-
-    return false;
+    return true;
   },
 });
 

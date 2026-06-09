@@ -5,10 +5,10 @@
   "logConsumerNotifications": false,
   "logContractNotifications": {
     "all": false,
-    "creation": true,
-    "assignment": true,
+    "creation": false,
+    "assignment": false,
     "update": false,
-    "completion": true,
+    "completion": false,
     "breach": false
   },
   "logMarketplaceNotifications": false,
@@ -23,7 +23,7 @@
   "logLocationNotifications": false,
   "logCompanyNotifications": {
     "all": false,
-    "money": true,
+    "money": false,
     "government": false,
     "ai": false
   },

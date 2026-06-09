@@ -92,7 +92,10 @@ const calculateContractPayment = (
   const distancePremium = distance * contractConfig.distanceRate;
   const urgencyMultiplier = getUrgencyMultiplier(ticksUntilExpiry);
 
-  if (notificationConfig.logContractNotifications) {
+  if (
+    notificationConfig.logContractNotifications.all ||
+    notificationConfig.logContractNotifications.creation
+  ) {
     logInfo(` - Base Payment: ${basePayment}`);
     logInfo(` - Distance Premium: ${distancePremium}`);
     logInfo(` - Urgency Multiplier: ${urgencyMultiplier}`);
