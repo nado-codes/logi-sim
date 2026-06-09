@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.SceneManagement;
@@ -47,7 +46,7 @@ public class Client : MonoBehaviour
 
     void Awake()
     {
-        DontDestroyOnLoad(gameObject);
+        // DontDestroyOnLoad(gameObject);
     }
 
     void Start()
@@ -345,7 +344,7 @@ public class Client : MonoBehaviour
                     truckGO.transform.position = Vector3.MoveTowards(
                         truckGO.transform.position,
                         truckDestGO.transform.position,
-                        5 * Time.deltaTime
+                        20 * Time.deltaTime
                     );
                 }
             }
