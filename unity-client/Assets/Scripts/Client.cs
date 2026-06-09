@@ -330,10 +330,9 @@ public class Client : MonoBehaviour
             var truckGO = trucks.FirstOrDefault(t => t.name == truck.Id);
             if (truckGO != null)
             {
-                truckGO.transform.position = Vector3.Lerp(truckGO.transform.position, truck.Position.ToVector3() * positionScaleFactor, Time.deltaTime);
-
+                var serverPos = truck.Position.ToVector3() * positionScaleFactor;
                 var truckDestGO = locations.FirstOrDefault(l => l.name == truck.DestinationId);
-
+            
                 if (truckDestGO != null)
                 {
                     var dirToDestination = truckDestGO.transform.position - truckGO.transform.position;
@@ -342,6 +341,12 @@ public class Client : MonoBehaviour
                     {
                         truckGO.transform.rotation = Quaternion.Lerp(truckGO.transform.rotation, Quaternion.LookRotation(dirToDestination), Time.deltaTime * 5f);
                     }
+
+                    truckGO.transform.position = Vector3.MoveTowards(
+                        truckGO.transform.position,
+                        truckDestGO.transform.position,
+                        5 * Time.deltaTime
+                    );
                 }
             }
         }

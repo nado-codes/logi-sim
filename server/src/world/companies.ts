@@ -129,7 +129,7 @@ export const transferCompanyFunds = (
 
     toCompany.money += Math.abs(amount);
 
-    const transferString = `${highlight.yellow(fromCompany.name)} transferred ${highlight.yellow("$" + amount)} to ${highlight.yellow(toCompany.name)}`;
+    const transferString = `${highlight.yellow(fromCompany.name)} paid ${highlight.yellow("$" + amount)} to ${highlight.yellow(toCompany.name)}`;
     const moneyString =
       fromCompany.money > 0
         ? `${highlight.yellow("$" + fromCompany.money)}`
@@ -154,13 +154,16 @@ export const transferCompanyFundsToState = (
       fromCompany.money -= Math.abs(amount);
     }
 
-    const transferString = `${highlight.yellow(fromCompany.name)} transferred ${highlight.yellow("$" + amount)} to ${highlight.yellow("The State")}`;
+    const transferString = `${highlight.yellow(fromCompany.name)} paid ${highlight.yellow("$" + amount)} to ${highlight.yellow("The State")}`;
     const moneyString =
       fromCompany.money > 0
         ? `${highlight.yellow("$" + fromCompany.money)}`
         : `${highlight.red("$" + fromCompany.money)}`;
 
-    if (notificationConfig.logCompanyNotifications.all) {
+    if (
+      notificationConfig.logCompanyNotifications.all ||
+      notificationConfig.logCompanyNotifications.money
+    ) {
       logInfo(`${transferString} and has ${moneyString} left`);
     }
 
@@ -182,7 +185,10 @@ export const transferCompanyFundsFromState = (
       ? `${highlight.yellow("$" + toCompany.money)}`
       : `${highlight.red("$" + toCompany.money)}`;
 
-  if (notificationConfig.logCompanyNotifications.all) {
+  if (
+    notificationConfig.logCompanyNotifications.all ||
+    notificationConfig.logCompanyNotifications.money
+  ) {
     logInfo(`${transferString} and now has ${moneyString}`);
   }
 };

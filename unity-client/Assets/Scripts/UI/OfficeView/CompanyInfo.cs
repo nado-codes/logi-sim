@@ -8,7 +8,7 @@ public class CompanyInfo : MonoBehaviour
     private TextMeshProUGUI companyNameText;
     private TextMeshProUGUI companyMoneyText;
 
-    private float companyMoneyTarget = .1f;
+    private float companyMoneyTarget = 0;
     private float companyMoneyCurrent = 0;
 
     void Start()
@@ -24,9 +24,6 @@ public class CompanyInfo : MonoBehaviour
         {
             Debug.LogError("Company Money TextMeshProUGUI component not found in children.");
         }
-
-        UpdateCompanyInfo();
-        companyMoneyCurrent = companyMoneyTarget;
     }
 
     void UpdateCompanyInfo()
@@ -49,7 +46,11 @@ public class CompanyInfo : MonoBehaviour
     void Update()
     {
         UpdateCompanyInfo();
-        companyMoneyCurrent = Mathf.Lerp(companyMoneyCurrent,companyMoneyTarget,Time.deltaTime);
+
+        if(companyMoneyCurrent == 0)
+            companyMoneyCurrent = companyMoneyTarget;
+        else
+            companyMoneyCurrent = Mathf.Lerp(companyMoneyCurrent,companyMoneyTarget,Time.deltaTime);
 
         companyMoneyText.text = companyMoneyCurrent.ToString("C");
     }

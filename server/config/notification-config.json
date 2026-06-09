@@ -3,12 +3,19 @@
   "logProcessorNotifications": false,
   "logProducerNotifications": false,
   "logConsumerNotifications": false,
-  "logContractNotifications": false,
+  "logContractNotifications": {
+    "all": false,
+    "creation": true,
+    "assignment": true,
+    "update": false,
+    "completion": true,
+    "breach": false
+  },
   "logMarketplaceNotifications": false,
   "logTruckNotifications": {
     "all": false,
     "loading": false,
-    "unloading": false,
+    "unloading": true,
     "movement": false,
     "costs": false
   },
@@ -16,13 +23,14 @@
   "logLocationNotifications": false,
   "logCompanyNotifications": {
     "all": false,
+    "money": true,
     "government": false,
-    "ai": true
+    "ai": false
   },
   "logTownNotifications": {
     "all": false,
     "population": false,
     "confidence": false
   },
-  "printLogs": true
+  "printLogs": false
 }

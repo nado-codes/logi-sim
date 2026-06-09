@@ -8,8 +8,18 @@ type TruckNotifications = {
   costs: boolean;
 };
 
+type ContractNotifications = {
+  all: boolean;
+  creation: boolean;
+  assignment: boolean;
+  update: boolean;
+  completion: boolean;
+  breach: boolean;
+};
+
 type CompanyNotifications = {
   all: boolean;
+  money: boolean;
   government: boolean;
   ai: boolean;
 };
@@ -18,14 +28,14 @@ type TownNotifications = {
   all: boolean;
   confidence: boolean;
   population: boolean;
-}
+};
 
 export interface INotificationConfig {
   logStorageNotifications: boolean;
   logProcessorNotifications: boolean;
   logProducerNotifications: boolean;
   logConsumerNotifications: boolean;
-  logContractNotifications: boolean;
+  logContractNotifications: ContractNotifications;
   logMarketplaceNotifications: boolean;
   logTruckNotifications: TruckNotifications;
   logProductionNotifications: boolean;
@@ -40,7 +50,14 @@ const defaultConfig: INotificationConfig = {
   logProcessorNotifications: false,
   logProducerNotifications: false,
   logConsumerNotifications: false,
-  logContractNotifications: false,
+  logContractNotifications: {
+    all: false,
+    creation: false,
+    assignment: false,
+    update: false,
+    completion: false,
+    breach: false,
+  },
   logMarketplaceNotifications: false,
   logTruckNotifications: {
     all: false,
@@ -53,13 +70,14 @@ const defaultConfig: INotificationConfig = {
   logLocationNotifications: false,
   logCompanyNotifications: {
     all: false,
+    money: false,
     government: false,
     ai: false,
   },
   logTownNotifications: {
-    all : false,
+    all: false,
     population: false,
-    confidence: false
+    confidence: false,
   },
   printLogs: false,
 };

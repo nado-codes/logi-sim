@@ -34,7 +34,12 @@ public class TownUIBehaviour : MonoBehaviour
             var txPopulation = population.Find("txPopulation").GetComponent<TextMeshProUGUI>();
 
             targetPopulation = town.Population;
-            currentPopulation = Mathf.Lerp(currentPopulation, targetPopulation, Time.deltaTime * 0.1f); // smooth transition
+
+            if(currentPopulation == 0)
+                currentPopulation = targetPopulation;
+            else
+                currentPopulation = (targetPopulation-currentPopulation) > .1f? Mathf.Lerp(currentPopulation, targetPopulation, Time.deltaTime * 0.1f) : targetPopulation;
+
             txPopulation.text = currentPopulation > 999 ? (currentPopulation / 1000).ToString("0.0") + "K" : currentPopulation.ToString("N0");
         }
     }

@@ -110,7 +110,10 @@ export const createContract = (
   amount: number,
   dueTicks: number,
 ) => {
-  if (notificationConfig.logContractNotifications) {
+  if (
+    notificationConfig.logContractNotifications.all ||
+    notificationConfig.logContractNotifications.creation
+  ) {
     logInfo(`[CONTRACT] Trying to create ${resourceType} contract...`);
   }
 
@@ -141,7 +144,10 @@ export const createContract = (
     expectedTick: Math.round(state.currentTick + dueTicks),
   };
 
-  if (notificationConfig.logContractNotifications) {
+  if (
+    notificationConfig.logContractNotifications.all ||
+    notificationConfig.logContractNotifications.creation
+  ) {
     logSuccess(
       `[CONTRACT] Created contract for ${amount} ${resourceType} from ${supplier.name} to ${destination.name}, due in ${dueTicks} ticks and paying ${payment}`,
     );
@@ -219,12 +225,18 @@ export const updateContracts = (state: IWorldState) => {
 
     if (contractDueTicks > 0) {
       if (contractDueTicks - 1 <= 0) {
-        if (notificationConfig.logContractNotifications) {
+        if (
+          notificationConfig.logContractNotifications.all ||
+          notificationConfig.logContractNotifications.breach
+        ) {
           logWarning(`Contract ${contract.id} has expired`);
         }
         // .. impose some sort of penalty on the shipper if they fail to deliver?
       } else {
-        if (notificationConfig.logContractNotifications) {
+        if (
+          notificationConfig.logContractNotifications.all ||
+          notificationConfig.logContractNotifications.creation
+        ) {
           logInfo(
             `Contract ${contract.id} is due in ${contractDueTicks} ticks`,
           );
@@ -239,7 +251,10 @@ export const assignContractToCompany = (
   contract: IContract,
   company: ICompany,
 ) => {
-  if (notificationConfig.logContractNotifications) {
+  if (
+    notificationConfig.logContractNotifications.all ||
+    notificationConfig.logContractNotifications.assignment
+  ) {
     logInfo(
       `[CONTRACT] Trying to assign ${contract.resourceType} contract to company...`,
     );
@@ -247,7 +262,7 @@ export const assignContractToCompany = (
 
   if (contract.shipperId) {
     logError(
-      ` - ERROR: Contract already taken by another company - assignment not possible`,
+      ` - CONTRACT ASSIGNMENT ERROR: Contract already taken by another company - assignment not possible`,
     );
     return false;
   }
@@ -255,7 +270,10 @@ export const assignContractToCompany = (
   contract.shipperId = company.id;
   contract.acceptedAtTick = state.currentTick;
 
-  if (notificationConfig.logContractNotifications) {
+  if (
+    notificationConfig.logContractNotifications.all ||
+    notificationConfig.logContractNotifications.assignment
+  ) {
     logSuccess(
       `- SUCCESS: Contract ${highlight.yellow(contract.id)} assigned to ${highlight.yellow(company.name)}`,
     );
@@ -268,7 +286,10 @@ export const assignContractToTruck = (
   contract: IContract,
   truck: ITruck,
 ) => {
-  if (notificationConfig.logContractNotifications) {
+  if (
+    notificationConfig.logContractNotifications.all ||
+    notificationConfig.logContractNotifications.assignment
+  ) {
     logInfo(
       `[CONTRACT] Trying to assign ${contract.resourceType} contract to truck...`,
     );
@@ -276,14 +297,14 @@ export const assignContractToTruck = (
 
   if (contract.truckId) {
     logError(
-      ` - ERROR: Contract already being shipped by another truck - assignment not possible`,
+      ` - CONTRACT ASSIGNMENT ERROR: Contract already being shipped by another truck - assignment not possible`,
     );
     return false;
   }
 
   if (truck.storage.resourceType !== contract.resourceType) {
     logError(
-      ` - ERROR: Incompatible shipper resource type - assignment not possible`,
+      ` - CONTRACT ASSIGNMENT ERROR: Incompatible shipper resource type - assignment not possible`,
     );
     return false;
   }
@@ -293,7 +314,10 @@ export const assignContractToTruck = (
   contract.truckId = truck.id;
   contract.acceptedAtTick = state.currentTick;
 
-  if (notificationConfig.logContractNotifications) {
+  if (
+    notificationConfig.logContractNotifications.all ||
+    notificationConfig.logContractNotifications.assignment
+  ) {
     const truckCompany = getCompanyById(state, truck.companyId);
     logSuccess(
       `- SUCCESS: Contract ${highlight.yellow(contract.id)} assigned to ${highlight.yellow(truck.name)} of ${highlight.yellow(truckCompany.name)}`,
@@ -306,7 +330,10 @@ export const assignContractToTruck = (
 // .. DELETE
 
 const archiveContract = (state: IWorldState, contract: IContract) => {
-  if (notificationConfig.logContractNotifications) {
+  if (
+    notificationConfig.logContractNotifications.all ||
+    notificationConfig.logContractNotifications.completion
+  ) {
     logInfo(` - Contract archived`);
   }
 
@@ -315,7 +342,10 @@ const archiveContract = (state: IWorldState, contract: IContract) => {
 };
 
 export const completeContract = (state: IWorldState, contract: IContract) => {
-  if (notificationConfig.logContractNotifications) {
+  if (
+    notificationConfig.logContractNotifications.all ||
+    notificationConfig.logContractNotifications.completion
+  ) {
     logInfo(
       `[CONTRACT] Trying to complete a ${contract.resourceType} contract...`,
     );
@@ -324,12 +354,25 @@ export const completeContract = (state: IWorldState, contract: IContract) => {
   const destination = getLocationById(state, contract.destinationId);
 
   if (!contract.truckId) {
-    logError(` - ERROR: No shipper found - completion not possible`);
+    logError(
+      ` - CONTRACT COMPLETION ERROR: No truck assigned to contract - cannot complete contract without delivery`,
+    );
+    return false;
+  }
+
+  const truck = getTruckById(state, contract.truckId);
+  if (!truck) {
+    logError(
+      ` - CONTRACT COMPLETION ERROR: Truck with id ${contract.truckId} doesn't exist`,
+    );
     return false;
   }
 
   if (contract.deliveredAmount < contract.totalAmount) {
-    if (notificationConfig.logContractNotifications) {
+    if (
+      notificationConfig.logContractNotifications.all ||
+      notificationConfig.logContractNotifications.completion
+    ) {
       logWarning(
         ` - WARNING: Requirements not satisfied - ${destination.name} needs ${contract.totalAmount} ${contract.resourceType} - only ${contract.deliveredAmount} delivered so far`,
       );
@@ -337,11 +380,13 @@ export const completeContract = (state: IWorldState, contract: IContract) => {
     return false;
   }
 
-  if (notificationConfig.logContractNotifications) {
+  if (
+    notificationConfig.logContractNotifications.all ||
+    notificationConfig.logContractNotifications.completion
+  ) {
     logSuccess(` - SUCCESS: All requirements met. Contract will be voided.`);
   }
 
-  const truck = getTruckById(state, contract.truckId);
   const truckCompany = getCompanyById(state, truck.companyId);
 
   const contractDestination = getLocationById(state, contract.destinationId);
@@ -380,7 +425,10 @@ export const breakContract = (
     contractDestination.companyId,
   );
 
-  if (notificationConfig.logContractNotifications) {
+  if (
+    notificationConfig.logContractNotifications.all ||
+    notificationConfig.logContractNotifications.breach
+  ) {
     logWarning(
       `[CONTRACT] Contract between ${contractSupplier.name} and ${contractDestination.name} was broken by the ${CONTRACT_BREAK_TYPE[breakType]}`,
     );
@@ -421,7 +469,10 @@ export const breakContract = (
     contract.truckId = undefined;
     contract.acceptedAtTick = undefined;
 
-    if (notificationConfig.logContractNotifications) {
+    if (
+      notificationConfig.logContractNotifications.all ||
+      notificationConfig.logContractNotifications.update
+    ) {
       logInfo(
         ` - Contract ${highlight.yellow(contract.id)} is now unassigned and available for acceptance`,
       );

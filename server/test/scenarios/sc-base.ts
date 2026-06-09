@@ -5,7 +5,7 @@ import { runBaseSimulation } from "../testHelpers/baseSimulation";
 
 setGlobalSeed("base-scenario-seed");
 const world = runBaseSimulation({
-  simTarget: 100000,
+  simTarget: 8760, // .. 1 year, if every tick represents 1 hour (24 ticks per day * 365 days)
   onTick: (world) => {
     const towns: ITown[] = world
       .getLocations()
@@ -28,6 +28,8 @@ towns.forEach((t) => {
   console.log(" - population: ", t.population);
   console.log(" - confidence: ", t.confidence);
 });
+
+setInterval(world.update, 500);
 
 const api = logisimApi(world);
 api.start();
