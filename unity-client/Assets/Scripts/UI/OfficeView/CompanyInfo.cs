@@ -7,6 +7,8 @@ public class CompanyInfo : MonoBehaviour
 {
     private TextMeshProUGUI companyNameText;
     private TextMeshProUGUI companyMoneyText;
+    private Color moneyGreen = new Color(0,1,0.1264467f,1);
+    private Color moneyRed = new Color(1,0,0.0611949f,1);
 
     private float companyMoneyTarget = 0;
     private float companyMoneyCurrent = 0;
@@ -40,6 +42,12 @@ public class CompanyInfo : MonoBehaviour
         }
 
         companyNameText.text = company.Name;
+
+        if(companyMoneyTarget > company.Money)
+        {
+            companyMoneyText.color = moneyRed;
+        }
+ 
         companyMoneyTarget = company.Money;
     }
 
@@ -53,6 +61,7 @@ public class CompanyInfo : MonoBehaviour
             companyMoneyCurrent = Mathf.Lerp(companyMoneyCurrent,companyMoneyTarget,Time.deltaTime);
 
         companyMoneyText.text = companyMoneyCurrent.ToString("C");
+        companyMoneyText.color = Color.Lerp(companyMoneyText.color, moneyGreen,Time.deltaTime);
     }
 
     public void SwitchCompany(string companyId)

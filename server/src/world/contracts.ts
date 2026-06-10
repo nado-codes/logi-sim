@@ -5,7 +5,7 @@ import {
   transferCompanyFunds,
 } from "./companies";
 import { getLocationById } from "./locations/locations";
-import { getTruckById, setTruckContract } from "./trucks";
+import { getTruckById, setTruckContract, stopTruck } from "./trucks";
 import {
   canStoreResourceType,
   getResourceCount,
@@ -226,24 +226,24 @@ export const updateContracts = (state: IWorldState) => {
 
     const contractDueTicks = contract.expectedTick - state.currentTick;
 
-    if (contractDueTicks > 0) {
-      if (contractDueTicks - 1 <= 0) {
-        if (
-          notificationConfig.logContractNotifications.all ||
-          notificationConfig.logContractNotifications.breach
-        ) {
-          logWarning(`Contract ${contract.id} has expired`);
-        }
-        // .. impose some sort of penalty on the shipper if they fail to deliver?
+    if (contractDueTicks <= 0) {
+      // contract has expired
+      if (contract.shipperId) {
+        breakContract(
+          state,
+          contract,
+          CONTRACT_BREAK_TYPE.Breach,
+          CONTRACT_BREAK_FAULT.Shipper,
+        );
       } else {
-        if (
-          notificationConfig.logContractNotifications.all ||
-          notificationConfig.logContractNotifications.creation
-        ) {
-          logInfo(
-            `Contract ${contract.id} is due in ${contractDueTicks} ticks`,
-          );
-        }
+        archiveContract(state, contract); // nobody took it, just clean it up
+      }
+    } else {
+      if (
+        notificationConfig.logContractNotifications.all ||
+        notificationConfig.logContractNotifications.creation
+      ) {
+        logInfo(`Contract ${contract.id} is due in ${contractDueTicks} ticks`);
       }
     }
   });
@@ -411,15 +411,22 @@ export const completeContract = (state: IWorldState, contract: IContract) => {
 };
 
 export enum CONTRACT_BREAK_TYPE {
+  Cancellation,
+  Breach,
+}
+
+export enum CONTRACT_BREAK_FAULT {
+  None,
   Supplier,
-  Destination,
   Shipper,
+  Destination,
 }
 
 export const breakContract = (
   state: IWorldState,
   contract: IContract,
   breakType: CONTRACT_BREAK_TYPE,
+  breakFault: CONTRACT_BREAK_FAULT = CONTRACT_BREAK_FAULT.None,
 ) => {
   const contractSupplier = getLocationById(state, contract.supplierId);
   const contractDestination = getLocationById(state, contract.destinationId);
@@ -437,8 +444,8 @@ export const breakContract = (
     );
   }
 
-  if (breakType !== CONTRACT_BREAK_TYPE.Shipper) {
-    if (contract.truckId) {
+  if (breakType === CONTRACT_BREAK_TYPE.Cancellation) {
+    if (contract.truckId && breakFault !== CONTRACT_BREAK_FAULT.Shipper) {
       const contractTruck = getTruckById(state, contract.truckId);
       const truckCompany = getCompanyById(state, contractTruck.companyId);
       transferCompanyFunds(
@@ -448,7 +455,7 @@ export const breakContract = (
       );
     }
 
-    if (breakType === CONTRACT_BREAK_TYPE.Supplier) {
+    if (breakFault === CONTRACT_BREAK_FAULT.Supplier) {
       const allLocationsExceptContractParties = state
         .getLocations()
         .filter(
@@ -464,21 +471,59 @@ export const breakContract = (
       } else {
         archiveContract(state, contract);
       }
-    } else if (breakType === CONTRACT_BREAK_TYPE.Destination) {
+    } else if (breakFault === CONTRACT_BREAK_FAULT.Destination) {
       archiveContract(state, contract);
+    } else if (breakFault === CONTRACT_BREAK_FAULT.Shipper) {
+      contract.shipperId = undefined;
+      contract.truckId = undefined;
+      contract.acceptedAtTick = undefined;
+
+      if (
+        notificationConfig.logContractNotifications.all ||
+        notificationConfig.logContractNotifications.update
+      ) {
+        logInfo(
+          ` - Contract ${highlight.yellow(contract.id)} was cancelled by the shipper - the contract is now open for other companies to take`,
+        );
+      }
     }
   } else {
-    contract.shipperId = undefined;
-    contract.truckId = undefined;
-    contract.acceptedAtTick = undefined;
+    // .. if the contract was BREACHED rather than cancelled
+    if (breakFault === CONTRACT_BREAK_FAULT.Shipper) {
+      if (!contract.shipperId) {
+        logError(
+          ` - CONTRACT BREAK ERROR: Contract isn't currently assigned to a shipper - breach handling not possible`,
+        );
+        return;
+      }
+      // .. apply a financial penalty equal to the value of the goods NOT delivered
+      // .. TODO: the penalty should also include the value of the goods in some cases, like if they were damaged in transit
+      // or straight up lost by the shipper
+      const penalty =
+        (1 - contract.deliveredAmount / contract.totalAmount) *
+        contract.payment;
 
-    if (
-      notificationConfig.logContractNotifications.all ||
-      notificationConfig.logContractNotifications.update
-    ) {
-      logInfo(
-        ` - Contract ${highlight.yellow(contract.id)} is now unassigned and available for acceptance`,
+      transferCompanyFunds(
+        getCompanyById(state, contract.shipperId!),
+        contractDestinationCompany,
+        penalty,
       );
+
+      if (contract.truckId) {
+        const truck = getTruckById(state, contract.truckId);
+        stopTruck(truck);
+        truck.contractId = undefined;
+      }
+      archiveContract(state, contract);
+
+      if (
+        notificationConfig.logContractNotifications.all ||
+        notificationConfig.logContractNotifications.update
+      ) {
+        logInfo(
+          ` - Contract ${highlight.yellow(contract.id)} was breached by the shipper - a penalty of ${penalty} has been transferred from the shipper to the destination company`,
+        );
+      }
     }
   }
 };

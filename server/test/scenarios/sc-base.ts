@@ -2,6 +2,7 @@ import { ITown, LOCATION_TYPE } from "@logisim/lib/entities";
 import { setGlobalSeed } from "../../../lib/dist/utils/mathUtils";
 import { logisimApi } from "../../src/api";
 import { runBaseSimulation } from "../testHelpers/baseSimulation";
+import { saveLogs } from "../../../lib/dist/utils/logUtils";
 
 setGlobalSeed("base-scenario-seed");
 const world = runBaseSimulation({
@@ -17,6 +18,8 @@ const world = runBaseSimulation({
     }
   },
 });
+
+saveLogs();
 
 const towns: ITown[] = world
   .getLocations()

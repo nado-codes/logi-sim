@@ -5,6 +5,7 @@ import {
   breakContract,
   CONTRACT_BREAK_TYPE,
   getContractByLocationIdOrNull,
+  CONTRACT_BREAK_FAULT,
 } from "../contracts";
 import { IWorld } from "../world";
 import {
@@ -303,12 +304,17 @@ export const deleteLocation = (state: IWorldState, location: ILocation) => {
   }
 
   if (locationContract) {
-    const breakType =
+    const breakFault =
       location.id === locationContract.supplierId
-        ? CONTRACT_BREAK_TYPE.Supplier
-        : CONTRACT_BREAK_TYPE.Destination;
+        ? CONTRACT_BREAK_FAULT.Supplier
+        : CONTRACT_BREAK_FAULT.Destination;
 
-    breakContract(state, locationContract, breakType);
+    breakContract(
+      state,
+      locationContract,
+      CONTRACT_BREAK_TYPE.Cancellation,
+      breakFault,
+    );
   }
 
   switch (location.locationType) {

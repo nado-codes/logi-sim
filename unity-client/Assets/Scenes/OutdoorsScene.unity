@@ -3368,6 +3368,26 @@ PrefabInstance:
       propertyPath: m_Name
       value: CompanyInfo
       objectReference: {fileID: 0}
+    - target: {fileID: 921351047904655635, guid: 7b5d027c08467ef45885ba480d25c070,
+        type: 3}
+      propertyPath: m_fontColor.b
+      value: 0.061194897
+      objectReference: {fileID: 0}
+    - target: {fileID: 921351047904655635, guid: 7b5d027c08467ef45885ba480d25c070,
+        type: 3}
+      propertyPath: m_fontColor.g
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 921351047904655635, guid: 7b5d027c08467ef45885ba480d25c070,
+        type: 3}
+      propertyPath: m_fontColor.r
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 921351047904655635, guid: 7b5d027c08467ef45885ba480d25c070,
+        type: 3}
+      propertyPath: m_fontColor32.rgba
+      value: 4279238911
+      objectReference: {fileID: 0}
     - target: {fileID: 6593177217566796784, guid: 7b5d027c08467ef45885ba480d25c070,
         type: 3}
       propertyPath: m_Interactable

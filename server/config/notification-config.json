@@ -7,7 +7,7 @@
     "all": false,
     "creation": false,
     "assignment": false,
-    "update": false,
+    "update": true,
     "completion": false,
     "breach": false
   },
