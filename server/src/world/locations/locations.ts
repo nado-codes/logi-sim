@@ -6,6 +6,7 @@ import {
   CONTRACT_BREAK_TYPE,
   getContractByLocationIdOrNull,
   CONTRACT_BREAK_FAULT,
+  contractConfig,
 } from "../contracts";
 import { IWorld } from "../world";
 import {
@@ -269,9 +270,7 @@ export const checkInputStorage = (state: IWorldState, location: ILocation) => {
             logWarning(`- No nearby suppliers to resupply ${location.name}`);
           }
         } else {
-          // .. if there's literally NO STOCK left, we need to create an URGENT contract (due sooner, more needs to be transported)
-          const truckSpeed = 2;
-          const dueTicks = closestDistance / truckSpeed;
+          const dueTicks = closestDistance * contractConfig.bufferMultiplier;
 
           createContract(
             state,

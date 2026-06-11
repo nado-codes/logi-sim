@@ -6,11 +6,7 @@ import {
 } from "./companies";
 import { getLocationById } from "./locations/locations";
 import { getTruckById, setTruckContract, stopTruck } from "./trucks";
-import {
-  canStoreResourceType,
-  getResourceCount,
-  getResourceStorage,
-} from "./storages";
+import { canStoreResourceType, getResourceStorage } from "./storages";
 import { loadConfig } from "../utils/configUtils";
 import {
   logInfo,
@@ -38,6 +34,7 @@ type UrgencyMultiplier = {
 interface IContractConfig {
   perUnitRate: number;
   distanceRate: number;
+  bufferMultiplier: number;
   urgencyMultipliers: {
     critical: UrgencyMultiplier;
     urgent: UrgencyMultiplier;
@@ -48,6 +45,7 @@ interface IContractConfig {
 const defaultConfig: IContractConfig = {
   perUnitRate: 5,
   distanceRate: 2,
+  bufferMultiplier: 3,
   urgencyMultipliers: {
     critical: {
       threshold: 3,
