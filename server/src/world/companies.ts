@@ -145,52 +145,50 @@ export const transferCompanyFunds = (
   }
 };
 
-export const transferCompanyFundsToState = (
-  fromCompany: ICompany,
+const collectFromCompany = (
+  state: IWorldState,
+  debtor: ICompany,
+  creditor: ICompany,
   amount: number,
-): COMPANY_OP_RESULT => {
-  if (fromCompany.money >= amount || fromCompany.options.hasUnlimitedMoney) {
-    if (!fromCompany.options.hasUnlimitedMoney) {
-      fromCompany.money -= Math.abs(amount);
-    }
-
-    const transferString = `${highlight.yellow(fromCompany.name)} paid ${highlight.yellow("$" + amount)} to ${highlight.yellow("The State")}`;
-    const moneyString =
-      fromCompany.money > 0
-        ? `${highlight.yellow("$" + fromCompany.money)}`
-        : `${highlight.red("$" + fromCompany.money)}`;
-
-    if (
-      notificationConfig.logCompanyNotifications.all ||
-      notificationConfig.logCompanyNotifications.money
-    ) {
-      logInfo(`${transferString} and has ${moneyString} left`);
-    }
-
-    return COMPANY_OP_RESULT.SUCCESS;
+) => {
+  if (debtor.money >= amount) {
+    transferCompanyFunds(debtor, creditor, amount);
   } else {
-    return COMPANY_OP_RESULT.INSUFFICIENT_FUNDS;
+    // .. try to auto-resolve debts with company assets (locations & trucks) (for AI companies)
+    // .. for player companies, we MUST give them the option to choose what assets to sell off
+    // set an insolvency flag on player companies so they can't operate, then prompt them to sell off
+    // assets within a given timeframe, or the company will be liquidated
+    // players can also choose to auto-resolve debts (runs the auto-resolver) OR declare bankruptcy which
+    // will immediately liquidate the company
+    const debtorLocations = state
+      .getLocations()
+      .filter((l) => l.companyId === debtor.id);
+    const debtorTrucks = state.trucks.filter((t) => t.companyId === debtor.id);
+
+    const partialAmount = debtor.money;
+    transferCompanyFunds(debtor, creditor, partialAmount);
+
+    // remaining debt triggers insolvency
+    //debtor.isInsolvent = true;
   }
 };
 
 export const transferCompanyFundsFromState = (
+  state: IWorldState,
   toCompany: ICompany,
   amount: number,
 ) => {
-  toCompany.money += Math.abs(amount);
+  const stateCompany = getCompanyByName(state, "State");
+  return transferCompanyFunds(stateCompany, toCompany, amount);
+};
 
-  const transferString = `${highlight.yellow(toCompany.name)} was paid ${highlight.yellow("$" + amount)} by ${highlight.yellow("The State")}`;
-  const moneyString =
-    toCompany.money > 0
-      ? `${highlight.yellow("$" + toCompany.money)}`
-      : `${highlight.red("$" + toCompany.money)}`;
-
-  if (
-    notificationConfig.logCompanyNotifications.all ||
-    notificationConfig.logCompanyNotifications.money
-  ) {
-    logInfo(`${transferString} and now has ${moneyString}`);
-  }
+export const transferCompanyFundsToState = (
+  state: IWorldState,
+  fromCompany: ICompany,
+  amount: number,
+): COMPANY_OP_RESULT => {
+  const stateCompany = getCompanyByName(state, "State");
+  return transferCompanyFunds(fromCompany, stateCompany, amount);
 };
 
 const tryCreateTown = (state: IWorldState, company: ICompany) => {
