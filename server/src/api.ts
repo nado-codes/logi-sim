@@ -1,10 +1,6 @@
 import express from "express";
 import { IWorld } from "./world/world";
-import {
-  transferCompanyFundsToState,
-  transferCompanyFundsFromState,
-} from "./world/companies";
-import { ILocation, ITown, LOCATION_TYPE } from "@logisim/lib/entities";
+import { LOCATION_TYPE } from "@logisim/lib/entities";
 import { logEntries } from "@logisim/lib/utils";
 import Anthropic from "@anthropic-ai/sdk";
 import path from "path";
@@ -252,7 +248,7 @@ Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, 
           return;
         }
 
-        transferCompanyFundsToState(company, truckItem.price);
+        world.transferFundsToState(company, truckItem.price);
 
         const truck = world.createTruckFromItemId(itemId, companyId, position);
 
@@ -270,7 +266,7 @@ Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, 
         if (truck.itemId) {
           const truckItem = world.getTruckItemById(truck.itemId);
           const truckCompany = world.getCompanyById(truck.companyId);
-          transferCompanyFundsFromState(truckCompany, truckItem.price);
+          world.transferFundsFromState(truckCompany, truckItem.price);
         } else {
           res.status(400).send({
             error:
@@ -467,7 +463,7 @@ Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, 
       try {
         const { companyId, amount } = req.body;
         const company = world.getCompanyById(companyId);
-        const result = transferCompanyFundsToState(company, amount);
+        const result = world.transferFundsToState(company, amount);
         res.send({ success: result === 0 }); // 0 = SUCCESS
       } catch (error) {
         res.status(400).send({ error: "Failed to transfer funds" });
@@ -478,7 +474,7 @@ Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, 
       try {
         const { companyId, amount } = req.body;
         const company = world.getCompanyById(companyId);
-        transferCompanyFundsFromState(company, amount);
+        world.transferFundsFromState(company, amount);
         res.send({ success: true });
       } catch (error) {
         res.status(400).send({ error: "Failed to transfer funds" });

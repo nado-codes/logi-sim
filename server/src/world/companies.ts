@@ -3,9 +3,17 @@ import { loadGeographyConfig } from "./geographies";
 import { randomUUID } from "node:crypto";
 import { loadNotificationConfig } from "../notifications";
 import { createTown, loadTownConfig } from "./locations/consumers/towns";
-import { getLocationById } from "./locations/locations";
+import {
+  getLocationById,
+  getLocationItemById,
+  getLocationItemByIdOrNull,
+} from "./locations/locations";
 import { assignContractToTruck } from "./contracts";
-import { loadTruckConfig } from "./trucks";
+import {
+  getTruckItemById,
+  getTruckItemByIdOrNull,
+  loadTruckConfig,
+} from "./trucks";
 import { loadConfig } from "../utils/configUtils";
 import {
   IWorldState,
@@ -31,7 +39,7 @@ const notificationConfig = loadNotificationConfig();
 const townConfig = loadTownConfig();
 const truckConfig = loadTruckConfig();
 
-export enum COMPANY_OP_RESULT {
+export enum COMPANY_TRANSFER_RESULT {
   SUCCESS,
   INSUFFICIENT_FUNDS,
 }
@@ -60,6 +68,8 @@ export const createCompany = (
 ): ICompany => {
   const newCompany: ICompany = {
     ...createNamedEntity(name),
+    isInsolvent: false,
+    debts: [],
     money,
     color,
     options: { ...defaultCompanyOptions, ...options },
@@ -121,7 +131,7 @@ export const transferCompanyFunds = (
   fromCompany: ICompany,
   toCompany: ICompany,
   amount: number,
-): COMPANY_OP_RESULT => {
+): COMPANY_TRANSFER_RESULT => {
   if (fromCompany.money >= amount || fromCompany.options.hasUnlimitedMoney) {
     if (!fromCompany.options.hasUnlimitedMoney) {
       fromCompany.money -= Math.abs(amount);
@@ -139,37 +149,105 @@ export const transferCompanyFunds = (
       logInfo(`${transferString} and has ${moneyString} left`);
     }
 
-    return COMPANY_OP_RESULT.SUCCESS;
+    return COMPANY_TRANSFER_RESULT.SUCCESS;
   } else {
-    return COMPANY_OP_RESULT.INSUFFICIENT_FUNDS;
+    return COMPANY_TRANSFER_RESULT.INSUFFICIENT_FUNDS;
   }
 };
 
 const collectFromCompany = (
   state: IWorldState,
-  debtor: ICompany,
-  creditor: ICompany,
+  debtorCompany: ICompany,
+  creditorCompany: ICompany,
   amount: number,
+  reason: string,
 ) => {
-  if (debtor.money >= amount) {
-    transferCompanyFunds(debtor, creditor, amount);
+  if (debtorCompany.money >= amount) {
+    transferCompanyFunds(debtorCompany, creditorCompany, amount);
   } else {
+    let amountLeftToPay = amount - Math.max(0, debtorCompany.money);
+    transferCompanyFunds(debtorCompany, creditorCompany, debtorCompany.money);
+    debtorCompany.money -= amountLeftToPay;
+    debtorCompany.isInsolvent = true;
+
+    if (
+      notificationConfig.logCompanyNotifications.all ||
+      notificationConfig.logCompanyNotifications.money
+    ) {
+      logWarning(
+        `[COMPANY] ${debtorCompany.name} is now insolvent and must cease trading until debts are paid via asset reposession`,
+      );
+    }
+
+    const existingDebtWithCreditor = debtorCompany.debts.find(
+      (d) => d.creditorCompanyId === creditorCompany.id,
+    );
+
+    if (!existingDebtWithCreditor) {
+      debtorCompany.debts.push({
+        createdAtTick: state.currentTick,
+        creditorCompanyId: creditorCompany.id,
+        amount: amountLeftToPay,
+        reason,
+      });
+    } else {
+      existingDebtWithCreditor.amount += amountLeftToPay;
+    }
+
     // .. try to auto-resolve debts with company assets (locations & trucks) (for AI companies)
     // .. for player companies, we MUST give them the option to choose what assets to sell off
     // set an insolvency flag on player companies so they can't operate, then prompt them to sell off
     // assets within a given timeframe, or the company will be liquidated
     // players can also choose to auto-resolve debts (runs the auto-resolver) OR declare bankruptcy which
     // will immediately liquidate the company
-    const debtorLocations = state
+    const debtorLocationItems = state
       .getLocations()
-      .filter((l) => l.companyId === debtor.id);
-    const debtorTrucks = state.trucks.filter((t) => t.companyId === debtor.id);
+      .filter((l) => l.companyId === debtorCompany.id && l.itemId)
+      .map((l) => getLocationItemById(l.itemId));
+    const debtorTruckItems = state.trucks
+      .filter((t) => t.companyId === debtorCompany.id && t.itemId)
+      .map((t) => getTruckItemById(t.itemId));
+    const debtorAssetItemsByValue = [
+      ...debtorLocationItems,
+      ...debtorTruckItems,
+    ].sort((a, b) => a.price - b.price);
 
-    const partialAmount = debtor.money;
-    transferCompanyFunds(debtor, creditor, partialAmount);
+    const debtorTotalAssetValue = debtorAssetItemsByValue
+      .map((li) => li!.price)
+      .reduce((a, c) => a + c, 0);
+    const sumTotalCompanyDebts = debtorCompany.debts
+      .map((d) => d.amount)
+      .reduce((a, c) => a + c, 0);
 
-    // remaining debt triggers insolvency
-    //debtor.isInsolvent = true;
+    if (debtorTotalAssetValue >= sumTotalCompanyDebts) {
+      if (
+        debtorCompany.options.isAiEnabled &&
+        creditorCompany.options.isAiEnabled
+      ) {
+        debtorAssetItemsByValue.forEach((i) => {
+          if (amountLeftToPay <= 0) {
+            return;
+          }
+          amountLeftToPay -= i.price;
+        });
+        // .. auto-resolve by selling off enough assets to pay back the debt
+        // .. we'll do it randomly for AI companies, but player companies need to resolve debts manually
+        // .. should we just resolve debts with finances? or could player-to-player or even AI-to-player
+        // debts be resolved through arbitration/compromise e.g. creditor company is happy to take a financial
+        // loss in exchange for (x y z) asset, or they just want to liquidate the debtor company/take all their
+        // payment in cash rather than assets
+      }
+    } else {
+      // .. it's not possible to resolve debts with assets, so the company must be liquidated
+      if (
+        notificationConfig.logCompanyNotifications.all ||
+        notificationConfig.logCompanyNotifications.money
+      ) {
+        logWarning(
+          `[COMPANY] ${debtorCompany.name} is insolvent but is unable to pay their debts, and will be liquidated`,
+        );
+      }
+    }
   }
 };
 
@@ -186,7 +264,7 @@ export const transferCompanyFundsToState = (
   state: IWorldState,
   fromCompany: ICompany,
   amount: number,
-): COMPANY_OP_RESULT => {
+): COMPANY_TRANSFER_RESULT => {
   const stateCompany = getCompanyByName(state, "State");
   return transferCompanyFunds(fromCompany, stateCompany, amount);
 };

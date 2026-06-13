@@ -31,6 +31,7 @@ import {
   IContract,
   Pos3D,
   IVehicleItem,
+  Nullable,
 } from "@logisim/lib/entities";
 import {
   logSuccess,
@@ -164,6 +165,15 @@ export const getTruckItemById = (id: string): IVehicleItem => {
   if (truckData === undefined) {
     throw Error(`Truck with itemId ${id} doesn't exist`);
   }
+
+  return truckData;
+};
+
+export const getTruckItemByIdOrNull = (
+  id: string | undefined,
+): Nullable<IVehicleItem> => {
+  const trucksData = loadJSON("data/trucks.json") as IVehicleItem[];
+  const truckData = trucksData.find((td) => td.id === id);
 
   return truckData;
 };
@@ -361,7 +371,7 @@ export const updateTrucks = (state: IWorldState) => {
               state.currentTick - truckContract.acceptedAtTick;
             const operatingCost = deliveryTime * truckConfig.baseOperatingCost;
 
-            transferCompanyFundsToState(truckCompany, operatingCost);
+            transferCompanyFundsToState(state, truckCompany, operatingCost);
 
             if (
               notificationConfig.logTruckNotifications.all ||

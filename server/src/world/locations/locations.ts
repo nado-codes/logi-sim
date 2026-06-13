@@ -140,7 +140,7 @@ export const getLocationByIdOrNull = (
 export const getLocationByPositionOrNull = (
   state: IWorldState,
   position: Pos3D,
-) => {
+): Nullable<ILocation> => {
   const location = state
     .getLocations()
     .find((l) => positionsAreEqual(l.position, position));
@@ -148,13 +148,21 @@ export const getLocationByPositionOrNull = (
   return location;
 };
 
-export const getLocationItemById = (id: string): ILocationItem => {
+export const getLocationItemById = (id: string) => {
   const locationsData = loadJSON("data/locations.json") as ILocationItem[];
   const locationData = locationsData.find((ld) => ld.id === id);
 
   if (!locationData) {
-    throw Error(`[CRITICAL SYSTEM ERROR] Location with id ${id} doesn't exist`);
+    throw Error(`LocationItem with id ${id} doesn't exist`);
   }
+
+  return locationData;
+};
+export const getLocationItemByIdOrNull = (
+  id: string | undefined,
+): Nullable<ILocationItem> => {
+  const locationsData = loadJSON("data/locations.json") as ILocationItem[];
+  const locationData = locationsData.find((ld) => ld.id === id);
 
   return locationData;
 };

@@ -31,10 +31,14 @@ import {
   updateTrucks,
 } from "./trucks";
 import {
+  COMPANY_TRANSFER_RESULT,
   createCompany,
   getCompanyById,
   getCompanyByIdOrNull,
   getCompanyByName,
+  transferCompanyFunds,
+  transferCompanyFundsFromState,
+  transferCompanyFundsToState,
   updateCompanies,
 } from "./companies";
 import {
@@ -139,7 +143,11 @@ export interface IWorld {
     startWithFullOutputs?: boolean,
   ) => ILocation;
 
-  createLocationFromItemId: (itemId: string, companyId: string, position: Pos3D) => ILocation;
+  createLocationFromItemId: (
+    itemId: string,
+    companyId: string,
+    position: Pos3D,
+  ) => ILocation;
 
   createTown: (
     name: string,
@@ -157,7 +165,11 @@ export interface IWorld {
     dueTicks: number,
   ) => IContract;
 
-  createTruckFromItemId: (itemId: string,companyId:string,position: Pos3D) => ITruck,
+  createTruckFromItemId: (
+    itemId: string,
+    companyId: string,
+    position: Pos3D,
+  ) => ITruck;
 
   createTruck: (
     name: string,
@@ -172,7 +184,17 @@ export interface IWorld {
   assignContractToTruck: (contract: IContract, truck: ITruck) => boolean;
   assignContractToCompany: (contract: IContract, company: ICompany) => boolean;
   breakContract: (contract: IContract, breakType: CONTRACT_BREAK_TYPE) => void;
-  reseedTown: (town: ITown) => void;
+
+  transferCompanyFunds: (
+    fromCompany: ICompany,
+    toCompany: ICompany,
+    amount: number,
+  ) => void;
+  transferFundsToState: (
+    fromCompany: ICompany,
+    amount: number,
+  ) => COMPANY_TRANSFER_RESULT;
+  transferFundsFromState: (toCompany: ICompany, amount: number) => void;
 
   deleteTruck: (truck: ITruck) => void;
   deleteLocation: (location: ILocation) => void;
@@ -249,7 +271,7 @@ export const createWorld = (): IWorld => {
       getLocationByIdOrNull(state, id),
     getLocationItemById: (itemId: string) => getLocationItemById(itemId),
     getLocationItems: () => getLocationItems(),
-    
+
     getCompanies: () => state.companies,
     getCompanyById: (id: string) => getCompanyById(state, id),
     getCompanyByIdOrNull: (id: string) => getCompanyByIdOrNull(state, id),
@@ -304,8 +326,12 @@ export const createWorld = (): IWorld => {
         startWithFullInputs,
         startWithFullOutputs,
       ),
-    
-    createLocationFromItemId: (itemId: string, companyId: string, position: Pos3D) => createLocationFromItemId(state, itemId, companyId, position),
+
+    createLocationFromItemId: (
+      itemId: string,
+      companyId: string,
+      position: Pos3D,
+    ) => createLocationFromItemId(state, itemId, companyId, position),
 
     createTown: (name: string, companyId: string, position: Pos3D) =>
       createTown(state, name, companyId, position),
@@ -348,7 +374,11 @@ export const createWorld = (): IWorld => {
         resourceCount,
       ),
 
-    createTruckFromItemId: (itemId: string, companyId: string, position: Pos3D) => createTruckFromItemId(state, itemId, companyId, position),
+    createTruckFromItemId: (
+      itemId: string,
+      companyId: string,
+      position: Pos3D,
+    ) => createTruckFromItemId(state, itemId, companyId, position),
 
     assignContractToTruck: (contract: IContract, truck: ITruck) =>
       assignContractToTruck(state, contract, truck),
@@ -356,12 +386,17 @@ export const createWorld = (): IWorld => {
       assignContractToCompany(state, contract, company),
     breakContract: (contract: IContract, breakType: CONTRACT_BREAK_TYPE) =>
       breakContract(state, contract, breakType),
-    reseedTown: (town: ITown) => {
-      reseedTown(town);
-    },
+    transferCompanyFunds: (
+      fromCompany: ICompany,
+      toCompany: ICompany,
+      amount: number,
+    ) => transferCompanyFunds(fromCompany, toCompany, amount),
+    transferFundsToState: (fromCompany: ICompany, amount: number) =>
+      transferCompanyFundsToState(state, fromCompany, amount),
+    transferFundsFromState: (toCompany: ICompany, amount: number) =>
+      transferCompanyFundsFromState(state, toCompany, amount),
 
     deleteTruck: (truck: ITruck) => deleteTruck(state, truck),
-    deleteLocation: (location: ILocation) =>
-      deleteLocation(state, location),
+    deleteLocation: (location: ILocation) => deleteLocation(state, location),
   };
 };

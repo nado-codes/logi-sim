@@ -1,9 +1,17 @@
 import { Color } from "../utils/color";
 import { IBaseEntity, INamedEntity } from "./entity";
 
+export interface ICompanyDebt {
+  creditorCompanyId: string;
+  amount: number;
+  reason: string;
+  createdAtTick: number;
+}
 export interface ICompany extends INamedEntity {
   money: number;
   color: Color;
+  isInsolvent: boolean;
+  debts: ICompanyDebt[];
   options: ICreateCompanyOptions;
 }
 
@@ -21,5 +29,5 @@ export const defaultCompanyOptions: ICreateCompanyOptions = {
 
 export interface ICompanyEntity extends IBaseEntity {
   companyId: string;
-  itemId?: string;
+  itemId: string;
 }
