@@ -1,13 +1,15 @@
 import { ICompanyEntity } from "./company";
 import { IWorldEntity } from "./entity";
 import { IBaseItem } from "./item";
+import { IMarketplaceEntity } from "./marketplace";
 import { IStorage } from "./storage";
 
 export enum VEHICLE_TYPE {
   Truck = "Truck",
 }
 
-export interface IVehicle extends IWorldEntity, ICompanyEntity {
+export interface IVehicle
+  extends IWorldEntity, ICompanyEntity, IMarketplaceEntity {
   vehicleType: VEHICLE_TYPE;
   storage: IStorage;
   speed: number;

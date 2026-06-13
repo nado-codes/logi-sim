@@ -53,43 +53,12 @@ const storageConfig = loadStorageConfig();
 
 // .. CREATE
 
-export const createLocation = (
-  name: string,
-  companyId: string,
-  position: Pos3D,
-  recipe: IRecipe,
-  locationType: LOCATION_TYPE,
-  startWithFullInputs: boolean = false,
-  startWithFullOutputs: boolean = false,
-): ILocation => {
-  const worldEntity = createWorldEntity(
-    WorldEntityType.Location,
-    position,
-    name,
-  );
-
-  const storage = createRecipeStorage(
-    worldEntity.id,
-    recipe,
-    startWithFullInputs,
-    startWithFullOutputs,
-  );
-
-  return {
-    ...worldEntity,
-    storage,
-    recipe,
-    locationType,
-    companyId,
-  };
-};
-
 export const createLocationFromItemId = (
   state: IWorldState,
   itemId: string,
   companyId: string,
   position: Pos3D,
-) => {
+): ILocation => {
   const locationsData = loadJSON("data/locations.json") as ILocationItem[];
   const locationData = locationsData.find((ld) => ld.id === itemId);
 
@@ -99,13 +68,22 @@ export const createLocationFromItemId = (
     );
   }
 
-  const location = createLocation(
-    locationData.name,
-    companyId,
+  const worldEntity = createWorldEntity(
+    WorldEntityType.Location,
     position,
-    locationData.recipe,
-    locationData.locationType,
+    locationData.name,
   );
+
+  const storage = createRecipeStorage(worldEntity.id, locationData.recipe);
+
+  const location: ILocation = {
+    ...worldEntity,
+    itemId,
+    storage,
+    recipe: locationData.recipe,
+    locationType: locationData.locationType,
+    companyId,
+  };
 
   if (location.locationType === LOCATION_TYPE.Producer) {
     state.producers.push(location);

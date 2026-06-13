@@ -1,7 +1,6 @@
 [
   {
     "id": "location-grainfarm",
-    "itemType": "Location",
     "name": "Grain Farm",
     "recipe": {
       "inputs": {},
@@ -14,7 +13,6 @@
   },
   {
     "id": "location-flourmill",
-    "itemType": "Location",
     "name": "Flour Mill",
     "recipe": {
       "inputs": {
@@ -29,7 +27,6 @@
   },
   {
     "id": "location-bakery",
-    "itemType": "Location",
     "name": "Bakery",
     "recipe": {
       "inputs": {

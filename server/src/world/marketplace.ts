@@ -1,16 +1,83 @@
-import { EItemType, IWorldState } from "@logisim/lib/entities";
+import {
+  EMarketplaceTransactionResult,
+  IBaseEntity,
+  IBaseItem,
+  ICompany,
+  ICompanyEntity,
+  IMarketplaceEntity,
+  IWorldState,
+} from "@logisim/lib/entities";
+import { getLocationItems } from "./locations/locations";
+import { getTruckItems } from "./trucks";
+import {
+  COMPANY_TRANSFER_RESULT,
+  transferCompanyFundsFromState,
+  transferCompanyFundsToState,
+} from "./companies";
+
+export const getMarketplaceItemById = (itemId: string) => {
+  const marketplaceItems = [
+    ...getLocationItems(),
+    ...getTruckItems(),
+  ] as IBaseItem[];
+  const marketplaceItem = marketplaceItems.find((i) => i.id === itemId);
+
+  if (!marketplaceItem) {
+    throw new Error(`Marketplace item with id ${itemId} doesn't exist`);
+  }
+
+  return marketplaceItem;
+};
 
 export const purchaseItem = (
   state: IWorldState,
-  itemType: EItemType,
   itemId: string,
-  ownerCompanyId: string,
-) => {
-  // .. purchase a non-existant entity from the state and spawn it in exchange for cash
+  buyerCompany: ICompany,
+): EMarketplaceTransactionResult => {
+  // .. purchase a non-existant entity from the state
   // .. eventually, this will be overidden by the "sellItem" system where almost all items are traded between companies
   // .. and only certain items will be created by the state
+  // .. the caller will then spawn it in exchange for cash
+  const marketplaceItem = getMarketplaceItemById(itemId);
+  const paymentResult = transferCompanyFundsToState(
+    state,
+    buyerCompany,
+    marketplaceItem.price,
+  );
+
+  if (paymentResult === COMPANY_TRANSFER_RESULT.SUCCESS) {
+    return EMarketplaceTransactionResult.SUCCESS;
+  } else if (paymentResult === COMPANY_TRANSFER_RESULT.INSUFFICIENT_FUNDS) {
+    return EMarketplaceTransactionResult.INSUFFICIENT_FUNDS;
+  }
+
+  return EMarketplaceTransactionResult.UNKNOWN_ERROR;
 };
 
-export const sellItem = (state: IWorldState, entityId: string) => {
+export const sellItem = (
+  state: IWorldState,
+  itemId: string,
+  sellerCompany: ICompany,
+): EMarketplaceTransactionResult => {
   // .. transfer an existing entity from one company to another (or the state) in exchange for cash
+  const marketplaceItem = getMarketplaceItemById(itemId);
+  const paymentResult = transferCompanyFundsFromState(
+    state,
+    sellerCompany,
+    marketplaceItem.price,
+  );
+
+  if (paymentResult === COMPANY_TRANSFER_RESULT.SUCCESS) {
+    return EMarketplaceTransactionResult.SUCCESS;
+  }
+
+  return EMarketplaceTransactionResult.UNKNOWN_ERROR;
+};
+
+export const reposessItem = (
+  debtorCompany: ICompany,
+  creditorCompany: ICompany,
+  item: IMarketplaceEntity & ICompanyEntity,
+): EMarketplaceTransactionResult => {
+  return EMarketplaceTransactionResult.SUCCESS;
 };

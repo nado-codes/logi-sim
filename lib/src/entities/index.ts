@@ -3,6 +3,7 @@ export * from "./contract";
 export * from "./entity";
 export * from "./geography";
 export * from "./item";
+export * from "./marketplace";
 export * from "./storage";
 export * from "./truck";
 export * from "./world";

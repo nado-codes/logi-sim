@@ -29,5 +29,4 @@ export const defaultCompanyOptions: ICreateCompanyOptions = {
 
 export interface ICompanyEntity extends IBaseEntity {
   companyId: string;
-  itemId: string;
 }

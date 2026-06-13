@@ -1,5 +1,4 @@
 import { loadNotificationConfig } from "../../notifications";
-import { createLocation } from "./locations";
 import {
   getOutputStorage,
   getResourceCapacity,
@@ -16,32 +15,6 @@ import {
 import { logWarning, logSuccess, logError, logInfo } from "@logisim/lib/utils";
 
 const notificationConfig = loadNotificationConfig();
-
-export const createProducer = (
-  state: IWorldState,
-  name: string,
-  companyId: string,
-  position: Pos3D,
-  produces: RESOURCE_TYPE,
-  productionRate: number,
-  startFull: boolean = false,
-) => {
-  const recipe: IRecipe = { outputs: { [produces]: productionRate } };
-
-  const newProducer = createLocation(
-    name,
-    companyId,
-    position,
-    recipe,
-    LOCATION_TYPE.Producer,
-    false,
-    startFull,
-  );
-
-  state.producers.push(newProducer);
-
-  return newProducer;
-};
 
 export const updateProducers = (state: IWorldState) => {
   state.producers.forEach((producer) => {

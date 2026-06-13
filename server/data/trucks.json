@@ -1,7 +1,6 @@
 [
   {
     "id": "truck-flour",
-    "itemType": "Truck",
     "name": "Flour Truck",
     "resourceCapacity": 10000,
     "resourceItemId": "resource-flour",
@@ -10,7 +9,6 @@
   },
   {
     "id": "truck-grain",
-    "itemType": "Truck",
     "name": "Grain Truck",
     "resourceCapacity": 10000,
     "resourceItemId": "resource-grain",
@@ -19,7 +17,6 @@
   },
   {
     "id": "truck-bigFlour",
-    "itemType": "Truck",
     "name": "Big Flour Truck",
     "resourceCapacity": 1000000,
     "resourceItemId": "resource-flour",
