@@ -1,6 +1,5 @@
 import {
   EMarketplaceTransactionResult,
-  IBaseEntity,
   IBaseItem,
   ICompany,
   ICompanyEntity,
@@ -14,6 +13,7 @@ import {
   transferCompanyFundsFromState,
   transferCompanyFundsToState,
 } from "./companies";
+import { logError } from "@logisim/lib/utils";
 
 export const getMarketplaceItemById = (itemId: string) => {
   const marketplaceItems = [
@@ -79,5 +79,14 @@ export const reposessItem = (
   creditorCompany: ICompany,
   item: IMarketplaceEntity & ICompanyEntity,
 ): EMarketplaceTransactionResult => {
+  if (item.companyId !== debtorCompany.id) {
+    logError(
+      `[MARKETPLACE ERROR] The item with id ${item.id} doesn't belong to ${debtorCompany.name}`,
+    );
+    return EMarketplaceTransactionResult.REPOSESS_ERROR;
+  }
+
+  item.companyId = creditorCompany.id;
+
   return EMarketplaceTransactionResult.SUCCESS;
 };

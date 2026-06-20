@@ -3,17 +3,9 @@ import { loadGeographyConfig } from "./geographies";
 import { randomUUID } from "node:crypto";
 import { loadNotificationConfig } from "../notifications";
 import { createTown, loadTownConfig } from "./locations/consumers/towns";
-import {
-  getLocationById,
-  getLocationItemById,
-  getLocationItemByIdOrNull,
-} from "./locations/locations";
+import { getLocationById, getLocationItemById } from "./locations/locations";
 import { assignContractToTruck } from "./contracts";
-import {
-  getTruckItemById,
-  getTruckItemByIdOrNull,
-  loadTruckConfig,
-} from "./trucks";
+import { getTruckItemById, loadTruckConfig } from "./trucks";
 import { loadConfig } from "../utils/configUtils";
 import {
   IWorldState,
@@ -155,7 +147,7 @@ export const transferCompanyFunds = (
   }
 };
 
-const collectFromCompany = (
+export const collectFromCompany = (
   state: IWorldState,
   debtorCompany: ICompany,
   creditorCompany: ICompany,

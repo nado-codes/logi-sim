@@ -1,5 +1,6 @@
 import { loadNotificationConfig } from "../notifications";
 import {
+  collectFromCompany,
   createCompanyEntity,
   getCompanyById,
   transferCompanyFunds,
@@ -501,10 +502,12 @@ export const breakContract = (
         (1 - contract.deliveredAmount / contract.totalAmount) *
         contract.payment;
 
-      transferCompanyFunds(
-        getCompanyById(state, contract.shipperId!),
+      collectFromCompany(
+        state,
         contractDestinationCompany,
+        getCompanyById(state, contract.shipperId!),
         penalty,
+        "Shipper breached the contract",
       );
 
       if (contract.truckId) {
