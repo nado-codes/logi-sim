@@ -501,13 +501,14 @@ export const breakContract = (
       const penalty =
         (1 - contract.deliveredAmount / contract.totalAmount) *
         contract.payment;
+      const shipperCompany = getCompanyById(state, contract.shipperId!);
 
       collectFromCompany(
         state,
         contractDestinationCompany,
-        getCompanyById(state, contract.shipperId!),
+        shipperCompany,
         penalty,
-        "Shipper breached the contract",
+        `${shipperCompany.name} (shipper) breached a contract with ${contractDestinationCompany.name}`,
       );
 
       if (contract.truckId) {

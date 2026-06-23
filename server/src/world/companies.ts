@@ -25,6 +25,7 @@ import {
   random,
   getDistanceBetweenPositions,
 } from "@logisim/lib/utils";
+import { reposessAsset } from "./marketplace";
 
 const geographyConfig = loadGeographyConfig();
 const notificationConfig = loadNotificationConfig();
@@ -156,8 +157,14 @@ export const collectFromCompany = (
 ) => {
   if (debtorCompany.money >= amount) {
     transferCompanyFunds(debtorCompany, creditorCompany, amount);
+    logWarning(
+      `${creditorCompany.name} collected $${amount} from ${debtorCompany.name} because ${reason}`,
+    );
   } else {
     let amountLeftToPay = amount - Math.max(0, debtorCompany.money);
+    logWarning(
+      `${creditorCompany.name} collected $${amount} from ${debtorCompany.name} because ${reason} and must reposess some of ${debtorCompany.name}'s assets in order to pay the debts`,
+    );
     transferCompanyFunds(debtorCompany, creditorCompany, debtorCompany.money);
     debtorCompany.money -= amountLeftToPay;
     debtorCompany.isInsolvent = true;
@@ -195,32 +202,36 @@ export const collectFromCompany = (
     const debtorLocationItems = state
       .getLocations()
       .filter((l) => l.companyId === debtorCompany.id && l.itemId)
-      .map((l) => getLocationItemById(l.itemId));
+      .map((l) => ({
+        asset: l,
+        item: getLocationItemById(l.itemId),
+      }));
     const debtorTruckItems = state.trucks
       .filter((t) => t.companyId === debtorCompany.id && t.itemId)
-      .map((t) => getTruckItemById(t.itemId));
+      .map((t) => ({ asset: t, item: getTruckItemById(t.itemId) }));
     const debtorAssetItemsByValue = [
       ...debtorLocationItems,
       ...debtorTruckItems,
-    ].sort((a, b) => a.price - b.price);
+    ].sort((a, b) => a.item.price - b.item.price);
 
     const debtorTotalAssetValue = debtorAssetItemsByValue
-      .map((li) => li!.price)
+      .map((li) => li!.item.price)
       .reduce((a, c) => a + c, 0);
     const sumTotalCompanyDebts = debtorCompany.debts
       .map((d) => d.amount)
       .reduce((a, c) => a + c, 0);
 
     if (debtorTotalAssetValue >= sumTotalCompanyDebts) {
-      if (
-        debtorCompany.options.isAiEnabled &&
-        creditorCompany.options.isAiEnabled
-      ) {
-        debtorAssetItemsByValue.forEach((i) => {
+      if (debtorCompany.options.isAiEnabled) {
+        debtorAssetItemsByValue.forEach((assetItem) => {
           if (amountLeftToPay <= 0) {
             return;
           }
-          amountLeftToPay -= i.price;
+          reposessAsset(debtorCompany, creditorCompany, assetItem.asset);
+          amountLeftToPay -= assetItem.item.price;
+          logInfo(
+            `${debtorCompany.name} now has $${amountLeftToPay} left to pay to ${debtorCompany.name}`,
+          );
         });
         // .. auto-resolve by selling off enough assets to pay back the debt
         // .. we'll do it randomly for AI companies, but player companies need to resolve debts manually

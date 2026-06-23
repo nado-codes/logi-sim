@@ -34,13 +34,11 @@ export const runBaseSimulation = (options: {
 
   world.createTown("FlourVille", stateCompany.id, { x: 63, y: 0, z: 0 }, true);
 
-  world.createProducer(
-    "Farm",
-    stateCompany.id,
-    { x: 10, y: 0, z: 0 },
-    RESOURCE_TYPE.Grain,
-    2500,
-  );
+  world.createLocationFromItemId("location-grainfarm", stateCompany.id, {
+    x: 10,
+    y: 0,
+    z: 0,
+  });
   world.createProcessor(
     "Flour Mill",
     stateCompany.id,
