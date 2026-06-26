@@ -4,7 +4,7 @@
   "logProducerNotifications": false,
   "logConsumerNotifications": false,
   "logContractNotifications": {
-    "all": false,
+    "all": true,
     "creation": false,
     "assignment": false,
     "update": true,
@@ -32,5 +32,5 @@
     "population": false,
     "confidence": false
   },
-  "printLogs": false
+  "printLogs": true
 }

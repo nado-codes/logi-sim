@@ -1,7 +1,7 @@
 {
   "perUnitRate": 10,
   "distanceRate": 2,
-  "bufferMultiplier": 3,
+  "bufferMultiplier": 10,
   "urgencyMultipliers": {
     "critical": {
       "threshold": 3,

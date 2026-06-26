@@ -505,8 +505,8 @@ export const breakContract = (
 
       collectFromCompany(
         state,
-        contractDestinationCompany,
         shipperCompany,
+        contractDestinationCompany,
         penalty,
         `${shipperCompany.name} (shipper) breached a contract with ${contractDestinationCompany.name}`,
       );
