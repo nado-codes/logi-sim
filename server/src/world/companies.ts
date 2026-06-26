@@ -202,10 +202,13 @@ export const collectFromCompany = (
     const debtorLocationItems = state
       .getLocations()
       .filter((l) => l.companyId === debtorCompany.id && l.itemId)
-      .map((l) => ({
-        asset: l,
-        item: getLocationItemById(l.itemId),
-      }));
+      .map((l) => {
+        console.log("getting debtor item for ", l.name);
+        return {
+          asset: l,
+          item: getLocationItemById(l.itemId),
+        };
+      });
     const debtorTruckItems = state.trucks
       .filter((t) => t.companyId === debtorCompany.id && t.itemId)
       .map((t) => ({ asset: t, item: getTruckItemById(t.itemId) }));

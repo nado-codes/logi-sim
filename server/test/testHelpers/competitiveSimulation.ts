@@ -49,26 +49,16 @@ export const runCompetitiveSimulation = (options: {
   );
   world.createTown("Contractia", stateCompany.id, { x: 40, y: 0, z: 0 }, true);
 
-  const farm = world.createProducer(
-    "Farm",
-    stateCompany.id,
-    { x: 10, y: 0, z: 0 },
-    RESOURCE_TYPE.Grain,
-    2500,
-  );
-  const flourMill = world.createProcessor(
-    "Flour Mill",
-    stateCompany.id,
-    { x: 25, y: 0, z: 0 },
-    {
-      inputs: {
-        [RESOURCE_TYPE.Grain]: 6,
-      },
-      outputs: {
-        [RESOURCE_TYPE.Flour]: 300,
-      }, //
-    },
-  );
+  world.createLocationFromItemId("location-grainfarm", stateCompany.id, {
+    x: 10,
+    y: 0,
+    z: 0,
+  });
+  world.createLocationFromItemId("location-flourmill", stateCompany.id, {
+    x: 25,
+    y: 0,
+    z: 0,
+  });
 
   // .. Player trucks
   world.createTruckFromItemId(`truck-flour`, playerCompany.id, {

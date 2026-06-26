@@ -39,19 +39,11 @@ export const runBaseSimulation = (options: {
     y: 0,
     z: 0,
   });
-  world.createProcessor(
-    "Flour Mill",
-    stateCompany.id,
-    { x: 25, y: 0, z: 0 },
-    {
-      inputs: {
-        [RESOURCE_TYPE.Grain]: 6,
-      },
-      outputs: {
-        [RESOURCE_TYPE.Flour]: 300,
-      }, //
-    },
-  );
+  world.createLocationFromItemId("location-flourmill", stateCompany.id, {
+    x: 25,
+    y: 0,
+    z: 0,
+  });
 
   world.createTruckFromItemId("truck-grain", playerCompany.id, {
     x: 15,
