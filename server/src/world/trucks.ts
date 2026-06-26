@@ -82,6 +82,7 @@ export const createTruck = (
 
   const newTruck: ITruck = {
     ...companyEntity,
+    itemId: "CUSTOM",
     name,
     speed,
     storage,

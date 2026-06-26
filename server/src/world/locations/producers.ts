@@ -13,8 +13,35 @@ import {
   Pos3D,
 } from "@logisim/lib/entities";
 import { logWarning, logSuccess, logError, logInfo } from "@logisim/lib/utils";
+import { createLocation } from "./locations";
 
 const notificationConfig = loadNotificationConfig();
+
+export const createProducer = (
+  state: IWorldState,
+  name: string,
+  companyId: string,
+  position: Pos3D,
+  produces: RESOURCE_TYPE,
+  productionRate: number,
+  startFull: boolean = false,
+) => {
+  const recipe: IRecipe = { outputs: { [produces]: productionRate } };
+
+  const newProducer = createLocation(
+    name,
+    companyId,
+    position,
+    recipe,
+    LOCATION_TYPE.Producer,
+    false,
+    startFull,
+  );
+
+  state.producers.push(newProducer);
+
+  return newProducer;
+};
 
 export const updateProducers = (state: IWorldState) => {
   state.producers.forEach((producer) => {

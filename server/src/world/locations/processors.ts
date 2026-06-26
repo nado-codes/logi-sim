@@ -1,4 +1,4 @@
-import { checkInputStorage } from "./locations";
+import { checkInputStorage, createLocation } from "./locations";
 import { loadNotificationConfig } from "../../notifications";
 import { getOutputStorage, getInputStorage, processRecipe } from "../storages";
 import {
@@ -11,6 +11,43 @@ import {
 import { logWarning, logSuccess } from "@logisim/lib/utils";
 
 const notificationConfig = loadNotificationConfig();
+
+export const createProcessor = (
+  state: IWorldState,
+  name: string,
+  companyId: string,
+  position: Pos3D,
+  recipe: IRecipe,
+  startWithFullInputs: boolean = false,
+  startWithFullOutputs: boolean = false,
+) => {
+  if (!recipe.inputs) {
+    throw Error(
+      `[CRITICAL SYSTEM ERROR] Processors require at least one input`,
+    );
+  }
+  if (!recipe.outputs) {
+    throw Error(
+      `[CRITICAL SYSTEM ERROR] Processors require at least one output`,
+    );
+  }
+
+  const newProcessor: ILocation = {
+    ...createLocation(
+      name,
+      companyId,
+      position,
+      recipe,
+      LOCATION_TYPE.Processor,
+      startWithFullInputs,
+      startWithFullOutputs,
+    ),
+  };
+
+  state.processors.push(newProcessor);
+
+  return newProcessor;
+};
 
 export const updateProcessors = (state: IWorldState) => {
   state.processors.forEach((processor) => {

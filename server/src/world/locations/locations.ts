@@ -53,6 +53,38 @@ const storageConfig = loadStorageConfig();
 
 // .. CREATE
 
+export const createLocation = (
+  name: string,
+  companyId: string,
+  position: Pos3D,
+  recipe: IRecipe,
+  locationType: LOCATION_TYPE,
+  startWithFullInputs: boolean = false,
+  startWithFullOutputs: boolean = false,
+): ILocation => {
+  const worldEntity = createWorldEntity(
+    WorldEntityType.Location,
+    position,
+    name,
+  );
+
+  const storage = createRecipeStorage(
+    worldEntity.id,
+    recipe,
+    startWithFullInputs,
+    startWithFullOutputs,
+  );
+
+  return {
+    itemId: "CUSTOM",
+    ...worldEntity,
+    storage,
+    recipe,
+    locationType,
+    companyId,
+  };
+};
+
 export const createLocationFromItemId = (
   state: IWorldState,
   itemId: string,
@@ -126,7 +158,13 @@ export const getLocationByPositionOrNull = (
   return location;
 };
 
-export const getLocationItemById = (id: string) => {
+// .. ask dev council if we can create a generic "getMarketplaceItem" method
+// since that's all the info we need for the collectFromCompany method, and will
+// allow us to have custom locations and trucks (since we want to keep the engine)
+// flexible and modular, forcing people to use a marketplace wouldn't make sense
+// - hence the need to retain the "custom" creation functionality
+
+export const getLocationItemById = (id: string): ILocationItem => {
   const locationsData = loadJSON("data/locations.json") as ILocationItem[];
   const locationData = locationsData.find((ld) => ld.id === id);
 
