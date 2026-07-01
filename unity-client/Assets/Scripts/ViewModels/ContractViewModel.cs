@@ -12,9 +12,11 @@ public class ContractViewModel : BaseCompanyEntityViewModel
     public string DestinationName { get; set; } = default!;
     public string? TruckName { get; set; }
     public string ResourceName { get; set; } = default!;
+    public string DeliveredAmount { get; set; } = default!;
     public string TotalAmount { get; set; } = default!;
     public string Payment { get; set; } = default!;
     public string DueInTicks { get; set; } = default!;
+    public string ExpectedTick { get; set; } = default!;
     public string Distance {get;set;} = default!;
     public string? DeliveredTick { get; set; }
     public string? AcceptedAtTick { get; set; }
@@ -58,9 +60,11 @@ public class ContractViewModel : BaseCompanyEntityViewModel
                 ShipperName = shipper?.Name ?? "N/A",
                 TruckName = truck?.Name ?? "N/A",
                 ResourceName = dto.ResourceType.ToString(),
+                DeliveredAmount = dto.DeliveredAmount.ToString("N0"),
                 TotalAmount = dto.TotalAmount.ToString("N0"),
                 Payment = dto.Payment.ToString("C"),
                 DueInTicks = (dto.ExpectedTick - currentTick).ToString()+" ticks",
+                ExpectedTick = "Tick "+dto.ExpectedTick.ToString(),
                 Distance = MathUtils.Distance(supplier.Position.x,supplier.Position.y,supplier.Position.z,destination.Position.x,destination.Position.y,destination.Position.z).ToString()+"km",
                 DeliveredTick = "Tick "+dto.DeliveredTick.ToString(),
                 AcceptedAtTick = "Tick "+dto.AcceptedAtTick.ToString()

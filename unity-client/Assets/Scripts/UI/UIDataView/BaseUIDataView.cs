@@ -24,13 +24,12 @@ public abstract class BaseUIDataView : MonoBehaviour
             throw new NullReferenceException("Item prototype must be set");
         }
 
-        if(!actionButtonPrototype)
-        {
-            throw new NullReferenceException("Action Button prototype must be set");
-        }
-
         itemPrototype.SetActive(false);
-        actionButtonPrototype.SetActive(false);
+
+        if(actionButtonPrototype != null)
+        {
+            actionButtonPrototype.SetActive(false);
+        }
     }
 
     public void Populate<T>(List<T> dataList,Func<string, List<UIItemAction>> factory) where T: BaseViewModel
