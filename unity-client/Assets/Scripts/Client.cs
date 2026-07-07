@@ -42,12 +42,6 @@ public class Client : MonoBehaviour
 
     private static Client _client;
 
-    
-
-    void Awake()
-    {
-        // DontDestroyOnLoad(gameObject);
-    }
 
     void Start()
     {

@@ -6,21 +6,20 @@ using UnityEngine;
 
 public class ContractList : UIList
 {
-    private UIProgressBar prgDelivered, prgDeadline;
     protected override void Start()
     {
         base.Start();
 
-        prgDelivered = itemPrototype.transform.Find("prgDelivered")?.GetComponent<UIProgressBar>();
-        if (prgDelivered == null)
-        {
-            Debug.LogError("ContractList: Could not find 'prgDelivered' UIProgressBar in itemPrototype");
-        }
-        prgDeadline = itemPrototype.transform.Find("prgDeadline")?.GetComponent<UIProgressBar>();
-        if (prgDeadline == null)
-        {
-            Debug.LogError("ContractList: Could not find 'prgDeadline' UIProgressBar in itemPrototype");
-        }
+        var availableContractDTOs = Client.ContractDTOs.Where(dto => dto.AcceptedAtTick == null);
+        var contractVMs = availableContractDTOs.Select(dto => ContractViewModel.FromDTO(dto,Client.CompanyDTOs,Client.LocationDTOs,Client.TruckDTOs,Client.WorldTick));
+        Populate(contractVMs.ToList(),(contractId) => new List<UIItemAction>());
+    }
+
+    void Update()
+    {
+        var availableContractDTOs = Client.ContractDTOs.Where(dto => dto.AcceptedAtTick == null);
+        var contractVMs = availableContractDTOs.Select(dto => ContractViewModel.FromDTO(dto,Client.CompanyDTOs,Client.LocationDTOs,Client.TruckDTOs,Client.WorldTick));
+        Refresh(contractVMs.ToList());
     }
 
     protected override void loadDataToItem<T>(T item, GameObject listItem)
@@ -29,6 +28,27 @@ public class ContractList : UIList
         
         if (item is ContractViewModel contract)
         {
+            var txSupplierDestination = listItem.transform.Find("txSupplierDestination")?.GetComponent<TextMeshProUGUI>();
+            
+            var prgDelivered = listItem.transform.Find("prgDelivered")?.GetComponent<UIProgressBar>();
+            var prgDeadline = listItem.transform.Find("prgDeadline")?.GetComponent<UIProgressBar>();
+
+            if (txSupplierDestination == null)
+            {
+                Debug.LogError("ContractList: Could not find 'txSupplierDestination' TextMeshProUGUI in itemPrototype");
+            }
+
+            if (prgDelivered == null)
+            {
+                Debug.LogError("ContractList: Could not find 'prgDelivered' UIProgressBar in itemPrototype");
+            }
+            if (prgDeadline == null)
+            {
+                Debug.LogError("ContractList: Could not find 'prgDeadline' UIProgressBar in itemPrototype");
+            }
+
+            txSupplierDestination.text = $"{contract.SupplierName} → {contract.DestinationName}";
+
             var deliveredProgress = float.Parse(contract.DeliveredAmount) / float.Parse(contract.TotalAmount);
             prgDelivered.SetProgress(deliveredProgress);
 
@@ -36,10 +56,5 @@ public class ContractList : UIList
             var deadlineProgress = Client.WorldTick / (float)expectedTick;
             prgDeadline.SetProgress(deadlineProgress);
         }
-    }
-
-    protected override void loadActionsToItem(GameObject item, List<UIItemAction> actions)
-    {
-        throw new NotImplementedException();
     }
 }
