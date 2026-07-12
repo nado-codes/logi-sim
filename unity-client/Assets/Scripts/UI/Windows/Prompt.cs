@@ -18,10 +18,11 @@ public class Prompt : BaseWindow<Prompt>
 
         if(Instance == null)
         {
+            Debug.Log("SETTING INSTANCE");
             Instance = this;
             Show("Welcome To LogiSim!", "Your adventure begins~");
-        }
-
+            Close();
+        } 
     }
 
     public static void Show(string title, string message)
@@ -38,7 +39,7 @@ public class Prompt : BaseWindow<Prompt>
         }
 
         var prompt = Instantiate(Instance.promptPrototype);
-        prompt.transform.position = Instance.promptPrototype.transform.position;
+        prompt.transform.SetParent(Instance.transform.parent, false);
         var texts = prompt.GetComponentsInChildren<TextMeshProUGUI>();
         var txTitle = texts.FirstOrDefault(t => t.name == "txWindowTitle");
         var messageText = texts.FirstOrDefault(t => t.name == "txPromptBody");
@@ -57,7 +58,6 @@ public class Prompt : BaseWindow<Prompt>
 
         txTitle.text = title;
         messageText.text = message;
-        promptComponent.GetComponent<CanvasGroupToggle>().Show();
     }
 
 }
