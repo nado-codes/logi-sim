@@ -1,9 +1,7 @@
 using UnityEngine;
-using System;
 using TMPro;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine.UI;
 
 public class ContractsTable : UITable
 {

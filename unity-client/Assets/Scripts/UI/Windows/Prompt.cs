@@ -1,6 +1,7 @@
 using TMPro;
 using UnityEngine;
 using System.Linq;
+using System.Collections.Generic;
 
 [RequireComponent(typeof(UIActionController))]
 public class Prompt : BaseWindow<Prompt>
@@ -18,9 +19,7 @@ public class Prompt : BaseWindow<Prompt>
 
         if(Instance == null)
         {
-            Debug.Log("SETTING INSTANCE");
             Instance = this;
-            Show("Welcome To LogiSim!", "Your adventure begins~");
             Close();
         } 
     }
@@ -56,8 +55,31 @@ public class Prompt : BaseWindow<Prompt>
             return;
         }
 
+        var actionController = promptComponent.GetComponent<UIActionController>();
+        if(actionController == null)
+        {
+            Debug.LogError("Prompt prototype must have a UIActionController component");
+            return;
+        }
+        actionController.ActionButtonPrototype = Instance.actionController.ActionButtonPrototype;
+
+        var debtResolutionWindow = FindObjectsByType<DebtResolutionWindow>(FindObjectsSortMode.None).FirstOrDefault();
+        if(debtResolutionWindow == null)
+        {
+            Debug.LogError("Could not find DebtResolutionWindow in scene. Make sure there is a DebtResolutionWindow component in the scene");
+            return;
+        }
+
+        actionController.LoadActions(new List<UIItemAction>() { 
+            new UIItemAction{ Name = "Open Debt Resolution Screen", Callback = (itemId) => {
+                debtResolutionWindow.Open();
+                Destroy(prompt);
+            }
+        }});
+
         txTitle.text = title;
         messageText.text = message;
+        prompt.GetComponent<CanvasGroupToggle>().Show();
     }
 
 }

@@ -15,5 +15,7 @@
       "threshold": 10,
       "multiplier": 1.2
     }
-  }
+  },
+  "debtCollectionEnabled": true,
+  "breachPenaltyMultiplier": 0.001
 }

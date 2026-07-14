@@ -31,7 +31,7 @@ public class TrucksWindow : BaseWindow<TrucksWindow>
     private UIItemAction rowDispatchAction = new UIItemAction()
     {
         Name = "Dispatch",
-        Callback = (truckId) =>
+        Callback = (truckId) => // .. TODO: this was requested to be added during the last playtest ... make it so players can dispatch trucks from this window too
         {
             /* Client.CallAPI("/contract/break",APICallType.Post,(success,response) =>
             {
@@ -88,6 +88,11 @@ public class TrucksWindow : BaseWindow<TrucksWindow>
         base.Open();
 
         var playerCompany = Client.CompanyDTOs.FirstOrDefault(c => c.Id == Client.ActiveCompanyId);
+        if(playerCompany == null)
+        {
+            throw new NullReferenceException("TrucksWindow: Player company not found in Client.CompanyDTOs");
+        }
+
         btnBuyTruck.interactable = !playerCompany.IsInsolvent;
 
         var companyTrucks = Client.TruckDTOs.Where(t => t.CompanyId == Client.ActiveCompanyId).ToList();

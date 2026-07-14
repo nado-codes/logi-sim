@@ -43,6 +43,7 @@
     <UnityVersion>6000.3.13f1</UnityVersion>
   </PropertyGroup>
   <ItemGroup>
+    <Analyzer Include="C:\Users\nadot\.vscode\extensions\visualstudiotoolsforunity.vstuc-1.2.2\Analyzers\Microsoft.Unity.Analyzers.dll" />
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\6000.3.13f1\Editor\Data\Tools\BuildPipeline\Unity.SourceGenerators\Unity.SourceGenerators.dll" />
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\6000.3.13f1\Editor\Data\Tools\BuildPipeline\Unity.SourceGenerators\Unity.Properties.SourceGenerator.dll" />
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\6000.3.13f1\Editor\Data\Tools\BuildPipeline\Unity.SourceGenerators\Unity.UIToolkit.SourceGenerator.dll" />
@@ -56,6 +57,7 @@
     <Compile Include="Assets\Scripts\Helpers\Utils.cs" />
     <Compile Include="Assets\Scripts\DTO\Item\LocationItemDTO.cs" />
     <Compile Include="Assets\Scripts\Flycam.cs" />
+    <Compile Include="Assets\Scripts\DTO\CompanyDebtDTO.cs" />
     <Compile Include="Assets\Scripts\UI\UIDataView\UI Dropdown\UIDropdown.cs" />
     <Compile Include="Assets\Scripts\UI\UIAction.cs" />
     <Compile Include="Assets\Scripts\Types.cs" />
@@ -103,6 +105,8 @@
     <Compile Include="Assets\Scripts\Interfaces\IViewModel.cs" />
     <Compile Include="Assets\Scripts\DTO\CompanyDTO.cs" />
     <Compile Include="Assets\Scripts\UI\CanvasGroupToggle.cs" />
+    <Compile Include="Assets\Scripts\Interfaces\IMarketplaceEntity.cs" />
+    <Compile Include="Assets\Scripts\UI\OfficeView\DebtResolutionWindow.cs" />
     <Compile Include="Assets\Scripts\Interfaces\ICompanyEntity.cs" />
     <Compile Include="Assets\Scripts\ViewModels\ContractViewModel.cs" />
   </ItemGroup>
