@@ -297,7 +297,7 @@ export const checkInputStorage = (state: IWorldState, location: ILocation) => {
             closestSupplier.id,
             inputStorage[0].resourceType,
             inputStorageCapacity - inputStorageCount,
-            10, // .. DO NOT SHIP: This is just for testing the debt resolution system
+            dueTicks,
           );
         }
       } else if (!contract.truckId) {

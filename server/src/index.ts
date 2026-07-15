@@ -92,4 +92,4 @@ setLogContextProvider(() => ({
 
 const api = logisimApi(world);
 api.start();
-setInterval(world.update, 500);
+setInterval(world.update, 1000);

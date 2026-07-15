@@ -13,7 +13,8 @@ public class TruckDispatchDropdown : UIDropdown
         var destination = Client.LocationDTOs.FirstOrDefault(l => l.Id == contractDTO.DestinationId);
         var distanceToSupplier = Pos3D.Distance(supplier.Position,Client.TruckDTOs.Find(t => t.Id == gameObject.name).Position);
         var distanceFromSupplierToDestination = Pos3D.Distance(supplier.Position,destination.Position);
-        return $"{contractVM.CompanyName} - {distanceToSupplier:0.00}m";
+        var totalDistance = distanceToSupplier+distanceFromSupplierToDestination;
+        return $"{contractVM.DestinationName} - {totalDistance:0.00}m";
     }
     private string getTripCount(ContractDTO contract, TruckDTO truck)
     {
