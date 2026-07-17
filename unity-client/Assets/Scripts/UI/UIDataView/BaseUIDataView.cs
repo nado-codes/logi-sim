@@ -24,16 +24,15 @@ public abstract class BaseUIDataView : MonoBehaviour
             throw new NullReferenceException("Item prototype must be set");
         }
 
-        if(!actionButtonPrototype)
-        {
-            throw new NullReferenceException("Action Button prototype must be set");
-        }
-
         itemPrototype.SetActive(false);
-        actionButtonPrototype.SetActive(false);
+
+        if(actionButtonPrototype != null)
+        {
+            actionButtonPrototype.SetActive(false);
+        }
     }
 
-    public void Populate<T>(List<T> dataList,Func<string, List<UIItemAction>> factory) where T: BaseViewModel
+    public void Populate<T>(List<T> dataList,Func<string, List<UIItemAction>> actionFactory) where T: BaseViewModel
     {
         for(var i = 0; i < items.Count; i++)
             deleteItem(items[i]);
@@ -41,10 +40,10 @@ public abstract class BaseUIDataView : MonoBehaviour
         foreach(T data in dataList)
         {
             var item = createItem(data);
-            loadActionsToItem(item, factory(data.Id));
+            loadActionsToItem(item, actionFactory(data.Id));
         }
 
-        actionFactory = factory;
+        this.actionFactory = actionFactory;
 
         OnPopulate();
     }
@@ -82,18 +81,18 @@ public abstract class BaseUIDataView : MonoBehaviour
 
     public virtual void OnRefresh() {}
 
-    public void SetActionFactory(Func<string, List<UIItemAction>> factory)
+    public void SetActionFactory(Func<string, List<UIItemAction>> actionFactory)
     {
         if(notificationConfig.logUINotifications.actions.Create)
         {
-            Debug.Log("Setting action factory "+JsonConvert.SerializeObject(factory));
+            Debug.Log("Setting action factory "+JsonConvert.SerializeObject(actionFactory));
         }
         
         foreach(var row in items) {
-            loadActionsToItem(row, factory(row.name));
+            loadActionsToItem(row, actionFactory(row.name));
         }
 
-        actionFactory = factory;
+        this.actionFactory = actionFactory;
     }
 
     protected abstract void deleteItem(GameObject itemToDelete);

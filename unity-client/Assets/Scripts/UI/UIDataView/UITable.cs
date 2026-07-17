@@ -76,20 +76,39 @@ public class UITable : BaseUIDataView
             }
         }
     }
+
+    protected GameObject getActionsCell(GameObject item)
+    {
+        var actionsCell = item.transform.GetComponentsInChildren<Transform>().FirstOrDefault(c => c.name == "ActionsCell")?.gameObject;
+
+        if(actionsCell == null)
+        {
+            Debug.LogError("No cell found for actions in row prefab. Make sure there is a cell with \"Actions\" in its name.");
+            return null;
+        }
+
+        return actionsCell;
+    }
+    protected List<Button> getActionButtons(GameObject item)
+    {
+        var actionsCell = getActionsCell(item);
+        if (actionsCell == null)
+        {
+            return new List<Button>();
+        }
+
+        var actionButtons = actionsCell.GetComponentsInChildren<Button>().ToList();
+
+        return actionButtons;
+    }
+
     protected override void loadActionsToItem(GameObject item, List<UIItemAction> actions)
     {
         if(notificationConfig.logUINotifications.actions.Create)
         {
             Debug.Log("Loading actions to item "+item.name);
-        }   
-        var actionsCell = item.transform.GetComponentsInChildren<Transform>().FirstOrDefault(c => c.name == "ActionsCell").gameObject;
-
-        if(actionsCell == null)
-        {
-            Debug.LogError("No cell found for actions in row prefab. Make sure there is a cell with \"Actions\" in its name.");
-            return;
-        }
-        var actionButtonGOs = actionsCell.GetComponentsInChildren<Button>().Select(b => b.gameObject).ToList();
+        } 
+        var actionButtonGOs = getActionButtons(item).Select(b => b.gameObject).ToList();
 
         foreach(var buttonGO in actionButtonGOs)
         {
@@ -121,7 +140,7 @@ public class UITable : BaseUIDataView
             }
 
             buttonGO.name = action.Name+"ActionButton";
-            buttonGO.transform.SetParent(actionsCell.transform,true);
+            buttonGO.transform.SetParent(getActionsCell(item).transform,true);
             var actionButtonProtoPos = actionButtonPrototype.GetComponent<RectTransform>().localPosition;
             var actionButtonProtoWidth = actionButtonPrototype.GetComponent<RectTransform>().sizeDelta.x;
             buttonGO.GetComponent<RectTransform>().localPosition = new Vector3(actionButtonProtoPos.x+((actionButtonProtoWidth+itemSpacingPx)*actionButtonGOs.Count),0);

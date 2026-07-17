@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
+using System;
 using Newtonsoft.Json;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class TrucksWindow : BaseWindow<TrucksWindow>
 {
@@ -29,7 +31,7 @@ public class TrucksWindow : BaseWindow<TrucksWindow>
     private UIItemAction rowDispatchAction = new UIItemAction()
     {
         Name = "Dispatch",
-        Callback = (truckId) =>
+        Callback = (truckId) => // .. TODO: this was requested to be added during the last playtest ... make it so players can dispatch trucks from this window too
         {
             /* Client.CallAPI("/contract/break",APICallType.Post,(success,response) =>
             {
@@ -46,6 +48,8 @@ public class TrucksWindow : BaseWindow<TrucksWindow>
         }
     };
 
+    private Button btnBuyTruck;
+
     protected override void Start()
     {
         base.Start();
@@ -53,7 +57,14 @@ public class TrucksWindow : BaseWindow<TrucksWindow>
 
         if(table == null)
         {
-            throw new System.NullReferenceException("TrucksWindow: No UITable found in children");
+            throw new NullReferenceException("TrucksWindow: No UITable found in children");
+        }
+
+        btnBuyTruck = transform.Find("BuyTruckButton")?.GetComponent<Button>();
+
+        if(btnBuyTruck == null)
+        {
+            throw new NullReferenceException("TrucksWindow: No BuyTruckButton found in children");
         }
 
         Close();
@@ -75,6 +86,14 @@ public class TrucksWindow : BaseWindow<TrucksWindow>
             return;
 
         base.Open();
+
+        var playerCompany = Client.CompanyDTOs.FirstOrDefault(c => c.Id == Client.ActiveCompanyId);
+        if(playerCompany == null)
+        {
+            throw new NullReferenceException("TrucksWindow: Player company not found in Client.CompanyDTOs");
+        }
+
+        btnBuyTruck.interactable = !playerCompany.IsInsolvent;
 
         var companyTrucks = Client.TruckDTOs.Where(t => t.CompanyId == Client.ActiveCompanyId).ToList();
         var truckVMs = companyTrucks.Select(dto => TruckViewModel.FromDTO(dto,Client.CompanyDTOs,Client.LocationDTOs));

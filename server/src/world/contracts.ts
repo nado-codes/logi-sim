@@ -41,6 +41,8 @@ interface IContractConfig {
     urgent: UrgencyMultiplier;
     priority: UrgencyMultiplier;
   };
+  debtCollectionEnabled: boolean;
+  breachPenaltyMultiplier: number;
 }
 
 const defaultConfig: IContractConfig = {
@@ -61,6 +63,8 @@ const defaultConfig: IContractConfig = {
       multiplier: 1.2,
     },
   },
+  debtCollectionEnabled: true,
+  breachPenaltyMultiplier: 1,
 };
 
 export const contractConfig = loadConfig("contract", defaultConfig);
@@ -500,16 +504,19 @@ export const breakContract = (
       // or straight up lost by the shipper
       const penalty =
         (1 - contract.deliveredAmount / contract.totalAmount) *
-        contract.payment;
+        contract.payment *
+        contractConfig.breachPenaltyMultiplier;
       const shipperCompany = getCompanyById(state, contract.shipperId!);
 
-      collectFromCompany(
-        state,
-        shipperCompany,
-        contractDestinationCompany,
-        penalty,
-        `${shipperCompany.name} (shipper) breached a contract with ${contractDestinationCompany.name}`,
-      );
+      if (contractConfig.debtCollectionEnabled) {
+        collectFromCompany(
+          state,
+          shipperCompany,
+          contractDestinationCompany,
+          penalty,
+          `${shipperCompany.name} (shipper) breached a contract with ${contractDestinationCompany.name}`,
+        );
+      }
 
       if (contract.truckId) {
         const truck = getTruckById(state, contract.truckId);

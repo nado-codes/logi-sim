@@ -42,12 +42,6 @@ public class Client : MonoBehaviour
 
     private static Client _client;
 
-    
-
-    void Awake()
-    {
-        // DontDestroyOnLoad(gameObject);
-    }
 
     void Start()
     {
@@ -55,6 +49,7 @@ public class Client : MonoBehaviour
         SceneManager.sceneUnloaded += OnSceneUnloaded;
         StartCoroutine(RefreshWorldState(.4f));
         StartCoroutine(RefreshMarketplaceState());
+        StartCoroutine(CheckForExpiredContracts(.4f));
 
         CallAPI("/companies",APICallType.Get,(success,response) =>
         {
@@ -261,11 +256,9 @@ public class Client : MonoBehaviour
             var houses = townGO.transform.GetComponentsInChildren<Transform>().Where(t => t.name.StartsWith("House_")).ToList();
             var numExpectedHouses = Math.Max(1, Math.Ceiling((double)town.Population / maxPopulationPerHouse));
             var housesToDelete = houses.Count() - numExpectedHouses;
-            Debug.Log($"Town {town.Name} has population {town.Population} requiring {numExpectedHouses} houses. Currently has {houses.Count()} houses, so will delete {housesToDelete} existing houses due to population decrease.");
 
             for(int i = 0; i < housesToDelete; i++)
             {
-                //Debug.Log($"Destroying house {houses.ElementAt(i).name} in town {town.Name} due to population decrease");
                 Destroy(houses.ElementAt(i).gameObject);
             }
 
@@ -274,7 +267,6 @@ public class Client : MonoBehaviour
             const float minTownHallDistance = 5f;
             const int maxSpawnAttempts = 10;
             float minSpawnRadius = minHouseDistance;
-            Debug.Log($"Town {town.Name} has population {town.Population} requiring {numExpectedHouses} houses. Currently has {houses.Count()} houses, so will spawn {housesToSpawn} new houses.");
             
             for(int i = 0; i < housesToSpawn; i++)
             {
@@ -319,6 +311,38 @@ public class Client : MonoBehaviour
                 houseGO.name = $"House_{i+1}";
                 houses.Add(houseGO.transform);
             }
+        }
+    }
+
+    private IEnumerator CheckForExpiredContracts(float interval)
+    {
+        while (true) {
+            var expiredContracts = ContractDTOs.Where(c => c.ExpectedTick <= WorldTick).ToList();
+            var companyContacts = expiredContracts.Where(c => c.ShipperId == ActiveCompanyId).ToList();
+            var companyDebts = CompanyDTOs.FirstOrDefault(c => c.Id == ActiveCompanyId)?.Debts ?? new CompanyDebtDTO[0];
+
+            foreach(var contract in companyContacts)
+            {
+                var contractCompany = CompanyDTOs.FirstOrDefault(c => c.Id == contract.CompanyId);
+                if(contractCompany == null)
+                {
+                    Debug.LogError($"Contract {contract.Id} has expired at tick {WorldTick}, but the company with ID {contract.CompanyId} could not be found.");
+                    ContractDTOs.Remove(contract);
+                    continue;
+                }
+                /* var debt = companyDebts.FirstOrDefault(d => d.CreditorCompanyId == contractCompany?.Id);
+                if(debt == null)
+                {
+                    Debug.LogError($"Contract {contract.Id} has expired at tick {WorldTick}, but no debt was found for company {contractCompany?.Name} (ID: {contractCompany?.Id}).");
+                    ContractDTOs.Remove(contract);
+                    continue;
+                }*/ // TODO: The amount owed should be displayed in the prompt.
+                Prompt.Show("Contract Expired", $"Contract {contract.Id} has expired at tick {WorldTick}. You now owe {contractCompany?.Name} money for the failed contract. Due to the debt, your company is now insolvent and you cannot take new contracts or purchase assets until you resolve your debts.");
+                Debug.Log($"Contract {contract.Id} has expired at tick {WorldTick}. Removing from active contracts.");
+                ContractDTOs.Remove(contract);
+            }
+
+            yield return new WaitForSeconds(interval);
         }
     }
 
