@@ -2,6 +2,7 @@ import {
   assignContractToCompany,
   assignContractToTruck,
   breakContract,
+  CONTRACT_BREAK_FAULT,
   CONTRACT_BREAK_TYPE,
   createContract,
   getContractByIdOrNull,
@@ -41,11 +42,7 @@ import {
   transferCompanyFundsToState,
   updateCompanies,
 } from "./companies";
-import {
-  createTown,
-  reseedTown,
-  updateTowns,
-} from "./locations/consumers/towns";
+import { createTown, updateTowns } from "./locations/consumers/towns";
 import {
   createCoastline,
   createMountain,
@@ -183,7 +180,11 @@ export interface IWorld {
 
   assignContractToTruck: (contract: IContract, truck: ITruck) => boolean;
   assignContractToCompany: (contract: IContract, company: ICompany) => boolean;
-  breakContract: (contract: IContract, breakType: CONTRACT_BREAK_TYPE) => void;
+  breakContract: (
+    contract: IContract,
+    breakType: CONTRACT_BREAK_TYPE,
+    breakFault?: CONTRACT_BREAK_FAULT,
+  ) => void;
 
   transferCompanyFunds: (
     fromCompany: ICompany,
@@ -384,8 +385,11 @@ export const createWorld = (): IWorld => {
       assignContractToTruck(state, contract, truck),
     assignContractToCompany: (contract: IContract, company: ICompany) =>
       assignContractToCompany(state, contract, company),
-    breakContract: (contract: IContract, breakType: CONTRACT_BREAK_TYPE) =>
-      breakContract(state, contract, breakType),
+    breakContract: (
+      contract: IContract,
+      breakType: CONTRACT_BREAK_TYPE,
+      breakFault: CONTRACT_BREAK_FAULT = CONTRACT_BREAK_FAULT.None,
+    ) => breakContract(state, contract, breakType, breakFault),
     transferCompanyFunds: (
       fromCompany: ICompany,
       toCompany: ICompany,
