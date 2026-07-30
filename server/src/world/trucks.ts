@@ -61,6 +61,35 @@ export const loadTruckConfig = () => loadConfig("truck", defaultConfig);
 const truckConfig = loadTruckConfig();
 const notificationConfig = loadNotificationConfig();
 
+const defaultTrucksData: IVehicleItem[] = [
+  {
+    id: "truck-flour",
+    name: "Flour Truck",
+    resourceCapacity: 10000,
+    resourceItemId: "resource-flour",
+    speed: 2,
+    price: 1000,
+  },
+  {
+    id: "truck-grain",
+    name: "Grain Truck",
+    resourceCapacity: 10000,
+    resourceItemId: "resource-grain",
+    speed: 2,
+    price: 1000,
+  },
+  {
+    id: "truck-bigFlour",
+    name: "Big Flour Truck",
+    resourceCapacity: 1000000,
+    resourceItemId: "resource-flour",
+    speed: 1,
+    price: 10000,
+  },
+];
+
+const trucksData = loadJSON("trucks", defaultTrucksData) as IVehicleItem[];
+
 // .. CREATE
 export const createTruck = (
   state: IWorldState,
@@ -108,7 +137,6 @@ export const createTruckFromItemId = (
   companyId: string,
   position: Pos3D,
 ) => {
-  const trucksData = loadJSON("data/trucks.json") as IVehicleItem[];
   const truckData = trucksData.find((td) => td.id === itemId);
 
   if (truckData === undefined) {
@@ -160,7 +188,6 @@ export const getTruckByPositionOrNull = (
 };
 
 export const getTruckItemById = (id: string): IVehicleItem => {
-  const trucksData = loadJSON("data/trucks.json") as IVehicleItem[];
   const truckData = trucksData.find((td) => td.id === id);
 
   if (truckData === undefined) {
@@ -173,14 +200,12 @@ export const getTruckItemById = (id: string): IVehicleItem => {
 export const getTruckItemByIdOrNull = (
   id: string | undefined,
 ): Nullable<IVehicleItem> => {
-  const trucksData = loadJSON("data/trucks.json") as IVehicleItem[];
   const truckData = trucksData.find((td) => td.id === id);
 
   return truckData;
 };
 
 export const getTruckItems = (): IVehicleItem[] => {
-  const trucksData = loadJSON("data/trucks.json") as IVehicleItem[];
   return trucksData;
 };
 

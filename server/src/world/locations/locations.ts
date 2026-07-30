@@ -51,6 +51,54 @@ export const loadLocationConfig = () => loadConfig("location", defaultConfig);
 const notificationConfig = loadNotificationConfig();
 const storageConfig = loadStorageConfig();
 
+const defaultLocationsData: ILocationItem[] = [
+  {
+    id: "location-grainfarm",
+    name: "Grain Farm",
+    recipe: {
+      inputs: {},
+      outputs: {
+        Grain: 1000,
+      },
+    },
+    locationType: LOCATION_TYPE.Producer,
+    price: 50000,
+  },
+  {
+    id: "location-flourmill",
+    name: "Flour Mill",
+    recipe: {
+      inputs: {
+        Grain: 1000,
+      },
+      outputs: {
+        Flour: 800,
+      },
+    },
+    locationType: LOCATION_TYPE.Processor,
+    price: 50000,
+  },
+  {
+    id: "location-bakery",
+    name: "Bakery",
+    recipe: {
+      inputs: {
+        Flour: 800,
+      },
+      outputs: {
+        Bread: 600,
+      },
+    },
+    locationType: LOCATION_TYPE.Processor,
+    price: 50000,
+  },
+];
+
+const locationsData = loadJSON(
+  "locations",
+  defaultLocationsData,
+) as ILocationItem[];
+
 // .. CREATE
 
 export const createLocation = (
@@ -91,7 +139,6 @@ export const createLocationFromItemId = (
   companyId: string,
   position: Pos3D,
 ): ILocation => {
-  const locationsData = loadJSON("data/locations.json") as ILocationItem[];
   const locationData = locationsData.find((ld) => ld.id === itemId);
 
   if (!locationData) {
@@ -159,7 +206,6 @@ export const getLocationByPositionOrNull = (
 };
 
 export const getLocationItemById = (id: string): ILocationItem => {
-  const locationsData = loadJSON("data/locations.json") as ILocationItem[];
   const locationData = locationsData.find((ld) => ld.id === id);
 
   if (!locationData) {
@@ -171,14 +217,12 @@ export const getLocationItemById = (id: string): ILocationItem => {
 export const getLocationItemByIdOrNull = (
   id: string | undefined,
 ): Nullable<ILocationItem> => {
-  const locationsData = loadJSON("data/locations.json") as ILocationItem[];
   const locationData = locationsData.find((ld) => ld.id === id);
 
   return locationData;
 };
 
 export const getLocationItems = (): ILocationItem[] => {
-  const locationsData = loadJSON("data/locations.json") as ILocationItem[];
   return locationsData;
 };
 

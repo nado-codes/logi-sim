@@ -14,6 +14,8 @@ import {
   defaultCompanyOptions,
   ICompanyEntity,
   GEOGRAPHY_TYPE,
+  IBaseEntity,
+  IMarketplaceEntity,
 } from "@logisim/lib/entities";
 import {
   Color,
@@ -25,7 +27,7 @@ import {
   random,
   getDistanceBetweenPositions,
 } from "@logisim/lib/utils";
-import { reposessAsset } from "./marketplace";
+import { sellItem } from "./marketplace";
 
 const geographyConfig = loadGeographyConfig();
 const notificationConfig = loadNotificationConfig();
@@ -118,6 +120,32 @@ export const getCompanyString = (company: ICompany) => {
   return `Name: ${highlight.yellow(company.name)} | Money: ${highlight.yellow(company.money + "")} | Color: ${highlight.custom("███", company.color)}`;
 };
 
+export const getCompanyEntitiesByCompanyId = (
+  state: IWorldState,
+  id: string,
+): (IBaseEntity & IMarketplaceEntity & ICompanyEntity)[] => {
+  return [...state.getLocations(), ...state.trucks].filter(
+    (e) => e.companyId === id,
+  );
+};
+
+export const getCompanyEntityByCompanyIdEntityId = (
+  state: IWorldState,
+  companyId: string,
+  entityId: string,
+): IBaseEntity & IMarketplaceEntity & ICompanyEntity => {
+  const companyEntities = getCompanyEntitiesByCompanyId(state, companyId);
+  const companyEntity = companyEntities.find((e) => e.id === entityId);
+
+  if (!companyEntity) {
+    throw Error(
+      `Entity with id ${entityId} either doesn't belong to company ${companyId} or it doesn't exist`,
+    );
+  }
+
+  return companyEntity;
+};
+
 // UPDATE
 
 export const transferCompanyFunds = (
@@ -166,7 +194,6 @@ export const collectFromCompany = (
       `${creditorCompany.name} collected $${amount} from ${debtorCompany.name} because ${reason} and must reposess some of ${debtorCompany.name}'s assets in order to pay the debts`,
     );
     transferCompanyFunds(debtorCompany, creditorCompany, debtorCompany.money);
-    debtorCompany.money -= amountLeftToPay;
     debtorCompany.isInsolvent = true;
 
     if (
@@ -174,7 +201,7 @@ export const collectFromCompany = (
       notificationConfig.logCompanyNotifications.money
     ) {
       logWarning(
-        `[COMPANY] ${debtorCompany.name} is now insolvent and must cease trading until debts are paid via asset reposession`,
+        `[COMPANY] ${debtorCompany.name} is now insolvent and must cease trading until debts are paid`,
       );
     }
 
@@ -202,13 +229,10 @@ export const collectFromCompany = (
     const debtorLocationItems = state
       .getLocations()
       .filter((l) => l.companyId === debtorCompany.id && l.itemId)
-      .map((l) => {
-        console.log("getting debtor item for ", l.name);
-        return {
-          asset: l,
-          item: getLocationItemById(l.itemId),
-        };
-      });
+      .map((l) => ({
+        asset: l,
+        item: getLocationItemById(l.itemId),
+      }));
     const debtorTruckItems = state.trucks
       .filter((t) => t.companyId === debtorCompany.id && t.itemId)
       .map((t) => ({ asset: t, item: getTruckItemById(t.itemId) }));
@@ -230,12 +254,33 @@ export const collectFromCompany = (
           if (amountLeftToPay <= 0) {
             return;
           }
-          reposessAsset(debtorCompany, creditorCompany, assetItem.asset);
-          amountLeftToPay -= assetItem.item.price;
-          logInfo(
-            `${debtorCompany.name} now has $${amountLeftToPay} left to pay to ${debtorCompany.name}`,
-          );
+          sellItem(state, assetItem.asset.id, debtorCompany);
+
+          const amountToPay = Math.min(amountLeftToPay, assetItem.item.price);
+          transferCompanyFunds(debtorCompany, creditorCompany, amountToPay);
+          amountLeftToPay -= amountToPay;
+
+          if (amountLeftToPay > 0) {
+            logInfo(
+              `${debtorCompany.name} now has $${amountLeftToPay} left to pay to ${debtorCompany.name}`,
+            );
+          } else {
+            return;
+          }
         });
+        logSuccess(
+          `${debtorCompany.name} now has resolved their debt with ${debtorCompany.name}`,
+        );
+        debtorCompany.debts = debtorCompany.debts.filter(
+          (d) => d.creditorCompanyId !== creditorCompany.id,
+        );
+
+        if (debtorCompany.debts.length <= 0) {
+          debtorCompany.isInsolvent = false;
+          logSuccess(
+            `${debtorCompany.name} is no longer insolvent and may resume trading`,
+          );
+        }
         // .. auto-resolve by selling off enough assets to pay back the debt
         // .. we'll do it randomly for AI companies, but player companies need to resolve debts manually
         // .. should we just resolve debts with finances? or could player-to-player or even AI-to-player

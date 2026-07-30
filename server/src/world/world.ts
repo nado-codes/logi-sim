@@ -37,6 +37,8 @@ import {
   getCompanyById,
   getCompanyByIdOrNull,
   getCompanyByName,
+  getCompanyEntitiesByCompanyId,
+  getCompanyEntityByCompanyIdEntityId,
   transferCompanyFunds,
   transferCompanyFundsFromState,
   transferCompanyFundsToState,
@@ -71,8 +73,13 @@ import {
   Pos3D,
   ILocationItem,
   IVehicleItem,
+  EMarketplaceTransactionResult,
+  IBaseEntity,
+  IMarketplaceEntity,
+  ICompanyEntity,
 } from "@logisim/lib/entities";
 import { Color, highlight } from "@logisim/lib/utils";
+import { purchaseItem, sellItem } from "./marketplace";
 
 export interface IWorld {
   advanceTick: () => void;
@@ -106,6 +113,13 @@ export interface IWorld {
   getCompanyById: (id: string) => ICompany;
   getCompanyByIdOrNull: (id: string) => Nullable<ICompany>;
   getCompanyByName: (name: string) => ICompany;
+  getCompanyEntitiesByCompanyId: (
+    id: string,
+  ) => (IBaseEntity & IMarketplaceEntity & ICompanyEntity)[];
+  getCompanyEntityByCompanyIdEntityId: (
+    companyId: string,
+    entityId: string,
+  ) => IBaseEntity & IMarketplaceEntity & ICompanyEntity;
 
   createCoastline: (position: Pos3D) => ICoastline;
   createWater: (position: Pos3D) => IWater;
@@ -196,6 +210,14 @@ export interface IWorld {
     amount: number,
   ) => COMPANY_TRANSFER_RESULT;
   transferFundsFromState: (toCompany: ICompany, amount: number) => void;
+  purchaseItem: (
+    itemId: string,
+    buyerCompany: ICompany,
+  ) => EMarketplaceTransactionResult;
+  sellItem: (
+    itemId: string,
+    sellerCompany: ICompany,
+  ) => EMarketplaceTransactionResult;
 
   deleteTruck: (truck: ITruck) => void;
   deleteLocation: (location: ILocation) => void;
@@ -277,6 +299,12 @@ export const createWorld = (): IWorld => {
     getCompanyById: (id: string) => getCompanyById(state, id),
     getCompanyByIdOrNull: (id: string) => getCompanyByIdOrNull(state, id),
     getCompanyByName: (name: string) => getCompanyByName(state, name),
+    getCompanyEntitiesByCompanyId: (id: string) =>
+      getCompanyEntitiesByCompanyId(state, id),
+    getCompanyEntityByCompanyIdEntityId: (
+      companyId: string,
+      entityId: string,
+    ) => getCompanyEntityByCompanyIdEntityId(state, companyId, entityId),
 
     createCoastline: (position: Pos3D) => createCoastline(state, position),
     createWater: (position: Pos3D) => createWater(state, position),
@@ -399,6 +427,10 @@ export const createWorld = (): IWorld => {
       transferCompanyFundsToState(state, fromCompany, amount),
     transferFundsFromState: (toCompany: ICompany, amount: number) =>
       transferCompanyFundsFromState(state, toCompany, amount),
+    purchaseItem: (itemId: string, buyerCompany: ICompany) =>
+      purchaseItem(state, itemId, buyerCompany),
+    sellItem: (itemId: string, sellerCompany: ICompany) =>
+      sellItem(state, itemId, sellerCompany),
 
     deleteTruck: (truck: ITruck) => deleteTruck(state, truck),
     deleteLocation: (location: ILocation) => deleteLocation(state, location),

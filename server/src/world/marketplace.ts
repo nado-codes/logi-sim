@@ -2,19 +2,17 @@ import {
   EMarketplaceTransactionResult,
   IBaseItem,
   ICompany,
-  ICompanyEntity,
-  IMarketplaceEntity,
-  INamedEntity,
   IWorldState,
 } from "@logisim/lib/entities";
 import { getLocationItems } from "./locations/locations";
 import { getTruckItems } from "./trucks";
 import {
   COMPANY_TRANSFER_RESULT,
+  getCompanyEntityByCompanyIdEntityId,
   transferCompanyFundsFromState,
   transferCompanyFundsToState,
 } from "./companies";
-import { logError, logSuccess } from "@logisim/lib/utils";
+import { logSuccess } from "@logisim/lib/utils";
 
 export const getMarketplaceItemById = (itemId: string) => {
   const marketplaceItems = [
@@ -57,15 +55,25 @@ export const purchaseItem = (
 
 export const sellItem = (
   state: IWorldState,
-  itemId: string,
+  entityId: string,
   sellerCompany: ICompany,
 ): EMarketplaceTransactionResult => {
   // .. transfer an existing entity from one company to another (or the state) in exchange for cash
-  const marketplaceItem = getMarketplaceItemById(itemId);
+  const companyEntity = getCompanyEntityByCompanyIdEntityId(
+    state,
+    sellerCompany.id,
+    entityId,
+  );
+  const marketplaceItem = getMarketplaceItemById(companyEntity.itemId);
+
   const paymentResult = transferCompanyFundsFromState(
     state,
     sellerCompany,
     marketplaceItem.price,
+  );
+
+  logSuccess(
+    `${sellerCompany.name} sold their ${marketplaceItem.name} and was paid $${marketplaceItem.price}`,
   );
 
   if (paymentResult === COMPANY_TRANSFER_RESULT.SUCCESS) {
@@ -73,25 +81,4 @@ export const sellItem = (
   }
 
   return EMarketplaceTransactionResult.UNKNOWN_ERROR;
-};
-
-export const reposessAsset = (
-  debtorCompany: ICompany,
-  creditorCompany: ICompany,
-  asset: ICompanyEntity & INamedEntity,
-): EMarketplaceTransactionResult => {
-  if (asset.companyId !== debtorCompany.id) {
-    logError(
-      `[MARKETPLACE ERROR] The item with id ${asset.id} doesn't belong to ${debtorCompany.name}`,
-    );
-    return EMarketplaceTransactionResult.REPOSESS_ERROR;
-  }
-
-  asset.companyId = creditorCompany.id;
-
-  logSuccess(
-    `${asset.name} was repossessed from ${debtorCompany.name} by ${creditorCompany.name}`,
-  );
-
-  return EMarketplaceTransactionResult.SUCCESS;
 };

@@ -239,17 +239,8 @@ Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, 
         const { itemId, companyId, position } = req.body;
 
         const company = world.getCompanyById(companyId);
-        const truckItem = world.getTruckItemById(itemId);
 
-        if (company.money < truckItem.price) {
-          res
-            .status(400)
-            .send({ error: "Insufficient funds to purchase truck" });
-          return;
-        }
-
-        world.transferFundsToState(company, truckItem.price);
-
+        world.purchaseItem(itemId, company);
         const truck = world.createTruckFromItemId(itemId, companyId, position);
 
         res.send({ success: true, truck });
@@ -264,9 +255,8 @@ Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, 
         const truck = world.getTruckById(truckId);
 
         if (truck.itemId) {
-          const truckItem = world.getTruckItemById(truck.itemId);
           const truckCompany = world.getCompanyById(truck.companyId);
-          world.transferFundsFromState(truckCompany, truckItem.price);
+          world.sellItem(truck.itemId, truckCompany);
         } else {
           res.status(400).send({
             error:
