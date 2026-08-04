@@ -223,6 +223,8 @@ export interface IWorld {
   deleteLocation: (location: ILocation) => void;
 }
 
+export const STATE_COMPANY_NAME = "State";
+
 const createInitialState = (): IWorldState => {
   const state: IWorldState = {
     currentTick: 0,
@@ -248,6 +250,11 @@ const createInitialState = (): IWorldState => {
 
 export const createWorld = (): IWorld => {
   const state: IWorldState = createInitialState();
+
+  createCompany(state, "State", 0, Color.Magenta, {
+    isGovernment: true,
+    hasUnlimitedMoney: true,
+  });
 
   const update = (state: IWorldState) => {
     updateProcessors(state);

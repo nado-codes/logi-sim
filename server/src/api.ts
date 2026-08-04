@@ -264,8 +264,6 @@ Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, 
           });
           return;
         }
-
-        world.deleteTruck(truck);
         res.send({ success: true });
       } catch (error) {
         res.status(400).send({ error: "Failed to sell truck" });

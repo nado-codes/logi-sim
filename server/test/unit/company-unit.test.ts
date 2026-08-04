@@ -29,10 +29,6 @@ describe("collectFromCompany unit tests", () => {
 
   beforeEach(() => {
     world = createWorld();
-    world.createCompany("State", 0, Color.Yellow, {
-      isAiEnabled: true,
-      hasUnlimitedMoney: true,
-    });
     creditorCompany = world.createCompany("Creditor Co", 0, Color.Red, {
       isAiEnabled: true,
     });
@@ -168,15 +164,33 @@ describe("collectFromCompany unit tests", () => {
     "should trigger liquidation if the sum of a debtor company's capital and asset values cannot pay back their debts",
     () => {
       debtorCompany.money = 0;
+
+      const secondContract = world.createContract(
+        creditorCompany.id,
+        destination.id,
+        supplier.id,
+        RESOURCE_TYPE.Grain,
+        1,
+        1,
+      );
+      secondContract.payment = 1;
+
       world.assignContractToCompany(creditorContract, debtorCompany);
+      world.assignContractToCompany(secondContract, debtorCompany);
       world.breakContract(
         creditorContract,
         CONTRACT_BREAK_TYPE.Breach,
         CONTRACT_BREAK_FAULT.Shipper,
       );
+      world.breakContract(
+        secondContract,
+        CONTRACT_BREAK_TYPE.Breach,
+        CONTRACT_BREAK_FAULT.Shipper,
+      );
 
       // .. TODO: liquidation hasn't actually been implemented yet
-      // .. also, liquidated companies should distribute assets
+      // .. also, liquidated companies should distribute assets between creditors
+      // .. check the LS Dev claude chat for how to implement this
     },
   );
 });

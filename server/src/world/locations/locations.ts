@@ -51,53 +51,54 @@ export const loadLocationConfig = () => loadConfig("location", defaultConfig);
 const notificationConfig = loadNotificationConfig();
 const storageConfig = loadStorageConfig();
 
-const defaultLocationsData: ILocationItem[] = [
-  {
-    id: "location-grainfarm",
-    name: "Grain Farm",
-    recipe: {
-      inputs: {},
-      outputs: {
-        Grain: 1000,
+const defaultLocationsData = {
+  locations: [
+    {
+      id: "location-grainfarm",
+      name: "Grain Farm",
+      recipe: {
+        inputs: {},
+        outputs: {
+          Grain: 1000,
+        },
       },
+      locationType: LOCATION_TYPE.Producer,
+      price: 50000,
     },
-    locationType: LOCATION_TYPE.Producer,
-    price: 50000,
-  },
-  {
-    id: "location-flourmill",
-    name: "Flour Mill",
-    recipe: {
-      inputs: {
-        Grain: 1000,
+    {
+      id: "location-flourmill",
+      name: "Flour Mill",
+      recipe: {
+        inputs: {
+          Grain: 1000,
+        },
+        outputs: {
+          Flour: 800,
+        },
       },
-      outputs: {
-        Flour: 800,
-      },
+      locationType: LOCATION_TYPE.Processor,
+      price: 50000,
     },
-    locationType: LOCATION_TYPE.Processor,
-    price: 50000,
-  },
-  {
-    id: "location-bakery",
-    name: "Bakery",
-    recipe: {
-      inputs: {
-        Flour: 800,
+    {
+      id: "location-bakery",
+      name: "Bakery",
+      recipe: {
+        inputs: {
+          Flour: 800,
+        },
+        outputs: {
+          Bread: 600,
+        },
       },
-      outputs: {
-        Bread: 600,
-      },
+      locationType: LOCATION_TYPE.Processor,
+      price: 50000,
     },
-    locationType: LOCATION_TYPE.Processor,
-    price: 50000,
-  },
-];
+  ],
+};
 
-const locationsData = loadJSON(
-  "locations",
-  defaultLocationsData,
-) as ILocationItem[];
+const locationsData = loadJSON("locations", defaultLocationsData) as {
+  locations: ILocationItem[];
+};
 
 // .. CREATE
 
@@ -139,7 +140,7 @@ export const createLocationFromItemId = (
   companyId: string,
   position: Pos3D,
 ): ILocation => {
-  const locationData = locationsData.find((ld) => ld.id === itemId);
+  const locationData = locationsData.locations.find((ld) => ld.id === itemId);
 
   if (!locationData) {
     throw Error(
@@ -206,7 +207,7 @@ export const getLocationByPositionOrNull = (
 };
 
 export const getLocationItemById = (id: string): ILocationItem => {
-  const locationData = locationsData.find((ld) => ld.id === id);
+  const locationData = locationsData.locations.find((ld) => ld.id === id);
 
   if (!locationData) {
     throw Error(`LocationItem with id ${id} doesn't exist`);
@@ -217,13 +218,13 @@ export const getLocationItemById = (id: string): ILocationItem => {
 export const getLocationItemByIdOrNull = (
   id: string | undefined,
 ): Nullable<ILocationItem> => {
-  const locationData = locationsData.find((ld) => ld.id === id);
+  const locationData = locationsData.locations.find((ld) => ld.id === id);
 
   return locationData;
 };
 
 export const getLocationItems = (): ILocationItem[] => {
-  return locationsData;
+  return locationsData.locations;
 };
 
 export const getLocationString = (world: IWorld, location: ILocation) => {

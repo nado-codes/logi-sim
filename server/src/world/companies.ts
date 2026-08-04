@@ -14,8 +14,8 @@ import {
   defaultCompanyOptions,
   ICompanyEntity,
   GEOGRAPHY_TYPE,
-  IBaseEntity,
   IMarketplaceEntity,
+  IWorldEntity,
 } from "@logisim/lib/entities";
 import {
   Color,
@@ -64,6 +64,7 @@ export const createCompany = (
   const newCompany: ICompany = {
     ...createNamedEntity(name),
     isInsolvent: false,
+    isLiquidated: false,
     debts: [],
     money,
     color,
@@ -123,7 +124,7 @@ export const getCompanyString = (company: ICompany) => {
 export const getCompanyEntitiesByCompanyId = (
   state: IWorldState,
   id: string,
-): (IBaseEntity & IMarketplaceEntity & ICompanyEntity)[] => {
+): (IWorldEntity & IMarketplaceEntity & ICompanyEntity)[] => {
   return [...state.getLocations(), ...state.trucks].filter(
     (e) => e.companyId === id,
   );
@@ -133,7 +134,7 @@ export const getCompanyEntityByCompanyIdEntityId = (
   state: IWorldState,
   companyId: string,
   entityId: string,
-): IBaseEntity & IMarketplaceEntity & ICompanyEntity => {
+): IWorldEntity & IMarketplaceEntity & ICompanyEntity => {
   const companyEntities = getCompanyEntitiesByCompanyId(state, companyId);
   const companyEntity = companyEntities.find((e) => e.id === entityId);
 
@@ -298,6 +299,32 @@ export const collectFromCompany = (
           `[COMPANY] ${debtorCompany.name} is insolvent but is unable to pay their debts, and will be liquidated`,
         );
       }
+      debtorCompany.isLiquidated = true;
+
+      debtorAssetItemsByValue.forEach((assetItem) => {
+        sellItem(state, assetItem.asset.id, debtorCompany);
+      });
+
+      const debtorCompanyStartingCapital = debtorCompany.money;
+      debtorCompany.debts.forEach((debt) => {
+        const creditorCompany = getCompanyById(state, debt.creditorCompanyId);
+        const amountToPay = Math.min(
+          (debt.amount / sumTotalCompanyDebts) * debtorCompanyStartingCapital,
+          debt.amount,
+          debtorCompany.money,
+        );
+        transferCompanyFunds(debtorCompany, creditorCompany, amountToPay);
+        debt.amount -= amountToPay;
+
+        if (debtorCompany.money <= 0) {
+          logWarning(
+            `[COMPANY] ${debtorCompany.name} has no money left to pay debts`,
+          );
+          return;
+        }
+      });
+
+      debtorCompany.debts = debtorCompany.debts.filter((d) => d.amount > 0);
     }
   }
 };

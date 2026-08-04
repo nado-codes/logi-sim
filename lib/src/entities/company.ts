@@ -11,6 +11,7 @@ export interface ICompany extends INamedEntity {
   money: number;
   color: Color;
   isInsolvent: boolean;
+  isLiquidated: boolean;
   debts: ICompanyDebt[];
   options: ICreateCompanyOptions;
 }

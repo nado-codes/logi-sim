@@ -1,4 +1,4 @@
-import { createWorld, IWorld } from "../../src/world/world";
+import { createWorld, IWorld, STATE_COMPANY_NAME } from "../../src/world/world";
 import { RESOURCE_TYPE } from "@logisim/lib/entities";
 import {
   logInfo,
@@ -19,10 +19,7 @@ export const runCompetitiveSimulation = (options: {
   logInfo("Logi sim starting...");
   logInfo("LogiSim v0.6.1 - SC-COMPETE");
 
-  const stateCompany = world.createCompany("State", 100000, Color.Magenta, {
-    isAiEnabled: false,
-    hasUnlimitedMoney: true,
-  });
+  const stateCompany = world.getCompanyByName(STATE_COMPANY_NAME);
   const playerCompany = world.createCompany(
     "NadoCo Logistics",
     100000,

@@ -1,4 +1,4 @@
-import { createWorld } from "./world/world";
+import { createWorld, STATE_COMPANY_NAME } from "./world/world";
 import { logisimApi } from "./api";
 import { logInfo, Color, setLogContextProvider } from "@logisim/lib/utils";
 
@@ -7,11 +7,7 @@ export const world = createWorld();
 logInfo("Logi sim starting...");
 logInfo("LogiSim v0.6.1");
 
-const stateCompany = world.createCompany("State", 100000, Color.Magenta, {
-  isAiEnabled: true,
-  hasUnlimitedMoney: true,
-  isGovernment: true,
-});
+const stateCompany = world.getCompanyByName(STATE_COMPANY_NAME);
 const playerCompany = world.createCompany(
   "NadoCo Logistics",
   100000,

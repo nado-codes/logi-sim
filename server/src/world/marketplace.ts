@@ -2,17 +2,22 @@ import {
   EMarketplaceTransactionResult,
   IBaseItem,
   ICompany,
+  IVehicle,
   IWorldState,
+  VEHICLE_TYPE,
+  WorldEntityType,
 } from "@logisim/lib/entities";
 import { getLocationItems } from "./locations/locations";
-import { getTruckItems } from "./trucks";
+import { deleteTruck, getTruckItems } from "./trucks";
 import {
   COMPANY_TRANSFER_RESULT,
+  getCompanyByName,
   getCompanyEntityByCompanyIdEntityId,
   transferCompanyFundsFromState,
   transferCompanyFundsToState,
 } from "./companies";
 import { logSuccess } from "@logisim/lib/utils";
+import { STATE_COMPANY_NAME } from "./world";
 
 export const getMarketplaceItemById = (itemId: string) => {
   const marketplaceItems = [
@@ -58,12 +63,21 @@ export const sellItem = (
   entityId: string,
   sellerCompany: ICompany,
 ): EMarketplaceTransactionResult => {
-  // .. transfer an existing entity from one company to another (or the state) in exchange for cash
   const companyEntity = getCompanyEntityByCompanyIdEntityId(
     state,
     sellerCompany.id,
     entityId,
   );
+
+  const isSellable =
+    (companyEntity.type === WorldEntityType.Vehicle &&
+      (companyEntity as IVehicle).vehicleType === VEHICLE_TYPE.Truck) ||
+    companyEntity.type === WorldEntityType.Location;
+
+  if (!isSellable) {
+    return EMarketplaceTransactionResult.NOT_SELLABLE;
+  }
+
   const marketplaceItem = getMarketplaceItemById(companyEntity.itemId);
 
   const paymentResult = transferCompanyFundsFromState(
@@ -72,11 +86,22 @@ export const sellItem = (
     marketplaceItem.price,
   );
 
-  logSuccess(
-    `${sellerCompany.name} sold their ${marketplaceItem.name} and was paid $${marketplaceItem.price}`,
-  );
-
   if (paymentResult === COMPANY_TRANSFER_RESULT.SUCCESS) {
+    if (companyEntity.type === WorldEntityType.Vehicle) {
+      const assetAsVehicle = companyEntity as IVehicle;
+
+      if (assetAsVehicle.vehicleType === VEHICLE_TYPE.Truck) {
+        deleteTruck(state, assetAsVehicle);
+      }
+    } else if (companyEntity.type === WorldEntityType.Location) {
+      const stateCompany = getCompanyByName(state, STATE_COMPANY_NAME);
+      companyEntity.companyId = stateCompany.id;
+    }
+
+    logSuccess(
+      `${sellerCompany.name} sold their ${marketplaceItem.name} and was paid $${marketplaceItem.price}`,
+    );
+
     return EMarketplaceTransactionResult.SUCCESS;
   }
 

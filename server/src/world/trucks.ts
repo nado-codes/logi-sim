@@ -61,34 +61,38 @@ export const loadTruckConfig = () => loadConfig("truck", defaultConfig);
 const truckConfig = loadTruckConfig();
 const notificationConfig = loadNotificationConfig();
 
-const defaultTrucksData: IVehicleItem[] = [
-  {
-    id: "truck-flour",
-    name: "Flour Truck",
-    resourceCapacity: 10000,
-    resourceItemId: "resource-flour",
-    speed: 2,
-    price: 1000,
-  },
-  {
-    id: "truck-grain",
-    name: "Grain Truck",
-    resourceCapacity: 10000,
-    resourceItemId: "resource-grain",
-    speed: 2,
-    price: 1000,
-  },
-  {
-    id: "truck-bigFlour",
-    name: "Big Flour Truck",
-    resourceCapacity: 1000000,
-    resourceItemId: "resource-flour",
-    speed: 1,
-    price: 10000,
-  },
-];
+const defaultTrucksData = {
+  trucks: [
+    {
+      id: "truck-flour",
+      name: "Flour Truck",
+      resourceCapacity: 10000,
+      resourceItemId: "resource-flour",
+      speed: 2,
+      price: 1000,
+    },
+    {
+      id: "truck-grain",
+      name: "Grain Truck",
+      resourceCapacity: 10000,
+      resourceItemId: "resource-grain",
+      speed: 2,
+      price: 1000,
+    },
+    {
+      id: "truck-bigFlour",
+      name: "Big Flour Truck",
+      resourceCapacity: 1000000,
+      resourceItemId: "resource-flour",
+      speed: 1,
+      price: 10000,
+    },
+  ],
+};
 
-const trucksData = loadJSON("trucks", defaultTrucksData) as IVehicleItem[];
+const trucksData = loadJSON("trucks", defaultTrucksData) as {
+  trucks: IVehicleItem[];
+};
 
 // .. CREATE
 export const createTruck = (
@@ -137,7 +141,7 @@ export const createTruckFromItemId = (
   companyId: string,
   position: Pos3D,
 ) => {
-  const truckData = trucksData.find((td) => td.id === itemId);
+  const truckData = trucksData.trucks.find((td) => td.id === itemId);
 
   if (truckData === undefined) {
     throw Error(`Truck with itemId ${itemId} doesn't exist`);
@@ -188,7 +192,7 @@ export const getTruckByPositionOrNull = (
 };
 
 export const getTruckItemById = (id: string): IVehicleItem => {
-  const truckData = trucksData.find((td) => td.id === id);
+  const truckData = trucksData.trucks.find((td) => td.id === id);
 
   if (truckData === undefined) {
     throw Error(`Truck with itemId ${id} doesn't exist`);
@@ -200,13 +204,13 @@ export const getTruckItemById = (id: string): IVehicleItem => {
 export const getTruckItemByIdOrNull = (
   id: string | undefined,
 ): Nullable<IVehicleItem> => {
-  const truckData = trucksData.find((td) => td.id === id);
+  const truckData = trucksData.trucks.find((td) => td.id === id);
 
   return truckData;
 };
 
 export const getTruckItems = (): IVehicleItem[] => {
-  return trucksData;
+  return trucksData.trucks;
 };
 
 export const getTruckString = (state: IWorldState, truck: ITruck) => {
