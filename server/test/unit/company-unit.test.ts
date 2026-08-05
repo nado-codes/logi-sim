@@ -16,6 +16,7 @@ import {
   ICompany,
   IContract,
   ILocation,
+  IVehicle,
   Pos3DZero,
   RESOURCE_TYPE,
 } from "@logisim/lib/entities";
@@ -23,15 +24,21 @@ import { createWorld } from "../../src/world/world";
 import { Color } from "@logisim/lib/utils";
 
 describe("collectFromCompany unit tests", () => {
+  const creditorCompanyStartMoney = 0;
   let world: ReturnType<typeof createWorld>;
   let creditorCompany: ICompany, debtorCompany: ICompany;
   let creditorContract: IContract, supplier: ILocation, destination: ILocation;
 
   beforeEach(() => {
     world = createWorld();
-    creditorCompany = world.createCompany("Creditor Co", 0, Color.Red, {
-      isAiEnabled: true,
-    });
+    creditorCompany = world.createCompany(
+      "Creditor Co",
+      creditorCompanyStartMoney,
+      Color.Red,
+      {
+        isAiEnabled: true,
+      },
+    );
     supplier = world.createProcessor(
       "Creditor Supplier",
       creditorCompany.id,
@@ -160,37 +167,62 @@ describe("collectFromCompany unit tests", () => {
   /*
   5. AI auto-resolve — if asset values cannot account for the debts that a company has, it should be liquidated
   */
-  it.todo(
-    "should trigger liquidation if the sum of a debtor company's capital and asset values cannot pay back their debts",
-    () => {
-      debtorCompany.money = 0;
+  it("should trigger liquidation when the company cannot pay back their debts", () => {
+    debtorCompany.money = 0;
+    world.createTruckFromItemId("truck-flour", debtorCompany.id, Pos3DZero);
+    const truckMarketplaceItem = world.getTruckItemById("truck-flour");
 
-      const secondContract = world.createContract(
-        creditorCompany.id,
-        destination.id,
-        supplier.id,
-        RESOURCE_TYPE.Grain,
-        1,
-        1,
-      );
-      secondContract.payment = 1;
+    const secondCompanyStartMoney = 0;
+    const secondCompany = world.createCompany(
+      "Second Co",
+      secondCompanyStartMoney,
+      Color.Green,
+      {
+        isAiEnabled: true,
+      },
+    );
+    const secondContract = world.createContract(
+      secondCompany.id,
+      destination.id,
+      supplier.id,
+      RESOURCE_TYPE.Grain,
+      1,
+      1,
+    );
+    creditorContract.payment = 1100;
+    secondContract.payment = 1;
 
-      world.assignContractToCompany(creditorContract, debtorCompany);
-      world.assignContractToCompany(secondContract, debtorCompany);
-      world.breakContract(
-        creditorContract,
-        CONTRACT_BREAK_TYPE.Breach,
-        CONTRACT_BREAK_FAULT.Shipper,
-      );
-      world.breakContract(
-        secondContract,
-        CONTRACT_BREAK_TYPE.Breach,
-        CONTRACT_BREAK_FAULT.Shipper,
-      );
+    world.assignContractToCompany(creditorContract, debtorCompany);
+    world.assignContractToCompany(secondContract, debtorCompany);
+    world.breakContract(
+      creditorContract,
+      CONTRACT_BREAK_TYPE.Breach,
+      CONTRACT_BREAK_FAULT.Shipper,
+    );
+    world.breakContract(
+      secondContract,
+      CONTRACT_BREAK_TYPE.Breach,
+      CONTRACT_BREAK_FAULT.Shipper,
+    );
 
-      // .. TODO: liquidation hasn't actually been implemented yet
-      // .. also, liquidated companies should distribute assets between creditors
-      // .. check the LS Dev claude chat for how to implement this
-    },
-  );
+    expect(debtorCompany.isLiquidated).toEqual(true);
+
+    const companyAssets = world.getCompanyEntitiesByCompanyId(debtorCompany.id);
+    const companyVehicles = companyAssets.filter(
+      (asset) => asset.type === "Vehicle",
+    );
+    const numTrucks = companyVehicles.filter(
+      (v) => (v as IVehicle).vehicleType === "Truck",
+    ).length;
+    expect(numTrucks).toEqual(0);
+
+    expect(creditorCompany.money).toEqual(
+      creditorCompanyStartMoney + truckMarketplaceItem.price,
+    );
+    expect(secondCompany.money).toEqual(secondCompanyStartMoney);
+
+    // .. TODO: liquidation hasn't actually been implemented yet
+    // .. also, liquidated companies should distribute assets between creditors
+    // .. check the LS Dev claude chat for how to implement this
+  });
 });

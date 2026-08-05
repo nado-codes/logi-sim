@@ -1,7 +1,12 @@
 import { describe, it, expect } from "vitest";
 import { runBaseSimulation } from "../testHelpers/baseSimulation";
 import { IWorld } from "../../src/world/world";
-import { highlight, setGlobalSeed, vectorsAreEqual } from "@logisim/lib/utils";
+import {
+  highlight,
+  positionsAreEqual,
+  setGlobalSeed,
+  vectorsAreEqual,
+} from "@logisim/lib/utils";
 import { Pos3D } from "@logisim/lib/entities";
 
 describe("deadlock soak", () => {
@@ -17,7 +22,7 @@ describe("deadlock soak", () => {
       loadedTrucks.forEach((t) => {
         const tPreviousPosition = previousTickLoadedTruckPositions[t.id];
         if (tPreviousPosition) {
-          if (vectorsAreEqual(t.position, tPreviousPosition)) {
+          if (positionsAreEqual(t.position, tPreviousPosition)) {
             console.log(
               `${highlight.yellow(t.name)} has been idle for ${
                 loadedTrucksTicksIdle[t.id] ?? 0

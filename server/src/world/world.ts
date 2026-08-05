@@ -115,11 +115,11 @@ export interface IWorld {
   getCompanyByName: (name: string) => ICompany;
   getCompanyEntitiesByCompanyId: (
     id: string,
-  ) => (IBaseEntity & IMarketplaceEntity & ICompanyEntity)[];
+  ) => (IWorldEntity & IMarketplaceEntity & ICompanyEntity)[];
   getCompanyEntityByCompanyIdEntityId: (
     companyId: string,
     entityId: string,
-  ) => IBaseEntity & IMarketplaceEntity & ICompanyEntity;
+  ) => IWorldEntity & IMarketplaceEntity & ICompanyEntity;
 
   createCoastline: (position: Pos3D) => ICoastline;
   createWater: (position: Pos3D) => IWater;
