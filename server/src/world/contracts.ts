@@ -15,6 +15,7 @@ import {
   highlight,
   logWarning,
   logError,
+  getDistanceBetweenPositions,
 } from "@logisim/lib/utils";
 import {
   IWorldState,
@@ -125,7 +126,10 @@ export const createContract = (
 
   const supplier = getLocationById(state, supplierId);
   const destination = getLocationById(state, destinationId);
-  const distance = Math.abs(destination.position.x - supplier.position.x);
+  const distance = getDistanceBetweenPositions(
+    destination.position,
+    supplier.position,
+  );
   const payment = calculateContractPayment(amount, distance, dueTicks);
 
   if (!canStoreResourceType(supplier.storage, resourceType)) {
