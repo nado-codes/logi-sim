@@ -1,10 +1,10 @@
 import { loadNotificationConfig } from "../../notifications";
 import {
-  getContractByResource,
+  getContractByDestinationIdResourceType,
   createContract,
   breakContract,
   CONTRACT_BREAK_TYPE,
-  getContractByLocationIdOrNull,
+  getContractByDestinationIdOrNull,
   CONTRACT_BREAK_FAULT,
   contractConfig,
 } from "../contracts";
@@ -262,7 +262,7 @@ export const checkInputStorage = (state: IWorldState, location: ILocation) => {
       .map((s) => s.resourceCapacity)
       .reduce((c, v) => c + v);
 
-    const contract = getContractByResource(
+    const contract = getContractByDestinationIdResourceType(
       state,
       location.id,
       resourceType as RESOURCE_TYPE,
@@ -359,7 +359,7 @@ export const checkInputStorage = (state: IWorldState, location: ILocation) => {
 // .. DELETE
 
 export const deleteLocation = (state: IWorldState, location: ILocation) => {
-  const locationContract = getContractByLocationIdOrNull(state, location.id);
+  const locationContract = getContractByDestinationIdOrNull(state, location.id);
 
   if (notificationConfig.logLocationNotifications) {
     logSuccess(`[LOCATION] Deleted a ${location.name}`);

@@ -13,7 +13,7 @@ import {
 import { Color, highlight } from "@logisim/lib/utils";
 import { loadConfig } from "../utils/configUtils";
 import { getCompanyByIdOrNull } from "./companies";
-import { getContractByLocationIdOrNull } from "./contracts";
+import { getContractByDestinationIdOrNull } from "./contracts";
 import { getWorldEntityByPositionOrNull } from "./entities";
 import { loadGeographyConfig } from "./geographies";
 import { loadTownConfig } from "./locations/consumers/towns";
@@ -95,7 +95,10 @@ export const getMap = (state: IWorldState) => {
         spaces += 1;
       } else if (entityAtPos.type === WorldEntityType.Location) {
         const locationAtPos = entityAtPos as ILocation;
-        const contract = getContractByLocationIdOrNull(state, locationAtPos.id);
+        const contract = getContractByDestinationIdOrNull(
+          state,
+          locationAtPos.id,
+        );
         const locationTag = TagDictionary[locationAtPos.locationType].tag;
 
         map += `${contract ? "📜" : ""} ${locationTag}`;

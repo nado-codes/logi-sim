@@ -5,8 +5,9 @@ import {
   CONTRACT_BREAK_FAULT,
   CONTRACT_BREAK_TYPE,
   createContract,
+  getContractByDestinationIdResourceType,
   getContractByIdOrNull,
-  getContractByLocationIdOrNull,
+  getContractByDestinationIdOrNull,
   getContractString,
   updateContracts,
 } from "./contracts";
@@ -91,8 +92,12 @@ export interface IWorld {
 
   getContracts: () => IContract[];
   getContractByIdOrNull: (id: Nullable<string>) => Nullable<IContract>;
-  getContractByLocationIdOrNull: (
-    locationId: Nullable<string>,
+  getContractByDestinationIdOrNull: (
+    destinationId: Nullable<string>,
+  ) => Nullable<IContract>;
+  getContractByDestinationIdResourceType: (
+    destinationId: string,
+    resourceType: RESOURCE_TYPE,
   ) => Nullable<IContract>;
   getContractString: (contract: IContract) => string;
 
@@ -282,8 +287,17 @@ export const createWorld = (): IWorld => {
     getContracts: () => state.contracts,
     getContractByIdOrNull: (id: string | undefined) =>
       getContractByIdOrNull(state, id),
-    getContractByLocationIdOrNull: (locationId: Nullable<string>) =>
-      getContractByLocationIdOrNull(state, locationId),
+    getContractByDestinationIdOrNull: (locationId: Nullable<string>) =>
+      getContractByDestinationIdOrNull(state, locationId),
+    getContractByDestinationIdResourceType: (
+      destinationId: string,
+      resourceType: RESOURCE_TYPE,
+    ) =>
+      getContractByDestinationIdResourceType(
+        state,
+        destinationId,
+        resourceType,
+      ),
     getContractString: (contract: IContract) =>
       getContractString(state, contract),
 

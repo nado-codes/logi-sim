@@ -179,7 +179,7 @@ export const getContractByIdOrNull = (
   return contract;
 };
 
-export const getContractByLocationIdOrNull = (
+export const getContractByDestinationIdOrNull = (
   state: IWorldState,
   locationId: Nullable<string>,
 ) => {
@@ -188,7 +188,7 @@ export const getContractByLocationIdOrNull = (
   return contract;
 };
 
-export const getContractByResource = (
+export const getContractByDestinationIdResourceType = (
   state: IWorldState,
   destinationId: string,
   resourceType: RESOURCE_TYPE,
