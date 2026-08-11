@@ -321,6 +321,25 @@ public class Client : MonoBehaviour
             var companyContacts = expiredContracts.Where(c => c.ShipperId == ActiveCompanyId).ToList();
             var companyDebts = CompanyDTOs.FirstOrDefault(c => c.Id == ActiveCompanyId)?.Debts ?? new CompanyDebtDTO[0];
 
+            if(expiredContracts.Count > 0)
+            {
+                Debug.Log("[CheckForExpiredContracts] Found "+expiredContracts.Count+" expired contracts");
+
+                if(companyContacts.Count > 0)
+                {
+                    Debug.Log(" - "+companyContacts.Count+" of them belongs to the active company");
+
+                    if(companyDebts.Length > 0)
+                    {
+                        Debug.Log(" - The active company currently has debt with "+companyDebts.Count()+" creditors");
+                    }
+                }
+                else
+                {
+                    Debug.Log(" - None of them belong to the active company, so we won't open a prompt");
+                }
+            }
+
             foreach(var contract in companyContacts)
             {
                 var contractCompany = CompanyDTOs.FirstOrDefault(c => c.Id == contract.CompanyId);

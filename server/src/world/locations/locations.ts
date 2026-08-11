@@ -165,13 +165,15 @@ export const createLocationFromItemId = (
     companyId,
   };
 
+  const locationWithItemId = { ...location, itemId };
+
   if (location.locationType === LOCATION_TYPE.Producer) {
-    state.producers.push(location);
+    state.producers.push(locationWithItemId);
   } else if (location.locationType === LOCATION_TYPE.Processor) {
-    state.processors.push(location);
+    state.processors.push(locationWithItemId);
   }
 
-  return { ...location, itemId };
+  return locationWithItemId;
 };
 
 // .. READ

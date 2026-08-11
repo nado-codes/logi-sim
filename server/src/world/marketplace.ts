@@ -13,6 +13,7 @@ import {
   COMPANY_TRANSFER_RESULT,
   getCompanyByName,
   getCompanyEntityByCompanyIdEntityId,
+  transferCompanyFunds,
   transferCompanyFundsFromState,
   transferCompanyFundsToState,
 } from "./companies";
@@ -80,6 +81,7 @@ export const sellItem = (
 
   const marketplaceItem = getMarketplaceItemById(companyEntity.itemId);
 
+  const stateCompany = getCompanyByName(state, STATE_COMPANY_NAME);
   const paymentResult = transferCompanyFundsFromState(
     state,
     sellerCompany,
@@ -87,16 +89,7 @@ export const sellItem = (
   );
 
   if (paymentResult === COMPANY_TRANSFER_RESULT.SUCCESS) {
-    if (companyEntity.type === WorldEntityType.Vehicle) {
-      const assetAsVehicle = companyEntity as IVehicle;
-
-      if (assetAsVehicle.vehicleType === VEHICLE_TYPE.Truck) {
-        deleteTruck(state, assetAsVehicle);
-      }
-    } else if (companyEntity.type === WorldEntityType.Location) {
-      const stateCompany = getCompanyByName(state, STATE_COMPANY_NAME);
-      companyEntity.companyId = stateCompany.id;
-    }
+    companyEntity.companyId = stateCompany.id;
 
     logSuccess(
       `${sellerCompany.name} sold their ${marketplaceItem.name} and was paid $${marketplaceItem.price}`,
