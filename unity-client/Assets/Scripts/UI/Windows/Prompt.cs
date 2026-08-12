@@ -11,6 +11,8 @@ public class Prompt : BaseWindow<Prompt>
 
     public GameObject promptPrototype;
 
+    public static bool IsVisible = false;
+
     protected override void Start()
     {
         base.Start();
@@ -26,6 +28,11 @@ public class Prompt : BaseWindow<Prompt>
 
     public static void Show(string title, string message)
     {
+        if(IsVisible)
+        {
+            return;
+        }
+        
         if(Instance == null)
         {
             Debug.LogError("Prompt instance is null. Make sure there is a Prompt component in the scene");
@@ -80,6 +87,13 @@ public class Prompt : BaseWindow<Prompt>
         txTitle.text = title;
         messageText.text = message;
         prompt.GetComponent<CanvasGroupToggle>().Show();
+        IsVisible = true;
+    }
+
+    public override void Close()
+    {
+        base.Close();
+        IsVisible = false;
     }
 
 }

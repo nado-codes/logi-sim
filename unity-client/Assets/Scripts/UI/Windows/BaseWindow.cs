@@ -15,7 +15,7 @@ public class BaseWindow<T> : MonoBehaviour
         canvasGroupToggle.Show();
     }
 
-    public void Close()
+    public virtual void Close()
     {
        canvasGroupToggle.Hide();
     }

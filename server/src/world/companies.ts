@@ -26,6 +26,7 @@ import {
   sum,
   random,
   getDistanceBetweenPositions,
+  logError,
 } from "@logisim/lib/utils";
 import { sellItem } from "./marketplace";
 
@@ -345,6 +346,81 @@ export const transferCompanyFundsToState = (
 ): COMPANY_TRANSFER_RESULT => {
   const stateCompany = getCompanyByName(state, "State");
   return transferCompanyFunds(fromCompany, stateCompany, amount);
+};
+
+export const liquidateCompany = (state: IWorldState, company: ICompany) => {
+  if (
+    notificationConfig.logCompanyNotifications.all ||
+    notificationConfig.logCompanyNotifications.money
+  ) {
+    logInfo(`[COMPANY] Liquidating company: ${company.name}`);
+  }
+
+  const sumTotalCompanyDebts = company.debts
+    .map((d) => d.amount)
+    .reduce((a, c) => a + c, 0);
+
+  if (sumTotalCompanyDebts <= 0) {
+    logError(` - ${company.name} has no debts to liquidate`);
+    return;
+  }
+
+  if (
+    notificationConfig.logCompanyNotifications.all ||
+    notificationConfig.logCompanyNotifications.money
+  ) {
+    logInfo(`- Total debt: ${sumTotalCompanyDebts}`);
+  }
+
+  company.isLiquidated = true;
+
+  const debtorLocationItems = state
+    .getLocations()
+    .filter((l) => l.companyId === company.id && l.itemId)
+    .map((l) => ({
+      asset: l,
+      item: getLocationItemById(l.itemId),
+    }));
+  const debtorTruckItems = state.trucks
+    .filter((t) => t.companyId === company.id && t.itemId)
+    .map((t) => ({ asset: t, item: getTruckItemById(t.itemId) }));
+  const debtorAssetItemsByValue = [
+    ...debtorLocationItems,
+    ...debtorTruckItems,
+  ].sort((a, b) => a.item.price - b.item.price);
+
+  if (
+    notificationConfig.logCompanyNotifications.all ||
+    notificationConfig.logCompanyNotifications.money
+  ) {
+    logInfo(`- Industries: ${debtorLocationItems.length}, Trucks: ${debtorTruckItems.length}`);
+    logInfo(`- Total asset value: ${debtorAssetItemsByValue.map((li) => li!.item.price).reduce((a, c) => a + c, 0)}`);
+  }
+
+  debtorAssetItemsByValue.forEach((assetItem) => {
+    sellItem(state, assetItem.asset.id, company);
+  });
+
+  const debtorCompanyStartingMoney = company.money;
+  company.debts.forEach((debt) => {
+    const creditorCompany = getCompanyById(state, debt.creditorCompanyId);
+    const amountToPay = Math.min(
+      (debt.amount / sumTotalCompanyDebts) * debtorCompanyStartingMoney,
+      debt.amount,
+      company.money,
+    );
+    transferCompanyFunds(company, creditorCompany, amountToPay);
+    debt.amount -= amountToPay;
+
+    if (company.money <= 0) {
+      logWarning(`[COMPANY] ${company.name} has no money left to pay debts`);
+      return;
+    }
+  });
+
+  company.debts = company.debts.filter((d) => d.amount > 0);
+  
+  if()
 };
 
 const tryCreateTown = (state: IWorldState, company: ICompany) => {

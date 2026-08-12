@@ -44,6 +44,7 @@ import {
   transferCompanyFundsFromState,
   transferCompanyFundsToState,
   updateCompanies,
+  liquidateCompany,
 } from "./companies";
 import { createTown, updateTowns } from "./locations/consumers/towns";
 import {
@@ -75,7 +76,6 @@ import {
   ILocationItem,
   IVehicleItem,
   EMarketplaceTransactionResult,
-  IBaseEntity,
   IMarketplaceEntity,
   ICompanyEntity,
 } from "@logisim/lib/entities";
@@ -86,10 +86,12 @@ export interface IWorld {
   advanceTick: () => void;
   update: () => void;
 
+  //MISC - GET
   getMap: () => void;
   getCurrentTick: () => number;
   getWorldEntityByPositionOrNull: (position: Pos3D) => Nullable<IWorldEntity>;
 
+  //CONTRACT - GET
   getContracts: () => IContract[];
   getContractByIdOrNull: (id: Nullable<string>) => Nullable<IContract>;
   getContractByDestinationIdOrNull: (
@@ -101,6 +103,7 @@ export interface IWorld {
   ) => Nullable<IContract>;
   getContractString: (contract: IContract) => string;
 
+  //TRUCK - GET
   getTrucks: () => ITruck[];
   getTruckById: (id: string) => ITruck;
   getTruckByPositionOrNull: (position: Pos3D) => Nullable<ITruck>;
@@ -108,12 +111,14 @@ export interface IWorld {
   getTruckItems: () => IVehicleItem[];
   getTruckString: (truck: ITruck) => string;
 
+  //LOCATION - GET
   getLocations: () => ILocation[];
   getLocationById: (id: string) => ILocation;
   getLocationByIdOrNull: (id: Nullable<string>) => Nullable<ILocation>;
   getLocationItemById: (itemId: string) => ILocationItem;
   getLocationItems: () => ILocationItem[];
 
+  //COMPANY - GET
   getCompanies: () => ICompany[];
   getCompanyById: (id: string) => ICompany;
   getCompanyByIdOrNull: (id: string) => Nullable<ICompany>;
@@ -126,6 +131,7 @@ export interface IWorld {
     entityId: string,
   ) => IWorldEntity & IMarketplaceEntity & ICompanyEntity;
 
+  //GEOGRAPHY
   createCoastline: (position: Pos3D) => ICoastline;
   createWater: (position: Pos3D) => IWater;
   createMountain: (position: Pos3D, width: number, height: number) => IMountain;
@@ -134,6 +140,7 @@ export interface IWorld {
     resourceType: RESOURCE_TYPE,
   ) => IResourceDeposit;
 
+  //COMPANY - CREATE
   createCompany: (
     name: string,
     money: number,
@@ -141,6 +148,7 @@ export interface IWorld {
     options?: Partial<ICreateCompanyOptions>,
   ) => ICompany;
 
+  //LOCATION - CREATE
   createProducer: (
     name: string,
     companyId: string,
@@ -172,6 +180,7 @@ export interface IWorld {
     startFull?: boolean,
   ) => ITown;
 
+  //CONTRACT - CREATE
   createContract: (
     companyId: string,
     destinationId: string,
@@ -181,6 +190,7 @@ export interface IWorld {
     dueTicks: number,
   ) => IContract;
 
+  //TRUCK - CREATE
   createTruckFromItemId: (
     itemId: string,
     companyId: string,
@@ -197,6 +207,7 @@ export interface IWorld {
     resourceCount?: number,
   ) => ITruck;
 
+  //COMPANY - UPDATE
   assignContractToTruck: (contract: IContract, truck: ITruck) => boolean;
   assignContractToCompany: (contract: IContract, company: ICompany) => boolean;
   breakContract: (
@@ -204,7 +215,6 @@ export interface IWorld {
     breakType: CONTRACT_BREAK_TYPE,
     breakFault?: CONTRACT_BREAK_FAULT,
   ) => void;
-
   transferCompanyFunds: (
     fromCompany: ICompany,
     toCompany: ICompany,
@@ -215,6 +225,9 @@ export interface IWorld {
     amount: number,
   ) => COMPANY_TRANSFER_RESULT;
   transferFundsFromState: (toCompany: ICompany, amount: number) => void;
+  liquidateCompany: (company: ICompany) => void;
+
+  // MARKETPLACE - UPDATE
   purchaseItem: (
     itemId: string,
     buyerCompany: ICompany,
@@ -224,6 +237,7 @@ export interface IWorld {
     sellerCompany: ICompany,
   ) => EMarketplaceTransactionResult;
 
+  // DELETE
   deleteTruck: (truck: ITruck) => void;
   deleteLocation: (location: ILocation) => void;
 }
@@ -275,15 +289,15 @@ export const createWorld = (): IWorld => {
   };
 
   return {
+    // MISC - UPDATE
     advanceTick: () => state.currentTick++,
-
     update: () => update(state),
-
     getMap: () => getMap(state),
     getCurrentTick: () => state.currentTick,
     getWorldEntityByPositionOrNull: (position: Pos3D) =>
       getWorldEntityByPositionOrNull(state, position),
 
+    // CONTRACT - GET
     getContracts: () => state.contracts,
     getContractByIdOrNull: (id: string | undefined) =>
       getContractByIdOrNull(state, id),
@@ -301,6 +315,7 @@ export const createWorld = (): IWorld => {
     getContractString: (contract: IContract) =>
       getContractString(state, contract),
 
+    // TRUCK - GET
     getTrucks: () => state.trucks,
     getTruckById: (id: string) => getTruckById(state, id),
     getTruckByPositionOrNull: (position: Pos3D) =>
@@ -309,6 +324,7 @@ export const createWorld = (): IWorld => {
     getTruckItems: () => getTruckItems(),
     getTruckString: (truck: ITruck) => getTruckString(state, truck),
 
+    // LOCATION - GET
     getLocations: () => state.getLocations(),
     getLocationById: (id: string) => getLocationById(state, id),
     getLocationByIdOrNull: (id: Nullable<string>) =>
@@ -316,6 +332,7 @@ export const createWorld = (): IWorld => {
     getLocationItemById: (itemId: string) => getLocationItemById(itemId),
     getLocationItems: () => getLocationItems(),
 
+    // COMPANY - GET
     getCompanies: () => state.companies,
     getCompanyById: (id: string) => getCompanyById(state, id),
     getCompanyByIdOrNull: (id: string) => getCompanyByIdOrNull(state, id),
@@ -327,6 +344,7 @@ export const createWorld = (): IWorld => {
       entityId: string,
     ) => getCompanyEntityByCompanyIdEntityId(state, companyId, entityId),
 
+    // GEOGRAPHY - CREATE
     createCoastline: (position: Pos3D) => createCoastline(state, position),
     createWater: (position: Pos3D) => createWater(state, position),
     createMountain: (position: Pos3D, width: number, height: number) =>
@@ -334,6 +352,7 @@ export const createWorld = (): IWorld => {
     createResourceDeposit: (position: Pos3D, resourceType: RESOURCE_TYPE) =>
       createResourceDeposit(state, position, resourceType),
 
+    // COMPANY - CREATE
     createCompany: (
       name: string,
       money: number,
@@ -341,6 +360,7 @@ export const createWorld = (): IWorld => {
       options: Partial<ICreateCompanyOptions> = defaultCompanyOptions,
     ) => createCompany(state, name, money, color, options),
 
+    // LOCATION - CREATE
     createProducer: (
       name: string,
       companyId: string,
@@ -386,6 +406,7 @@ export const createWorld = (): IWorld => {
     createTown: (name: string, companyId: string, position: Pos3D) =>
       createTown(state, name, companyId, position),
 
+    // CONTRACT - CREATE
     createContract: (
       companyId: string,
       destinationId: string,
@@ -404,6 +425,7 @@ export const createWorld = (): IWorld => {
         dueTicks,
       ),
 
+    // TRUCK - CREATE
     createTruck: (
       name: string,
       companyId: string,
@@ -430,6 +452,7 @@ export const createWorld = (): IWorld => {
       position: Pos3D,
     ) => createTruckFromItemId(state, itemId, companyId, position),
 
+    // CONTRACT - UPDATE
     assignContractToTruck: (contract: IContract, truck: ITruck) =>
       assignContractToTruck(state, contract, truck),
     assignContractToCompany: (contract: IContract, company: ICompany) =>
@@ -439,6 +462,8 @@ export const createWorld = (): IWorld => {
       breakType: CONTRACT_BREAK_TYPE,
       breakFault: CONTRACT_BREAK_FAULT = CONTRACT_BREAK_FAULT.None,
     ) => breakContract(state, contract, breakType, breakFault),
+
+    // COMPANY - UPDATE
     transferCompanyFunds: (
       fromCompany: ICompany,
       toCompany: ICompany,
@@ -448,11 +473,15 @@ export const createWorld = (): IWorld => {
       transferCompanyFundsToState(state, fromCompany, amount),
     transferFundsFromState: (toCompany: ICompany, amount: number) =>
       transferCompanyFundsFromState(state, toCompany, amount),
+    liquidateCompany: (company: ICompany) => liquidateCompany(state, company),
+
+    // MARKETPLACE - UPDATE
     purchaseItem: (itemId: string, buyerCompany: ICompany) =>
       purchaseItem(state, itemId, buyerCompany),
     sellItem: (itemId: string, sellerCompany: ICompany) =>
       sellItem(state, itemId, sellerCompany),
 
+    // DELETE
     deleteTruck: (truck: ITruck) => deleteTruck(state, truck),
     deleteLocation: (location: ILocation) => deleteLocation(state, location),
   };

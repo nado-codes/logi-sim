@@ -3826,7 +3826,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1993570242
 RectTransform:
   m_ObjectHideFlags: 0
@@ -4171,6 +4171,16 @@ PrefabInstance:
       propertyPath: m_AnchorMax.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5870431099343034901, guid: e0c26e56a6311c34b9fa847046aacef8,
+        type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5870431099343034901, guid: e0c26e56a6311c34b9fa847046aacef8,
+        type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5897444567861935076, guid: e0c26e56a6311c34b9fa847046aacef8,
         type: 3}
       propertyPath: m_Pivot.x
@@ -4279,6 +4289,36 @@ PrefabInstance:
     - target: {fileID: 5937248846243531365, guid: e0c26e56a6311c34b9fa847046aacef8,
         type: 3}
       propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6272435749826101406, guid: e0c26e56a6311c34b9fa847046aacef8,
+        type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6272435749826101406, guid: e0c26e56a6311c34b9fa847046aacef8,
+        type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6272435749826101406, guid: e0c26e56a6311c34b9fa847046aacef8,
+        type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6272435749826101406, guid: e0c26e56a6311c34b9fa847046aacef8,
+        type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7223875640107631419, guid: e0c26e56a6311c34b9fa847046aacef8,
+        type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7223875640107631419, guid: e0c26e56a6311c34b9fa847046aacef8,
+        type: 3}
+      propertyPath: m_SizeDelta.y
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []

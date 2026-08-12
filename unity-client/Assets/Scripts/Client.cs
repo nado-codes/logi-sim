@@ -40,6 +40,8 @@ public class Client : MonoBehaviour
     public bool SpawnEntities = false;
     const float positionScaleFactor = 5f;
 
+    private bool shownLiquidation = false;
+
     private static Client _client;
 
 
@@ -49,7 +51,6 @@ public class Client : MonoBehaviour
         SceneManager.sceneUnloaded += OnSceneUnloaded;
         StartCoroutine(RefreshWorldState(.4f));
         StartCoroutine(RefreshMarketplaceState());
-        StartCoroutine(CheckForExpiredContracts(.4f));
 
         CallAPI("/companies",APICallType.Get,(success,response) =>
         {
@@ -125,6 +126,7 @@ public class Client : MonoBehaviour
     {
         while (true)
         {
+            Debug.Log("Refreshing world state");
             yield return CallAPI("/companies",APICallType.Get,(success,response) =>
             {
                 if (!success) Debug.LogError(response);
@@ -134,6 +136,8 @@ public class Client : MonoBehaviour
                 {
                     CompanyDTOs = companiesResult;
                 }
+
+                RefreshActiveCompanyState();
             });
 
             yield return CallAPI("/world/locations",APICallType.Get,(success,response) =>
@@ -167,6 +171,8 @@ public class Client : MonoBehaviour
                 {
                     TruckDTOs = trucksResult;
                 }
+
+                Debug.Log("Trucks:"+JsonConvert.SerializeObject(TruckDTOs));
             });
 
             yield return CallAPI("/world/contracts",APICallType.Get,(success,response) =>
@@ -178,6 +184,8 @@ public class Client : MonoBehaviour
                 {
                     ContractDTOs = contractsResult;
                 }
+
+                RefreshActiveCompanyContractStates();
             });
 
             yield return CallAPI("/world/tick",APICallType.Get,(success,response) =>
@@ -191,6 +199,63 @@ public class Client : MonoBehaviour
 
             yield return new WaitForSeconds(interval);
         }
+    }
+
+    private void RefreshActiveCompanyState()
+    {
+        var activeCompany = CompanyDTOs.FirstOrDefault(c => c.Id == ActiveCompanyId);
+
+        if(activeCompany != null && activeCompany.IsLiquidated)
+        {
+            Prompt.Show("Liquidation Event", "Due to your company's worsening financial situation and inability to resolve debts, it has been liquidated. You may restart the game if you wish to play again.");
+        }
+    }
+
+    private void RefreshActiveCompanyContractStates()
+    {
+        var expiredContracts = ContractDTOs.Where(c => c.ExpectedTick <= WorldTick).ToList();
+            var companyContacts = expiredContracts.Where(c => c.ShipperId == ActiveCompanyId).ToList();
+            var companyDebts = CompanyDTOs.FirstOrDefault(c => c.Id == ActiveCompanyId)?.Debts ?? new CompanyDebtDTO[0];
+
+            if(expiredContracts.Count > 0)
+            {
+                Debug.Log("[CheckForExpiredContracts] Found "+expiredContracts.Count+" expired contracts");
+
+                if(companyContacts.Count > 0)
+                {
+                    Debug.Log(" - "+companyContacts.Count+" of them belongs to the active company");
+
+                    if(companyDebts.Length > 0)
+                    {
+                        Debug.Log(" - The active company currently has debt with "+companyDebts.Count()+" creditors");
+                    }
+                }
+                else
+                {
+                    Debug.Log(" - None of them belong to the active company, so we won't open a prompt");
+                }
+            }
+
+            foreach(var contract in companyContacts)
+            {
+                var contractCompany = CompanyDTOs.FirstOrDefault(c => c.Id == contract.CompanyId);
+                if(contractCompany == null)
+                {
+                    Debug.LogError($"Contract {contract.Id} has expired at tick {WorldTick}, but the company with ID {contract.CompanyId} could not be found.");
+                    ContractDTOs.Remove(contract);
+                    continue;
+                }
+                /* var debt = companyDebts.FirstOrDefault(d => d.CreditorCompanyId == contractCompany?.Id);
+                if(debt == null)
+                {
+                    Debug.LogError($"Contract {contract.Id} has expired at tick {WorldTick}, but no debt was found for company {contractCompany?.Name} (ID: {contractCompany?.Id}).");
+                    ContractDTOs.Remove(contract);
+                    continue;
+                }*/ // TODO: The amount owed should be displayed in the prompt.
+                Prompt.Show("Contract Expired", $"Contract {contract.Id} has expired at tick {WorldTick}. You now owe {contractCompany?.Name} money for the failed contract. Due to the debt, your company is now insolvent and you cannot take new contracts or purchase assets until you resolve your debts.");
+                Debug.Log($"Contract {contract.Id} has expired at tick {WorldTick}. Removing from active contracts.");
+                ContractDTOs.Remove(contract);
+            }
     }
 
     private void RefreshWorldEntities()
@@ -311,57 +376,6 @@ public class Client : MonoBehaviour
                 houseGO.name = $"House_{i+1}";
                 houses.Add(houseGO.transform);
             }
-        }
-    }
-
-    private IEnumerator CheckForExpiredContracts(float interval)
-    {
-        while (true) {
-            var expiredContracts = ContractDTOs.Where(c => c.ExpectedTick <= WorldTick).ToList();
-            var companyContacts = expiredContracts.Where(c => c.ShipperId == ActiveCompanyId).ToList();
-            var companyDebts = CompanyDTOs.FirstOrDefault(c => c.Id == ActiveCompanyId)?.Debts ?? new CompanyDebtDTO[0];
-
-            if(expiredContracts.Count > 0)
-            {
-                Debug.Log("[CheckForExpiredContracts] Found "+expiredContracts.Count+" expired contracts");
-
-                if(companyContacts.Count > 0)
-                {
-                    Debug.Log(" - "+companyContacts.Count+" of them belongs to the active company");
-
-                    if(companyDebts.Length > 0)
-                    {
-                        Debug.Log(" - The active company currently has debt with "+companyDebts.Count()+" creditors");
-                    }
-                }
-                else
-                {
-                    Debug.Log(" - None of them belong to the active company, so we won't open a prompt");
-                }
-            }
-
-            foreach(var contract in companyContacts)
-            {
-                var contractCompany = CompanyDTOs.FirstOrDefault(c => c.Id == contract.CompanyId);
-                if(contractCompany == null)
-                {
-                    Debug.LogError($"Contract {contract.Id} has expired at tick {WorldTick}, but the company with ID {contract.CompanyId} could not be found.");
-                    ContractDTOs.Remove(contract);
-                    continue;
-                }
-                /* var debt = companyDebts.FirstOrDefault(d => d.CreditorCompanyId == contractCompany?.Id);
-                if(debt == null)
-                {
-                    Debug.LogError($"Contract {contract.Id} has expired at tick {WorldTick}, but no debt was found for company {contractCompany?.Name} (ID: {contractCompany?.Id}).");
-                    ContractDTOs.Remove(contract);
-                    continue;
-                }*/ // TODO: The amount owed should be displayed in the prompt.
-                Prompt.Show("Contract Expired", $"Contract {contract.Id} has expired at tick {WorldTick}. You now owe {contractCompany?.Name} money for the failed contract. Due to the debt, your company is now insolvent and you cannot take new contracts or purchase assets until you resolve your debts.");
-                Debug.Log($"Contract {contract.Id} has expired at tick {WorldTick}. Removing from active contracts.");
-                ContractDTOs.Remove(contract);
-            }
-
-            yield return new WaitForSeconds(interval);
         }
     }
 
