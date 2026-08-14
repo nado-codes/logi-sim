@@ -253,9 +253,6 @@ export const collectFromCompany = (
     if (debtorTotalAssetValue >= sumTotalCompanyDebts) {
       if (debtorCompany.options.isAiEnabled) {
         debtorAssetItemsByValue.forEach((assetItem) => {
-          if (amountLeftToPay <= 0) {
-            return;
-          }
           sellItem(state, assetItem.asset.id, debtorCompany);
 
           const amountToPay = Math.min(amountLeftToPay, assetItem.item.price);
@@ -264,68 +261,30 @@ export const collectFromCompany = (
 
           if (amountLeftToPay > 0) {
             logInfo(
-              `${debtorCompany.name} now has $${amountLeftToPay} left to pay to ${debtorCompany.name}`,
+              `${debtorCompany.name} now has $${amountLeftToPay} left to pay to ${creditorCompany.name}`,
             );
           } else {
+            logSuccess(
+              `${debtorCompany.name} has resolved their debt with ${creditorCompany.name}`,
+            );
+            debtorCompany.debts = debtorCompany.debts.filter(
+              (d) => d.creditorCompanyId !== creditorCompany.id,
+            );
             return;
           }
         });
+      }
+      if (debtorCompany.debts.length <= 0) {
+        debtorCompany.isInsolvent = false;
         logSuccess(
-          `${debtorCompany.name} now has resolved their debt with ${debtorCompany.name}`,
+          `${debtorCompany.name} is no longer insolvent and may resume trading`,
         );
-        debtorCompany.debts = debtorCompany.debts.filter(
-          (d) => d.creditorCompanyId !== creditorCompany.id,
-        );
-
-        if (debtorCompany.debts.length <= 0) {
-          debtorCompany.isInsolvent = false;
-          logSuccess(
-            `${debtorCompany.name} is no longer insolvent and may resume trading`,
-          );
-        }
-        // .. auto-resolve by selling off enough assets to pay back the debt
-        // .. we'll do it randomly for AI companies, but player companies need to resolve debts manually
-        // .. should we just resolve debts with finances? or could player-to-player or even AI-to-player
-        // debts be resolved through arbitration/compromise e.g. creditor company is happy to take a financial
-        // loss in exchange for (x y z) asset, or they just want to liquidate the debtor company/take all their
-        // payment in cash rather than assets
       }
     } else {
       // .. it's not possible to resolve debts with assets, so the company must be liquidated
-      if (
-        notificationConfig.logCompanyNotifications.all ||
-        notificationConfig.logCompanyNotifications.money
-      ) {
-        logWarning(
-          `[COMPANY] ${debtorCompany.name} is insolvent but is unable to pay their debts, and will be liquidated`,
-        );
+      if (debtorCompany.options.isAiEnabled) {
+        liquidateCompany(state, debtorCompany);
       }
-      debtorCompany.isLiquidated = true;
-
-      debtorAssetItemsByValue.forEach((assetItem) => {
-        sellItem(state, assetItem.asset.id, debtorCompany);
-      });
-
-      const debtorCompanyStartingCapital = debtorCompany.money;
-      debtorCompany.debts.forEach((debt) => {
-        const creditorCompany = getCompanyById(state, debt.creditorCompanyId);
-        const amountToPay = Math.min(
-          (debt.amount / sumTotalCompanyDebts) * debtorCompanyStartingCapital,
-          debt.amount,
-          debtorCompany.money,
-        );
-        transferCompanyFunds(debtorCompany, creditorCompany, amountToPay);
-        debt.amount -= amountToPay;
-
-        if (debtorCompany.money <= 0) {
-          logWarning(
-            `[COMPANY] ${debtorCompany.name} has no money left to pay debts`,
-          );
-          return;
-        }
-      });
-
-      debtorCompany.debts = debtorCompany.debts.filter((d) => d.amount > 0);
     }
   }
 };
@@ -393,8 +352,12 @@ export const liquidateCompany = (state: IWorldState, company: ICompany) => {
     notificationConfig.logCompanyNotifications.all ||
     notificationConfig.logCompanyNotifications.money
   ) {
-    logInfo(`- Industries: ${debtorLocationItems.length}, Trucks: ${debtorTruckItems.length}`);
-    logInfo(`- Total asset value: ${debtorAssetItemsByValue.map((li) => li!.item.price).reduce((a, c) => a + c, 0)}`);
+    logInfo(
+      `- Industries: ${debtorLocationItems.length}, Trucks: ${debtorTruckItems.length}`,
+    );
+    logInfo(
+      `- Total asset value: ${debtorAssetItemsByValue.map((li) => li!.item.price).reduce((a, c) => a + c, 0)}`,
+    );
   }
 
   debtorAssetItemsByValue.forEach((assetItem) => {
@@ -418,9 +381,10 @@ export const liquidateCompany = (state: IWorldState, company: ICompany) => {
     }
   });
 
-  company.debts = company.debts.filter((d) => d.amount > 0);
-  
-  if()
+  company.debts = [];
+  logSuccess(
+    `[COMPANY] ${company.name} has been liquidated and tried to pay off as many debts as possible`,
+  );
 };
 
 const tryCreateTown = (state: IWorldState, company: ICompany) => {
