@@ -65,7 +65,7 @@ public class AITrainer : MonoBehaviour
 
         txMessage.text = "";
 
-        StartCoroutine(CheckForNewContracts());
+        //StartCoroutine(CheckForNewContracts());
 
         if (canWelcome)
         {

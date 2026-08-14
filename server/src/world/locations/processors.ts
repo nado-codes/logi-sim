@@ -57,10 +57,10 @@ export const updateProcessors = (state: IWorldState) => {
     const outputStorage = getOutputStorage(processor.recipe, processor.storage);
     const outputStorageCapacity = outputStorage
       .map((s) => s.resourceCapacity)
-      .reduce((c, v) => c + v);
+      .reduce((c, v) => c + v, 0);
     const outputStorageCount = outputStorage
       .map((s) => s.resourceCount)
-      .reduce((c, v) => c + v);
+      .reduce((c, v) => c + v, 0);
 
     if (outputStorageCount >= outputStorageCapacity) {
       if (notificationConfig.logProcessorNotifications) {

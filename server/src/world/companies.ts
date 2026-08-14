@@ -221,22 +221,22 @@ export const collectFromCompany = (
     } else {
       existingDebtWithCreditor.amount += amountLeftToPay;
     }
+  }
+};
 
-    // .. try to auto-resolve debts with company assets (locations & trucks) (for AI companies)
-    // .. for player companies, we MUST give them the option to choose what assets to sell off
-    // set an insolvency flag on player companies so they can't operate, then prompt them to sell off
-    // assets within a given timeframe, or the company will be liquidated
-    // players can also choose to auto-resolve debts (runs the auto-resolver) OR declare bankruptcy which
-    // will immediately liquidate the company
+export const processCompanyDebts = (state: IWorldState, company: ICompany) => {
+  company.debts.forEach((d) => {
+    const creditorCompany = getCompanyById(state, d.creditorCompanyId);
+    let amountLeftToPay = d.amount;
     const debtorLocationItems = state
       .getLocations()
-      .filter((l) => l.companyId === debtorCompany.id && l.itemId)
+      .filter((l) => l.companyId === company.id && l.itemId)
       .map((l) => ({
         asset: l,
         item: getLocationItemById(l.itemId),
       }));
     const debtorTruckItems = state.trucks
-      .filter((t) => t.companyId === debtorCompany.id && t.itemId)
+      .filter((t) => t.companyId === company.id && t.itemId)
       .map((t) => ({ asset: t, item: getTruckItemById(t.itemId) }));
     const debtorAssetItemsByValue = [
       ...debtorLocationItems,
@@ -246,47 +246,57 @@ export const collectFromCompany = (
     const debtorTotalAssetValue = debtorAssetItemsByValue
       .map((li) => li!.item.price)
       .reduce((a, c) => a + c, 0);
-    const sumTotalCompanyDebts = debtorCompany.debts
+    const sumTotalCompanyDebts = company.debts
       .map((d) => d.amount)
       .reduce((a, c) => a + c, 0);
 
     if (debtorTotalAssetValue >= sumTotalCompanyDebts) {
-      if (debtorCompany.options.isAiEnabled) {
+      if (company.options.isAiEnabled) {
         debtorAssetItemsByValue.forEach((assetItem) => {
-          sellItem(state, assetItem.asset.id, debtorCompany);
+          sellItem(state, assetItem.asset.id, company);
 
           const amountToPay = Math.min(amountLeftToPay, assetItem.item.price);
-          transferCompanyFunds(debtorCompany, creditorCompany, amountToPay);
+          transferCompanyFunds(company, creditorCompany, amountToPay);
           amountLeftToPay -= amountToPay;
 
           if (amountLeftToPay > 0) {
-            logInfo(
-              `${debtorCompany.name} now has $${amountLeftToPay} left to pay to ${creditorCompany.name}`,
-            );
+            if (
+              notificationConfig.logCompanyNotifications.all ||
+              notificationConfig.logCompanyNotifications.money
+            ) {
+              logInfo(
+                `${company.name} now has $${amountLeftToPay} left to pay to ${creditorCompany.name}`,
+              );
+            }
           } else {
-            logSuccess(
-              `${debtorCompany.name} has resolved their debt with ${creditorCompany.name}`,
-            );
-            debtorCompany.debts = debtorCompany.debts.filter(
+            if (
+              notificationConfig.logCompanyNotifications.all ||
+              notificationConfig.logCompanyNotifications.money
+            ) {
+              logSuccess(
+                `${company.name} has resolved their debt with ${creditorCompany.name}`,
+              );
+            }
+            company.debts = company.debts.filter(
               (d) => d.creditorCompanyId !== creditorCompany.id,
             );
             return;
           }
         });
       }
-      if (debtorCompany.debts.length <= 0) {
-        debtorCompany.isInsolvent = false;
+      if (company.debts.length <= 0) {
+        company.isInsolvent = false;
         logSuccess(
-          `${debtorCompany.name} is no longer insolvent and may resume trading`,
+          `${company.name} is no longer insolvent and may resume trading`,
         );
       }
     } else {
       // .. it's not possible to resolve debts with assets, so the company must be liquidated
-      if (debtorCompany.options.isAiEnabled) {
-        liquidateCompany(state, debtorCompany);
+      if (company.options.isAiEnabled) {
+        liquidateCompany(state, company);
       }
     }
-  }
+  });
 };
 
 export const transferCompanyFundsFromState = (
@@ -318,11 +328,6 @@ export const liquidateCompany = (state: IWorldState, company: ICompany) => {
   const sumTotalCompanyDebts = company.debts
     .map((d) => d.amount)
     .reduce((a, c) => a + c, 0);
-
-  if (sumTotalCompanyDebts <= 0) {
-    logError(` - ${company.name} has no debts to liquidate`);
-    return;
-  }
 
   if (
     notificationConfig.logCompanyNotifications.all ||
@@ -483,7 +488,9 @@ const tryDispatchTrucks = (state: IWorldState, company: ICompany) => {
       notificationConfig.logCompanyNotifications.all ||
       notificationConfig.logCompanyNotifications.ai
     ) {
-      logInfo(`- Decided not to dispatch trucks this tick (roll: ${dispatch})`);
+      logWarning(
+        `- Decided not to dispatch trucks this tick (roll: ${dispatch})`,
+      );
     }
     return;
   }
@@ -593,30 +600,61 @@ const tryDispatchTrucks = (state: IWorldState, company: ICompany) => {
 
 export const updateCompanies = (state: IWorldState) => {
   if (notificationConfig.logCompanyNotifications.all) {
-    logInfo(`Updating companies...`);
+    logInfo(`[SYSTEM] Updating companies...`);
   }
   state.companies.forEach((company) => {
-    if (company.options.isGovernment) {
-      tryCreateTown(state, company);
+    if (notificationConfig.logCompanyNotifications.all) {
+      logInfo(`- Updating ${company.name}...`);
     }
 
-    if (!company.options.isAiEnabled) {
+    if (company.options.isAiEnabled) {
       if (
         notificationConfig.logCompanyNotifications.all ||
         notificationConfig.logCompanyNotifications.ai
       ) {
-        logWarning(`[COMPANY] AI behaviour for ${company.name} not enabled`);
+        logInfo(` - Running AI behaviour...`);
       }
-      return;
+
+      processCompanyDebts(state, company);
+
+      if (company.options.isGovernment) {
+        if (
+          notificationConfig.logCompanyNotifications.all ||
+          notificationConfig.logCompanyNotifications.ai
+        ) {
+          logInfo(` - Running government behaviour...`);
+        }
+        tryCreateTown(state, company);
+        if (
+          notificationConfig.logCompanyNotifications.all ||
+          notificationConfig.logCompanyNotifications.ai
+        ) {
+          logSuccess(` - Finished running government behaviour`);
+        }
+      }
+
+      tryDispatchTrucks(state, company);
+
+      if (
+        notificationConfig.logCompanyNotifications.all ||
+        notificationConfig.logCompanyNotifications.ai
+      ) {
+        logSuccess(` - Finished running AI behaviour`);
+      }
+    } else {
+      if (
+        notificationConfig.logCompanyNotifications.all ||
+        notificationConfig.logCompanyNotifications.ai
+      ) {
+        logWarning(` - AI behaviour not enabled, skipping`);
+      }
     }
 
-    if (
-      notificationConfig.logCompanyNotifications.all ||
-      notificationConfig.logCompanyNotifications.ai
-    ) {
-      logInfo(`[COMPANY] Running AI behaviour for ${company.name}...`);
+    if (notificationConfig.logCompanyNotifications.all) {
+      logSuccess(`- Finished updating ${company.name}...`);
     }
-
-    tryDispatchTrucks(state, company);
   });
+  if (notificationConfig.logCompanyNotifications.all) {
+    logSuccess(`[SYSTEM] Finished updating companies`);
+  }
 };

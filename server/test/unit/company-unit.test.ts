@@ -158,6 +158,7 @@ describe("collectFromCompany unit tests", () => {
       CONTRACT_BREAK_TYPE.Breach,
       CONTRACT_BREAK_FAULT.Shipper,
     );
+    world.update();
 
     expect(debtorCompany.debts.length).toEqual(0);
     expect(debtorCompany.money).toEqual(999);
@@ -204,6 +205,7 @@ describe("collectFromCompany unit tests", () => {
       CONTRACT_BREAK_TYPE.Breach,
       CONTRACT_BREAK_FAULT.Shipper,
     );
+    world.update();
 
     expect(debtorCompany.isLiquidated).toEqual(true);
 
