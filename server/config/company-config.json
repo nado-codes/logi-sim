@@ -1,5 +1,6 @@
 {
   "aiConfig": {
     "dispatchChance": 0.2
-  }
+  },
+  "insolvencyThreshold": 10
 }

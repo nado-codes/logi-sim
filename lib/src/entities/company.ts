@@ -4,12 +4,14 @@ import { IBaseEntity, INamedEntity } from "./entity";
 export interface ICompanyDebt {
   creditorCompanyId: string;
   amount: number;
+  paymentPerTick?: number;
   reason: string;
   createdAtTick: number;
 }
 export interface ICompany extends INamedEntity {
   money: number;
   color: Color;
+  insolvencyCounter: number;
   isInsolvent: boolean;
   isLiquidated: boolean;
   debts: ICompanyDebt[];
