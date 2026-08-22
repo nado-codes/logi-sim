@@ -439,6 +439,11 @@ export const processCompanyDebts = (
       );
     }
   });
+
+  if (debtorCompany.debts.length <= 0) {
+    debtorCompany.isInsolvent = false;
+    debtorCompany.insolvencyCounter = 0;
+  }
 };
 
 export const transferCompanyFundsFromState = (

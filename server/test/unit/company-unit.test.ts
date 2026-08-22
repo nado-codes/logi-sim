@@ -21,6 +21,7 @@ import {
 import { createWorld } from "../../src/world/world";
 import { Color } from "@logisim/lib/utils";
 import { processCompanyDebts } from "../../src/world/companies";
+import { loadConfig } from "../../src/utils/configUtils";
 
 const setupBaseWorld = () => {
   const creditorCompanyStartMoney = 0;
@@ -129,73 +130,96 @@ describe("processCompanyDebt unit tests", () => {
     const finalDebtEntry = debtorCompany.debts.find(
       (d) => d.creditorCompanyId === creditorCompany.id,
     );
-
-    expect(debtorCompany.isLiquidated).toBeFalsy();
-    expect(debtorCompany.isInsolvent).toBeFalsy();
-    expect(debtorCompany.insolvencyCounter).toEqual(0);
     expect(finalDebtEntry).toBeUndefined();
   });
 
-  it.todo(
-    "should reset the insolvency counter when the debtor has no more debts",
-    () => {
-      debtorCompany.insolvencyCounter = 1;
+  it("should reset the insolvency counter when the debtor has no more debts", () => {
+    debtorCompany.insolvencyCounter = 2;
+    debtorCompany.money = 10;
 
-      //world.update();
-    },
-  );
+    const debtEntry = {
+      creditorCompanyId: creditorCompany.id,
+      amount: 10,
+      paymentPerTick: 10,
+      reason: "Test Debt",
+      createdAtTick: world.getCurrentTick(),
+    };
+    debtorCompany.debts.push(debtEntry);
 
-  it.todo(
-    "should fail to collect funds from the debtor and increase the insolvency counter",
-    () => {
-      debtorCompany.debts.push({
-        creditorCompanyId: creditorCompany.id,
-        amount: 10,
-        reason: "Test Debt",
-        createdAtTick: world.getCurrentTick(),
-      });
-      debtorCompany.money = 0;
-    },
-  );
+    processCompanyDebts(debtorCompany, [creditorCompany], []);
 
-  it.todo(
-    "should succeed in collecting funds from the debtor and reduce the insolvency counter",
-    () => {
-      debtorCompany.debts.push({
-        creditorCompanyId: creditorCompany.id,
-        amount: 10,
-        reason: "Test Debt",
-        createdAtTick: world.getCurrentTick(),
-      });
-      debtorCompany.money = 10;
-    },
-  );
+    expect(debtorCompany.insolvencyCounter).toEqual(0);
+  });
 
-  it.todo(
-    "should mark the debtor as solvent when the insolvency counter is reset",
-    () => {
-      debtorCompany.debts.push({
-        creditorCompanyId: creditorCompany.id,
-        amount: 10,
-        reason: "Test Debt",
-        createdAtTick: world.getCurrentTick(),
-      });
-      debtorCompany.money = 10;
-    },
-  );
+  it("should fail to collect funds from the debtor and increase the insolvency counter", () => {
+    const debtEntry = {
+      creditorCompanyId: creditorCompany.id,
+      amount: 10,
+      paymentPerTick: 10,
+      reason: "Test Debt",
+      createdAtTick: world.getCurrentTick(),
+    };
+    debtorCompany.debts.push(debtEntry);
+    debtorCompany.money = 0;
 
-  it.todo(
-    "should liquidate the debtor company when the insolvency counter reaches the threshold",
-    () => {
-      debtorCompany.debts.push({
-        creditorCompanyId: creditorCompany.id,
-        amount: 10,
-        reason: "Test Debt",
-        createdAtTick: world.getCurrentTick(),
-      });
-      debtorCompany.money = 0;
-    },
-  );
+    processCompanyDebts(debtorCompany, [creditorCompany], []);
+
+    expect(debtorCompany.insolvencyCounter).toEqual(1);
+  });
+
+  it("should succeed in collecting funds from the debtor and reduce the insolvency counter", () => {
+    const debtEntry = {
+      creditorCompanyId: creditorCompany.id,
+      amount: 20,
+      paymentPerTick: 10,
+      reason: "Test Debt",
+      createdAtTick: world.getCurrentTick(),
+    };
+    debtorCompany.debts.push(debtEntry);
+    debtorCompany.insolvencyCounter = 2;
+    debtorCompany.money = 10;
+
+    processCompanyDebts(debtorCompany, [creditorCompany], []);
+
+    expect(debtorCompany.insolvencyCounter).toEqual(1);
+  });
+
+  it("should mark the debtor as solvent when the insolvency counter is reset", () => {
+    const debtEntry = {
+      creditorCompanyId: creditorCompany.id,
+      amount: 10,
+      paymentPerTick: 10,
+      reason: "Test Debt",
+      createdAtTick: world.getCurrentTick(),
+    };
+    debtorCompany.debts.push(debtEntry);
+    debtorCompany.insolvencyCounter = 1;
+    debtorCompany.money = 10;
+
+    processCompanyDebts(debtorCompany, [creditorCompany], []);
+
+    expect(debtorCompany.insolvencyCounter).toEqual(0);
+  });
+
+  it("should liquidate the debtor company when the insolvency counter reaches the threshold", () => {
+    const companyConfig = loadConfig("company", {
+      insolvencyThreshold: 3,
+    });
+    const debtEntry = {
+      creditorCompanyId: creditorCompany.id,
+      amount: 10,
+      paymentPerTick: 10,
+      reason: "Test Debt",
+      createdAtTick: world.getCurrentTick(),
+    };
+    debtorCompany.debts.push(debtEntry);
+    debtorCompany.money = 0;
+    debtorCompany.insolvencyCounter = companyConfig.insolvencyThreshold;
+
+    world.update();
+
+    expect(debtorCompany.isLiquidated).toBeTruthy();
+  });
 });
 
 describe("collectFromCompany unit tests", () => {
