@@ -350,6 +350,7 @@ export const autoResolveDebtForCompany = (
 
 export const processCompanyDebts = (
   debtorCompany: ICompany,
+  creditors: ICompany[],
   debtorContracts: IContract[],
 ) => {
   if (
@@ -377,19 +378,6 @@ export const processCompanyDebts = (
     }
     debtorCompany.insolvencyCounter++;
     debtorCompany.isInsolvent = true;
-
-    if (debtorCompany.insolvencyCounter >= companyConfig.insolvencyThreshold) {
-      if (
-        notificationConfig.logCompanyNotifications.all ||
-        notificationConfig.logCompanyNotifications.money
-      ) {
-        logWarning(
-          `- Insolvency counter has reached the threshold of ${companyConfig.insolvencyThreshold}. ${debtorCompany.name} will be liquidated.`,
-        );
-      }
-
-      //liquidateCompany()
-    }
   } else {
     if (debtorCompany.insolvencyCounter > 0) {
       if (
@@ -401,10 +389,56 @@ export const processCompanyDebts = (
         );
       }
       debtorCompany.insolvencyCounter--;
+    } else {
+      debtorCompany.isInsolvent = false;
     }
   }
 
-  debtorCompany.debts.forEach((debt) => {});
+  const debtorCompanyStartMoney = debtorCompany.money;
+  debtorCompany.debts.forEach((debt) => {
+    const creditorCompany = creditors.find(
+      (c) => c.id === debt.creditorCompanyId,
+    );
+
+    if (!creditorCompany) {
+      throw Error(
+        `Creditor with id ${debt.creditorCompanyId} couldn't be found`,
+      );
+    }
+    if (!debt.paymentPerTick) {
+      return;
+    }
+
+    if (!debtorCompany.isInsolvent) {
+      const amountToPay = Math.min(debt.amount, debt.paymentPerTick);
+      transferCompanyFunds(debtorCompany, creditorCompany, amountToPay);
+      debt.amount -= amountToPay;
+    } else {
+      const proRataPayment =
+        (debt.paymentPerTick / sumTotalDebtPayments) * debtorCompanyStartMoney;
+      const amountToPay = Math.min(debt.amount, proRataPayment);
+      const paymentResult = transferCompanyFunds(
+        debtorCompany,
+        creditorCompany,
+        amountToPay,
+      );
+
+      if (paymentResult === COMPANY_TRANSFER_RESULT.INSUFFICIENT_FUNDS) {
+        logError(
+          `Unable to process company pro-rata debt payment - insufficient funds`,
+        );
+        return;
+      }
+
+      debt.amount -= amountToPay;
+    }
+
+    if (debt.amount <= 0) {
+      debtorCompany.debts = debtorCompany.debts.filter(
+        (d) => d.creditorCompanyId !== creditorCompany.id,
+      );
+    }
+  });
 };
 
 export const transferCompanyFundsFromState = (
@@ -720,7 +754,22 @@ export const updateCompanies = (state: IWorldState) => {
         (t) => t.companyId === company.id && c.truckId === t.id,
       ),
     );
-    processCompanyDebts(company, companyContracts);
+    const creditorIds = company.debts.map((d) => d.creditorCompanyId);
+    const creditors = state.companies.filter((c) => creditorIds.includes(c.id));
+    processCompanyDebts(company, creditors, companyContracts);
+
+    if (company.insolvencyCounter >= companyConfig.insolvencyThreshold) {
+      if (
+        notificationConfig.logCompanyNotifications.all ||
+        notificationConfig.logCompanyNotifications.money
+      ) {
+        logWarning(
+          `- Insolvency counter has reached the threshold of ${companyConfig.insolvencyThreshold}. ${company.name} will be liquidated.`,
+        );
+      }
+
+      liquidateCompany(state, company);
+    }
 
     if (company.options.isAiEnabled) {
       if (
