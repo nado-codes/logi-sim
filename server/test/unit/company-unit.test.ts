@@ -20,8 +20,11 @@ import {
 } from "@logisim/lib/entities";
 import { createWorld } from "../../src/world/world";
 import { Color } from "@logisim/lib/utils";
-import { processCompanyDebts } from "../../src/world/companies";
-import { loadConfig } from "../../src/utils/configUtils";
+import {
+  getCompanyByName,
+  liquidateCompany,
+  processCompanyDebts,
+} from "../../src/world/companies";
 
 const setupBaseWorld = () => {
   const creditorCompanyStartMoney = 0;
@@ -61,6 +64,58 @@ const setupBaseWorld = () => {
   return { world, creditorCompany, creditorContract, supplier, destination };
 };
 
+describe("liquidateCompany unit tests", () => {
+  let world: ReturnType<typeof createWorld>;
+  let creditorCompany: ICompany, debtorCompany: ICompany;
+  let creditorContract: IContract, supplier: ILocation, destination: ILocation;
+
+  beforeEach(() => {
+    const data = setupBaseWorld();
+    world = data.world;
+    creditorCompany = data.creditorCompany;
+    creditorContract = data.creditorContract;
+    supplier = data.supplier;
+    destination = data.destination;
+    debtorCompany = world.createCompany("Debtor Inc", 0, Color.Blue, {
+      isAiEnabled: true,
+    });
+  });
+
+  it("should liquidate the debtor company when the insolvency counter reaches the threshold", () => {
+    const debtEntry = {
+      creditorCompanyId: creditorCompany.id,
+      amount: 10,
+      paymentPerTick: 10,
+      reason: "Test Debt",
+      createdAtTick: world.getCurrentTick(),
+    };
+    debtorCompany.debts.push(debtEntry);
+    debtorCompany.money = 0;
+    debtorCompany.insolvencyCounter = 10;
+
+    const creditorIds = debtorCompany.debts.map((d) => d.creditorCompanyId);
+    const creditors = world
+      .getCompanies()
+      .filter((c) => creditorIds.includes(c.id));
+    const companyLocations = world
+      .getLocations()
+      .filter((l) => l.companyId === debtorCompany.id);
+    const companyTrucks = world
+      .getTrucks()
+      .filter((t) => t.companyId === debtorCompany.id);
+    const stateCompany = world.getCompanyByName("State");
+    liquidateCompany(
+      debtorCompany,
+      companyLocations,
+      companyTrucks,
+      creditors,
+      stateCompany,
+    );
+
+    expect(debtorCompany.isLiquidated).toBeTruthy();
+  });
+});
+
 describe("processCompanyDebt unit tests", () => {
   let world: ReturnType<typeof createWorld>;
   let creditorCompany: ICompany, debtorCompany: ICompany;
@@ -76,13 +131,6 @@ describe("processCompanyDebt unit tests", () => {
     debtorCompany = world.createCompany("Debtor Inc", 0, Color.Blue, {
       isAiEnabled: true,
     });
-
-    /*world.assignContractToCompany(creditorContract, debtorCompany);
-    world.breakContract(
-      creditorContract,
-      CONTRACT_BREAK_TYPE.Breach,
-      CONTRACT_BREAK_FAULT.Shipper,
-    );*/
   });
 
   it("should reduce the debt amount and transfer funds to the creditor", () => {
@@ -199,26 +247,6 @@ describe("processCompanyDebt unit tests", () => {
     processCompanyDebts(debtorCompany, [creditorCompany], []);
 
     expect(debtorCompany.insolvencyCounter).toEqual(0);
-  });
-
-  it("should liquidate the debtor company when the insolvency counter reaches the threshold", () => {
-    const companyConfig = loadConfig("company", {
-      insolvencyThreshold: 3,
-    });
-    const debtEntry = {
-      creditorCompanyId: creditorCompany.id,
-      amount: 10,
-      paymentPerTick: 10,
-      reason: "Test Debt",
-      createdAtTick: world.getCurrentTick(),
-    };
-    debtorCompany.debts.push(debtEntry);
-    debtorCompany.money = 0;
-    debtorCompany.insolvencyCounter = companyConfig.insolvencyThreshold;
-
-    world.update();
-
-    expect(debtorCompany.isLiquidated).toBeTruthy();
   });
 });
 

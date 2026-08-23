@@ -18,6 +18,8 @@ import {
   IWorldEntity,
   ICompanyDebt,
   IContract,
+  ITruck,
+  ILocation,
 } from "@logisim/lib/entities";
 import {
   Color,
@@ -239,112 +241,6 @@ export const collectFromCompany = (
     } else {
       existingDebtWithCreditor.amount += amountLeftToPay;
     }
-
-    if (debtorCompany.options.isAiEnabled) {
-      autoResolveDebtForCompany(state, debtorCompany, creditorCompany.id);
-    }
-  }
-};
-
-export const autoResolveDebtForCompany = (
-  state: IWorldState,
-  company: ICompany,
-  creditorCompanyId: string,
-) => {
-  if (
-    notificationConfig.logCompanyNotifications.all &&
-    !notificationConfig.logCompanyNotifications.money
-  ) {
-    logInfo(
-      `Trying to auto-resolve debt for ${company.name} with creditor company ID ${creditorCompanyId}...`,
-    );
-  }
-  const debtEntry = company.debts.find(
-    (d) => d.creditorCompanyId === creditorCompanyId,
-  );
-  if (!debtEntry) {
-    logError(
-      `[COMPANY] No debt entry found for company ${company.name} with creditor company ID ${creditorCompanyId}`,
-    );
-    return;
-  }
-
-  const creditorCompany = getCompanyById(state, debtEntry.creditorCompanyId);
-  let amountLeftToPay = debtEntry.amount;
-  const debtorLocationItems = state
-    .getLocations()
-    .filter((l) => l.companyId === company.id && l.itemId)
-    .map((l) => ({
-      asset: l,
-      item: getLocationItemById(l.itemId),
-    }));
-  const debtorTruckItems = state.trucks
-    .filter((t) => t.companyId === company.id && t.itemId)
-    .map((t) => ({ asset: t, item: getTruckItemById(t.itemId) }));
-  const debtorAssetItemsByValue = [
-    ...debtorLocationItems,
-    ...debtorTruckItems,
-  ].sort((a, b) => a.item.price - b.item.price);
-
-  const debtorTotalAssetValue = debtorAssetItemsByValue
-    .map((li) => li!.item.price)
-    .reduce((a, c) => a + c, 0);
-  const sumTotalCompanyDebts = company.debts
-    .map((d) => d.amount)
-    .reduce((a, c) => a + c, 0);
-
-  if (
-    notificationConfig.logCompanyNotifications.all &&
-    !notificationConfig.logCompanyNotifications.money
-  ) {
-    logInfo(
-      `- Total debt: ${sumTotalCompanyDebts}, Total assets value: ${debtorTotalAssetValue}`,
-    );
-  }
-
-  if (debtorTotalAssetValue >= sumTotalCompanyDebts) {
-    debtorAssetItemsByValue.forEach((assetItem) => {
-      sellItem(state, assetItem.asset.id, company);
-
-      const amountToPay = Math.min(amountLeftToPay, assetItem.item.price);
-      transferCompanyFunds(company, creditorCompany, amountToPay);
-      amountLeftToPay -= amountToPay;
-
-      if (amountLeftToPay > 0) {
-        if (
-          notificationConfig.logCompanyNotifications.all ||
-          notificationConfig.logCompanyNotifications.money
-        ) {
-          logInfo(
-            ` - ${company.name} now has $${amountLeftToPay} left to pay to ${creditorCompany.name}`,
-          );
-        }
-      } else {
-        if (
-          notificationConfig.logCompanyNotifications.all ||
-          notificationConfig.logCompanyNotifications.money
-        ) {
-          logSuccess(
-            `${company.name} has resolved their debt with ${creditorCompany.name}`,
-          );
-        }
-        company.debts = company.debts.filter(
-          (d) => d.creditorCompanyId !== creditorCompany.id,
-        );
-        return;
-      }
-    });
-    if (company.debts.length <= 0) {
-      company.isInsolvent = false;
-      logSuccess(
-        `${company.name} is no longer insolvent and may resume trading`,
-      );
-    }
-  } else {
-    // .. it's not possible to resolve debts with assets, so the company must be liquidated
-    if (company.options.isAiEnabled) {
-      liquidateCompany(state, company);
-    }
   }
 };
 
@@ -464,7 +360,13 @@ export const transferCompanyFundsToState = (
   return transferCompanyFunds(fromCompany, stateCompany, amount);
 };
 
-export const liquidateCompany = (state: IWorldState, company: ICompany) => {
+export const liquidateCompany = (
+  company: ICompany,
+  debtorLocations: ILocation[],
+  debtorTrucks: ITruck[],
+  debtorCreditors: ICompany[],
+  stateCompany: ICompany,
+) => {
   if (
     notificationConfig.logCompanyNotifications.all ||
     notificationConfig.logCompanyNotifications.money
@@ -485,14 +387,13 @@ export const liquidateCompany = (state: IWorldState, company: ICompany) => {
 
   company.isLiquidated = true;
 
-  const debtorLocationItems = state
-    .getLocations()
+  const debtorLocationItems = debtorLocations
     .filter((l) => l.companyId === company.id && l.itemId)
     .map((l) => ({
       asset: l,
       item: getLocationItemById(l.itemId),
     }));
-  const debtorTruckItems = state.trucks
+  const debtorTruckItems = debtorTrucks
     .filter((t) => t.companyId === company.id && t.itemId)
     .map((t) => ({ asset: t, item: getTruckItemById(t.itemId) }));
   const debtorAssetItemsByValue = [
@@ -513,12 +414,21 @@ export const liquidateCompany = (state: IWorldState, company: ICompany) => {
   }
 
   debtorAssetItemsByValue.forEach((assetItem) => {
-    sellItem(state, assetItem.asset.id, company);
+    transferCompanyFunds(stateCompany, company, assetItem.item.price);
+    assetItem.asset.companyId = stateCompany.id;
   });
 
   const debtorCompanyStartingMoney = company.money;
   company.debts.forEach((debt) => {
-    const creditorCompany = getCompanyById(state, debt.creditorCompanyId);
+    const creditorCompany = debtorCreditors.find(
+      (c) => c.id === debt.creditorCompanyId,
+    );
+    if (!creditorCompany) {
+      throw Error(
+        `Creditor with id ${debt.creditorCompanyId} couldn't be found`,
+      );
+    }
+
     const amountToPay = Math.min(
       (debt.amount / sumTotalCompanyDebts) * debtorCompanyStartingMoney,
       debt.amount,
@@ -772,8 +682,20 @@ export const updateCompanies = (state: IWorldState) => {
           `- Insolvency counter has reached the threshold of ${companyConfig.insolvencyThreshold}. ${company.name} will be liquidated.`,
         );
       }
-
-      liquidateCompany(state, company);
+      const companyLocations = state
+        .getLocations()
+        .filter((l) => l.companyId === company.id);
+      const companyTrucks = state.trucks.filter(
+        (t) => t.companyId === company.id,
+      );
+      const stateCompany = getCompanyByName(state, "State");
+      liquidateCompany(
+        company,
+        companyLocations,
+        companyTrucks,
+        creditors,
+        stateCompany,
+      );
     }
 
     if (company.options.isAiEnabled) {
