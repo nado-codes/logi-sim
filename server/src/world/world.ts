@@ -473,7 +473,25 @@ export const createWorld = (): IWorld => {
       transferCompanyFundsToState(state, fromCompany, amount),
     transferFundsFromState: (toCompany: ICompany, amount: number) =>
       transferCompanyFundsFromState(state, toCompany, amount),
-    liquidateCompany: (company: ICompany) => liquidateCompany(state, company),
+    liquidateCompany: (company: ICompany) => {
+      const debtorLocations = state
+        .getLocations()
+        .filter((l) => l.companyId === company.id);
+      const debtorTrucks = state.trucks.filter(
+        (t) => t.companyId === company.id,
+      );
+      const debtorCreditors = company.debts.map((d) =>
+        getCompanyById(state, d.creditorCompanyId),
+      );
+      const stateCompany = getCompanyByName(state, STATE_COMPANY_NAME);
+      liquidateCompany(
+        company,
+        debtorLocations,
+        debtorTrucks,
+        debtorCreditors,
+        stateCompany,
+      );
+    },
 
     // MARKETPLACE - UPDATE
     purchaseItem: (itemId: string, buyerCompany: ICompany) =>
