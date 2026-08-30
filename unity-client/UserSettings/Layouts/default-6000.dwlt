@@ -626,23 +626,23 @@ MonoBehaviour:
       serializedVersion: 2
       x: 0
       y: 21
-      width: 1222
-      height: 565
-    m_Scale: {x: 1, y: 1}
-    m_Translation: {x: 611, y: 282.5}
+      width: 916
+      height: 443.5
+    m_Scale: {x: 0.8212963, y: 0.8212963}
+    m_Translation: {x: 458, y: 221.75}
     m_MarginLeft: 0
     m_MarginRight: 0
     m_MarginTop: 0
     m_MarginBottom: 0
     m_LastShownAreaInsideMargins:
       serializedVersion: 2
-      x: -611
-      y: -282.5
-      width: 1222
-      height: 565
+      x: -557.655
+      y: -270
+      width: 1115.31
+      height: 540
     m_MinimalGUI: 1
-  m_defaultScale: 1
-  m_LastWindowPixelSize: {x: 1222, y: 586}
+  m_defaultScale: 0.8212963
+  m_LastWindowPixelSize: {x: 916, y: 464.5}
   m_ClearInEditMode: 1
   m_NoCameraWarning: 1
   m_LowResolutionForAspectRatios: 01000000000000000000
@@ -1319,7 +1319,7 @@ MonoBehaviour:
   m_Position:
     m_Target: {x: 2298.9836, y: 348.6306, z: 639.3943}
     speed: 2
-    m_Value: {x: -860.26245, y: -346.1651, z: 659.4416}
+    m_Value: {x: 2298.9836, y: 348.6306, z: 639.3943}
   m_RenderMode: 0
   m_CameraMode:
     drawMode: 0
@@ -1367,7 +1367,7 @@ MonoBehaviour:
   m_Rotation:
     m_Target: {x: 0.11082522, y: 0.38129064, z: -0.04608647, w: 0.916677}
     speed: 2
-    m_Value: {x: -0.12539777, y: 0.56144375, z: -0.08724072, w: -0.8136845}
+    m_Value: {x: 0.11082522, y: 0.38129064, z: -0.04608647, w: 0.916677}
   m_Size:
     m_Target: 662.0353
     speed: 2
@@ -1479,10 +1479,10 @@ MonoBehaviour:
       m_Data: 93102
     m_ExpandedIDs:
     - m_Data: 0
-    - m_Data: 74042
-    - m_Data: 74044
-    - m_Data: 74046
-    - m_Data: 74048
+    - m_Data: 55092
+    - m_Data: 55094
+    - m_Data: 55096
+    - m_Data: 55098
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -1515,10 +1515,10 @@ MonoBehaviour:
       m_Data: 0
     m_ExpandedIDs:
     - m_Data: 0
-    - m_Data: 74042
-    - m_Data: 74044
-    - m_Data: 74046
-    - m_Data: 74048
+    - m_Data: 55092
+    - m_Data: 55094
+    - m_Data: 55096
+    - m_Data: 55098
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 

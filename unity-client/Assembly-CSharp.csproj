@@ -80,6 +80,7 @@
     <Compile Include="Assets\Scripts\UI\UIDataView\UITable.cs" />
     <Compile Include="Assets\Scripts\DTO\Entity\BaseEntityDTO.cs" />
     <Compile Include="Assets\Scripts\DTO\Entity\WorldEntityDTO.cs" />
+    <Compile Include="Assets\Scripts\UI\OfficeView\RegulatoryActionPanel\RegulatoryActionIndicator.cs" />
     <Compile Include="Assets\Scripts\UI\OperatorView\ContractList.cs" />
     <Compile Include="Assets\Scripts\DTO\Item\TruckItemDTO.cs" />
     <Compile Include="Assets\Scripts\UI\UIActionController.cs" />
@@ -96,6 +97,7 @@
     <Compile Include="Assets\Scripts\ViewModels\Item\BaseItemViewModel.cs" />
     <Compile Include="Assets\Scripts\DTO\Item\BaseItemDTO.cs" />
     <Compile Include="Assets\Scripts\ViewModels\Entity\TruckViewModel.cs" />
+    <Compile Include="Assets\Scripts\UI\OfficeView\RegulatoryActionPanel\RegulatoryActionPanel.cs" />
     <Compile Include="Assets\Scripts\ViewModels\BaseViewModel.cs" />
     <Compile Include="Assets\Scripts\Interfaces\INamedEntity.cs" />
     <Compile Include="Assets\Scripts\UI\OfficeView\TrucksWindow.cs" />

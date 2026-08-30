@@ -8,6 +8,7 @@ public class BaseWindow<T> : MonoBehaviour
     protected virtual void Start()
     {
         canvasGroupToggle = GetComponent<CanvasGroupToggle>();
+        Close();
     }
 
     public void Open()

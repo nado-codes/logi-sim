@@ -1580,6 +1580,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 136813549}
+  - component: {fileID: 136813550}
   m_Layer: 5
   m_Name: pnLiquidation
   m_TagString: Untagged
@@ -1608,6 +1609,18 @@ RectTransform:
   m_AnchoredPosition: {x: 168, y: -23}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!225 &136813550
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 136813548}
+  m_Enabled: 1
+  m_Alpha: 0.5
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1001 &153377199
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2293,6 +2306,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 191810221}
+  - component: {fileID: 191810222}
   m_Layer: 5
   m_Name: pnSuspension
   m_TagString: Untagged
@@ -2321,6 +2335,18 @@ RectTransform:
   m_AnchoredPosition: {x: -27, y: -23}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!225 &191810222
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 191810220}
+  m_Enabled: 1
+  m_Alpha: 0.5
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &202686505
 GameObject:
   m_ObjectHideFlags: 0
@@ -6487,6 +6513,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 655585531}
+  - component: {fileID: 655585533}
+  - component: {fileID: 655585532}
   m_Layer: 5
   m_Name: pnProbation
   m_TagString: Untagged
@@ -6515,6 +6543,32 @@ RectTransform:
   m_AnchoredPosition: {x: -220, y: -23}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!225 &655585532
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 655585530}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
+--- !u!114 &655585533
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 655585530}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e1b233bbe46b9f341ac7a05c887284a6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RegulatoryActionIndicator
+  BlinkSpeed: 1
+  BlinkOffset: 0
 --- !u!1 &669142019
 GameObject:
   m_ObjectHideFlags: 0
@@ -14707,6 +14761,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1547285882}
+  - component: {fileID: 1547285885}
+  - component: {fileID: 1547285884}
+  - component: {fileID: 1547285883}
   m_Layer: 5
   m_Name: RegulatoryAction
   m_TagString: Untagged
@@ -14738,6 +14795,42 @@ RectTransform:
   m_AnchoredPosition: {x: -61, y: -74.79443}
   m_SizeDelta: {x: 673.5535, y: 76.5908}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1547285883
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1547285881}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a9f3eb543d2ce824abfba5cd0f102310, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RegulatoryActionPanel
+--- !u!114 &1547285884
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1547285881}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 56effcafebb248f4b9456510e4b41c4e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CanvasGroupToggle
+--- !u!225 &1547285885
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1547285881}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &1553918365
 GameObject:
   m_ObjectHideFlags: 0
