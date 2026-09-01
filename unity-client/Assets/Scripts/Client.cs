@@ -171,8 +171,6 @@ public class Client : MonoBehaviour
                 {
                     TruckDTOs = trucksResult;
                 }
-
-                Debug.Log("Trucks:"+JsonConvert.SerializeObject(TruckDTOs));
             });
 
             yield return CallAPI("/world/contracts",APICallType.Get,(success,response) =>

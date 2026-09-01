@@ -11,6 +11,11 @@ public class BaseWindow<T> : MonoBehaviour
         Close();
     }
 
+    void Awake()
+    {
+        canvasGroupToggle = GetComponent<CanvasGroupToggle>();
+    }
+
     public void Open()
     {
         canvasGroupToggle.Show();
