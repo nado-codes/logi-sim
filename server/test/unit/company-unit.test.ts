@@ -16,15 +16,18 @@ import {
   ICompany,
   IContract,
   ILocation,
+  RegulatoryActionStatus,
   RESOURCE_TYPE,
 } from "@logisim/lib/entities";
 import { createWorld } from "../../src/world/world";
 import { Color } from "@logisim/lib/utils";
 import {
-  getCompanyByName,
+  defaultCompanyConfig,
+  getRegulatoryActionStatus,
   liquidateCompany,
   processCompanyDebts,
 } from "../../src/world/companies";
+import { loadConfig } from "../../src/utils/configUtils";
 
 const setupBaseWorld = () => {
   const creditorCompanyStartMoney = 0;
@@ -63,6 +66,82 @@ const setupBaseWorld = () => {
 
   return { world, creditorCompany, creditorContract, supplier, destination };
 };
+
+describe("getRegulatoryActionStatus unit tests", () => {
+  let world: ReturnType<typeof createWorld>;
+  let company: ICompany;
+
+  const probationWarningThreshold =
+    defaultCompanyConfig.probationThreshold *
+    defaultCompanyConfig.regulatoryWarningMultiplier;
+  const suspensionNoticeWarningthreshold =
+    defaultCompanyConfig.probationThreshold +
+    (defaultCompanyConfig.suspensionNoticeThreshold -
+      defaultCompanyConfig.probationThreshold) *
+      defaultCompanyConfig.regulatoryWarningMultiplier;
+  const ceasedOperationsWarningThreshold =
+    defaultCompanyConfig.suspensionNoticeThreshold +
+    (defaultCompanyConfig.ceasedOperationsThreshold -
+      defaultCompanyConfig.suspensionNoticeThreshold) *
+      defaultCompanyConfig.regulatoryWarningMultiplier;
+
+  beforeEach(() => {
+    const data = setupBaseWorld();
+    world = data.world;
+    company = data.creditorCompany;
+  });
+
+  it("should receive an inactive regulatory action status", () => {
+    company.insolvencyCounter = 0;
+    const companyRegulatoryAction = getRegulatoryActionStatus(company);
+    expect(companyRegulatoryAction).equals(RegulatoryActionStatus.None);
+  });
+  it("should receive a pre-probation status", () => {
+    company.insolvencyCounter = probationWarningThreshold;
+    const companyRegulatoryAction = getRegulatoryActionStatus(company);
+    expect(companyRegulatoryAction).equals(RegulatoryActionStatus.PreProbation);
+  });
+  it("should receive a probation status", () => {
+    company.insolvencyCounter = defaultCompanyConfig.probationThreshold;
+    const companyRegulatoryAction = getRegulatoryActionStatus(company);
+    expect(companyRegulatoryAction).equals(RegulatoryActionStatus.Probation);
+  });
+  it("should receive a pre-suspension status", () => {
+    company.insolvencyCounter = suspensionNoticeWarningthreshold;
+    const companyRegulatoryAction = getRegulatoryActionStatus(company);
+    expect(companyRegulatoryAction).equals(
+      RegulatoryActionStatus.PreSuspensionNotice,
+    );
+  });
+  it("should receive a suspension status", () => {
+    company.insolvencyCounter = defaultCompanyConfig.suspensionNoticeThreshold;
+    const companyRegulatoryAction = getRegulatoryActionStatus(company);
+    expect(companyRegulatoryAction).equals(
+      RegulatoryActionStatus.SuspensionNotice,
+    );
+  });
+  it("should receive a pre-ceased operations status", () => {
+    company.insolvencyCounter = ceasedOperationsWarningThreshold;
+    const companyRegulatoryAction = getRegulatoryActionStatus(company);
+    expect(companyRegulatoryAction).equals(
+      RegulatoryActionStatus.PreCeasedOperations,
+    );
+  });
+  it("should receive a ceased operations status for a high insolvency counter", () => {
+    company.insolvencyCounter = defaultCompanyConfig.ceasedOperationsThreshold;
+    const companyRegulatoryAction = getRegulatoryActionStatus(company);
+    expect(companyRegulatoryAction).equals(
+      RegulatoryActionStatus.CeasedOperations,
+    );
+  });
+  it("should receive a ceased operations status if the company is liquidated already", () => {
+    company.isLiquidated = true;
+    const companyRegulatoryAction = getRegulatoryActionStatus(company);
+    expect(companyRegulatoryAction).equals(
+      RegulatoryActionStatus.CeasedOperations,
+    );
+  });
+});
 
 describe("liquidateCompany unit tests", () => {
   let world: ReturnType<typeof createWorld>;

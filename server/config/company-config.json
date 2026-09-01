@@ -2,5 +2,9 @@
   "aiConfig": {
     "dispatchChance": 0.2
   },
-  "insolvencyThreshold": 10
+  "insolvencyThreshold": 10,
+  "regulatoryWarningMultiplier": 0.5,
+  "probationThreshold": 1,
+  "suspensionNoticeThreshold": 5,
+  "ceasedOperationsThreshold": 10
 }

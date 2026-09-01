@@ -126,7 +126,6 @@ public class Client : MonoBehaviour
     {
         while (true)
         {
-            Debug.Log("Refreshing world state");
             yield return CallAPI("/companies",APICallType.Get,(success,response) =>
             {
                 if (!success) Debug.LogError(response);
@@ -202,6 +201,8 @@ public class Client : MonoBehaviour
     private void RefreshActiveCompanyState()
     {
         var activeCompany = CompanyDTOs.FirstOrDefault(c => c.Id == ActiveCompanyId);
+
+
 
         if(activeCompany != null && activeCompany.IsLiquidated)
         {

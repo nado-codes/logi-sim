@@ -1,9 +1,7 @@
 
 using UnityEngine;
 
-public class RegulatoryActionPanel : BaseWindow<RegulatoryActionPanel>
-{
-    public enum RegulatoryActionStatus
+public enum RegulatoryActionStatus
     {
         None,
         PreProbation,
@@ -13,8 +11,10 @@ public class RegulatoryActionPanel : BaseWindow<RegulatoryActionPanel>
         PreCeasedOperations,
         CeasedOperations
     }
+
+public class RegulatoryActionPanel : BaseWindow<RegulatoryActionPanel>
+{
     private RegulatoryActionIndicator probationIndicator, suspensionNoticeIndicator,ceasedOperationsIndicator;
-    private RegulatoryActionStatus currentStatus = RegulatoryActionStatus.Probation;
     protected void Start()
     {
         probationIndicator = transform.Find("pnProbation").GetComponent<RegulatoryActionIndicator>();
@@ -29,48 +29,17 @@ public class RegulatoryActionPanel : BaseWindow<RegulatoryActionPanel>
         base.Start();
     }
 
-    void Update()
-    {
-        if(Input.GetKeyDown(KeyCode.Alpha1))
-        {
-            SetStatus(RegulatoryActionStatus.None);
-            Close();
-        }
-        if(Input.GetKeyDown(KeyCode.Alpha2))
-        {
-            SetStatus(RegulatoryActionStatus.PreProbation);
-            Open();
-        }
-        if(Input.GetKeyDown(KeyCode.Alpha3))
-        {
-            SetStatus(RegulatoryActionStatus.Probation);
-            Open();
-        }
-        if(Input.GetKeyDown(KeyCode.Alpha4))
-        {
-            SetStatus(RegulatoryActionStatus.PreSuspensionNotice);
-            Open();
-        }
-        if(Input.GetKeyDown(KeyCode.Alpha5))
-        {
-            SetStatus(RegulatoryActionStatus.SuspensionNotice);
-            Open();
-        }
-        if(Input.GetKeyDown(KeyCode.Alpha6))
-        {
-            SetStatus(RegulatoryActionStatus.PreCeasedOperations);
-            Open();
-        }
-        if(Input.GetKeyDown(KeyCode.Alpha7))
-        {
-            SetStatus(RegulatoryActionStatus.CeasedOperations);
-            Open();
-        }
-    }
-
     public void SetStatus(RegulatoryActionStatus status)
     {
-        currentStatus = status;
+        if(status == RegulatoryActionStatus.None)
+        {
+            Close();
+        }
+        else
+        {
+            Open();
+        }
+
         switch (status)
         {
             case RegulatoryActionStatus.None:

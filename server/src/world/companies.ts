@@ -20,6 +20,7 @@ import {
   IContract,
   ITruck,
   ILocation,
+  RegulatoryActionStatus,
 } from "@logisim/lib/entities";
 import {
   Color,
@@ -49,16 +50,24 @@ interface ICompanyConfig {
     dispatchChance: number;
   };
   insolvencyThreshold: number;
+  regulatoryWarningMultiplier: number;
+  probationThreshold: number;
+  suspensionNoticeThreshold: number;
+  ceasedOperationsThreshold: number;
 }
 
-const defaultConfig: ICompanyConfig = {
+export const defaultCompanyConfig: ICompanyConfig = {
   aiConfig: {
     dispatchChance: 0.1,
   },
   insolvencyThreshold: 10,
+  regulatoryWarningMultiplier: 0.5,
+  probationThreshold: 1,
+  suspensionNoticeThreshold: 5,
+  ceasedOperationsThreshold: 10,
 };
 
-const companyConfig = loadConfig("company", defaultConfig);
+const companyConfig = loadConfig("company", defaultCompanyConfig);
 
 // .. CREATE
 export const createCompany = (
@@ -103,20 +112,91 @@ export const createCompanyEntity = (companyId: string): ICompanyEntity => {
 
 // GET
 
+export const getRegulatoryActionStatus = (
+  company: ICompany,
+): RegulatoryActionStatus => {
+  const probationWarningThreshold =
+    companyConfig.probationThreshold *
+    companyConfig.regulatoryWarningMultiplier;
+  const suspensionNoticeWarningthreshold =
+    companyConfig.probationThreshold +
+    (companyConfig.suspensionNoticeThreshold -
+      companyConfig.probationThreshold) *
+      companyConfig.regulatoryWarningMultiplier;
+  const ceasedOperationsWarningThreshold =
+    companyConfig.suspensionNoticeThreshold +
+    (companyConfig.ceasedOperationsThreshold -
+      companyConfig.suspensionNoticeThreshold) *
+      companyConfig.regulatoryWarningMultiplier;
+
+  if (
+    company.insolvencyCounter >= companyConfig.ceasedOperationsThreshold ||
+    company.isLiquidated
+  ) {
+    return RegulatoryActionStatus.CeasedOperations;
+  } else if (
+    company.insolvencyCounter >= probationWarningThreshold &&
+    company.insolvencyCounter < companyConfig.probationThreshold
+  ) {
+    return RegulatoryActionStatus.PreProbation;
+  } else if (
+    company.insolvencyCounter >= companyConfig.probationThreshold &&
+    company.insolvencyCounter < suspensionNoticeWarningthreshold
+  ) {
+    return RegulatoryActionStatus.Probation;
+  } else if (
+    company.insolvencyCounter >= suspensionNoticeWarningthreshold &&
+    company.insolvencyCounter < companyConfig.suspensionNoticeThreshold
+  ) {
+    return RegulatoryActionStatus.PreSuspensionNotice;
+  } else if (
+    company.insolvencyCounter >= companyConfig.suspensionNoticeThreshold &&
+    company.insolvencyCounter < ceasedOperationsWarningThreshold
+  ) {
+    return RegulatoryActionStatus.SuspensionNotice;
+  } else if (
+    company.insolvencyCounter >= ceasedOperationsWarningThreshold &&
+    company.insolvencyCounter < companyConfig.ceasedOperationsThreshold
+  ) {
+    return RegulatoryActionStatus.PreCeasedOperations;
+  } else {
+    return RegulatoryActionStatus.None;
+  }
+};
+
+export const getCompanies = (state: IWorldState) => {
+  const companies = state.companies.map((c) => ({
+    ...c,
+    regulatoryActionStatus: getRegulatoryActionStatus(c),
+  }));
+
+  return companies;
+};
+
 export const getCompanyById = (state: IWorldState, id: string) => {
-  const company = state.companies.find((cm) => cm.id === id);
+  const company = state.companies.find((c) => c.id === id);
 
   if (!company) {
     throw Error(`Company with id ${id} doesn't exist`);
   }
 
-  return company;
+  return {
+    ...company,
+    regulatoryActionStatus: getRegulatoryActionStatus(company),
+  };
 };
 
 export const getCompanyByIdOrNull = (state: IWorldState, id: string) => {
   const company = state.companies.find((cm) => cm.id === id);
 
-  return company;
+  if (!company) {
+    return undefined;
+  }
+
+  return {
+    ...company,
+    regulatoryActionStatus: getRegulatoryActionStatus(company),
+  };
 };
 
 export const getCompanyByName = (state: IWorldState, name: string) => {
@@ -126,7 +206,10 @@ export const getCompanyByName = (state: IWorldState, name: string) => {
     throw Error(`Company with name ${name} doesn't exist`);
   }
 
-  return company;
+  return {
+    ...company,
+    regulatoryActionStatus: getRegulatoryActionStatus(company),
+  };
 };
 
 export const getCompanyString = (company: ICompany) => {

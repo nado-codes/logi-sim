@@ -8,6 +8,17 @@ export interface ICompanyDebt {
   reason: string;
   createdAtTick: number;
 }
+
+export enum RegulatoryActionStatus {
+  None,
+  PreProbation,
+  Probation,
+  PreSuspensionNotice,
+  SuspensionNotice,
+  PreCeasedOperations,
+  CeasedOperations,
+}
+
 export interface ICompany extends INamedEntity {
   money: number;
   color: Color;

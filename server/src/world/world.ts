@@ -45,6 +45,7 @@ import {
   transferCompanyFundsToState,
   updateCompanies,
   liquidateCompany,
+  getCompanies,
 } from "./companies";
 import { createTown, updateTowns } from "./locations/consumers/towns";
 import {
@@ -333,7 +334,7 @@ export const createWorld = (): IWorld => {
     getLocationItems: () => getLocationItems(),
 
     // COMPANY - GET
-    getCompanies: () => state.companies,
+    getCompanies: () => getCompanies(state),
     getCompanyById: (id: string) => getCompanyById(state, id),
     getCompanyByIdOrNull: (id: string) => getCompanyByIdOrNull(state, id),
     getCompanyByName: (name: string) => getCompanyByName(state, name),
