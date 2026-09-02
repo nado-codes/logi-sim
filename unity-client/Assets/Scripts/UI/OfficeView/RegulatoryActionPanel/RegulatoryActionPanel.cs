@@ -57,64 +57,49 @@ public class RegulatoryActionPanel : BaseWindow<RegulatoryActionPanel>
         }
     }
 
-    private void updateIndicators(RegulatoryActionStatus status)
+    private void applyIndicatorState(RegulatoryActionIndicator indicator, RegulatoryActionIndicator.IndicatorState state)
     {
-        switch (status)
+        switch (state)
         {
-            case RegulatoryActionStatus.None:
-                probationIndicator.TurnOff();
-                suspensionNoticeIndicator.TurnOff();
-                ceasedOperationsIndicator.TurnOff();
+            case RegulatoryActionIndicator.IndicatorState.Off:
+                indicator.TurnOff();
                 break;
-            case RegulatoryActionStatus.PreProbation:
-                probationIndicator.Blink();
-                suspensionNoticeIndicator.TurnOff();
-                ceasedOperationsIndicator.TurnOff();
+            case RegulatoryActionIndicator.IndicatorState.On:
+                indicator.TurnOn();
                 break;
-            case RegulatoryActionStatus.Probation:
-                probationIndicator.TurnOn();
-                suspensionNoticeIndicator.TurnOff();
-                ceasedOperationsIndicator.TurnOff();
-                break;
-            case RegulatoryActionStatus.PreSuspensionNotice:
-                probationIndicator.TurnOn();
-                suspensionNoticeIndicator.Blink();
-                ceasedOperationsIndicator.TurnOff();
-                break;
-            case RegulatoryActionStatus.SuspensionNotice:
-                probationIndicator.TurnOff();
-                suspensionNoticeIndicator.TurnOn();
-                ceasedOperationsIndicator.TurnOff();
-                break;
-            case RegulatoryActionStatus.PreCeasedOperations:
-                probationIndicator.TurnOff();
-                suspensionNoticeIndicator.TurnOn();
-                ceasedOperationsIndicator.Blink();
-                break;
-            case RegulatoryActionStatus.CeasedOperations:
-                probationIndicator.TurnOff();
-                suspensionNoticeIndicator.TurnOff();
-                ceasedOperationsIndicator.TurnOn();
+            case RegulatoryActionIndicator.IndicatorState.Blinking:
+                indicator.Blink();
                 break;
         }
     }
 
+    private void updateIndicators(RegulatoryActionStatus status)
+    {
+        var states = RegulatoryActionLogic.GetIndicatorStates(status);
+        applyIndicatorState(probationIndicator, states.Probation);
+        applyIndicatorState(suspensionNoticeIndicator, states.SuspensionNotice);
+        applyIndicatorState(ceasedOperationsIndicator, states.CeasedOperations);
+    }
+
     public void SetStatus(RegulatoryActionStatus status)
     {
-        if(status == RegulatoryActionStatus.None)
+        var states = RegulatoryActionLogic.GetIndicatorStates(status);
+
+        if(states.PanelVisible)
         {
-            Close();
+            Open();
         }
         else
         {
-            Open();
+            Close();
         }
 
         updateIndicators(status);
 
-        if(status != _currentStatus)
+        var promptToShow = RegulatoryActionLogic.GetPromptToShow(_currentStatus, status);
+        if(promptToShow.HasValue)
         {
-            showPrompt(status);
+            showPrompt(promptToShow.Value);
         }
 
         _currentStatus = status;
