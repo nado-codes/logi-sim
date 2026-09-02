@@ -38,7 +38,6 @@ import {
   getCompanyById,
   getCompanyByIdOrNull,
   getCompanyByName,
-  getCompanyRefById,
   getCompanyEntitiesByCompanyId,
   getCompanyEntityByCompanyIdEntityId,
   transferCompanyFunds,
@@ -476,11 +475,7 @@ export const createWorld = (): IWorld => {
     transferFundsFromState: (toCompany: ICompany, amount: number) =>
       transferCompanyFundsFromState(state, toCompany, amount),
     liquidateCompany: (company: ICompany) => {
-      // Resolve the real state references rather than trusting the passed-in
-      // company, which callers (e.g. the API layer) typically obtained via
-      // getCompanyById and is therefore a disconnected copy - mutating it
-      // would not persist to world state.
-      const companyRef = getCompanyRefById(state, company.id);
+      const companyRef = getCompanyById(state, company.id);
       const debtorLocations = state
         .getLocations()
         .filter((l) => l.companyId === companyRef.id);
@@ -488,9 +483,9 @@ export const createWorld = (): IWorld => {
         (t) => t.companyId === companyRef.id,
       );
       const debtorCreditors = companyRef.debts.map((d) =>
-        getCompanyRefById(state, d.creditorCompanyId),
+        getCompanyById(state, d.creditorCompanyId),
       );
-      const stateCompanyRef = getCompanyRefById(
+      const stateCompanyRef = getCompanyById(
         state,
         getCompanyByName(state, STATE_COMPANY_NAME).id,
       );

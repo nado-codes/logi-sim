@@ -5,6 +5,7 @@ import { logEntries } from "@logisim/lib/utils";
 import Anthropic from "@anthropic-ai/sdk";
 import path from "path";
 import * as fs from "fs";
+import { getRegulatoryActionStatus } from "./world/companies";
 
 export const logisimApi = (world: IWorld) => {
   const _path = path.resolve(`logisim.apik`);
@@ -153,7 +154,13 @@ Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, 
     // COMPANIES
 
     app.get("/api/companies", (req, res) => {
-      res.send(world.getCompanies());
+      const companies = world.getCompanies();
+      res.send(
+        companies.map((c) => ({
+          ...c,
+          regulatoryActionStatus: getRegulatoryActionStatus(c),
+        })),
+      );
     });
 
     app.get<{ name: string }>("/api/company/name/:name", (req, res) => {
@@ -161,7 +168,11 @@ Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, 
     });
 
     app.get<{ id: string }>("/api/company/id/:id", (req, res) => {
-      res.send(world.getCompanyById(req.params.id));
+      const company = world.getCompanyById(req.params.id);
+      res.send({
+        ...company,
+        regulatoryActionStatus: getRegulatoryActionStatus(company),
+      });
     });
 
     app.post("/api/company/transfer-to-state", (req, res) => {
