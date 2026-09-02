@@ -186,6 +186,20 @@ export const getCompanyById = (state: IWorldState, id: string) => {
   };
 };
 
+// Returns the actual object stored in state.companies, unlike getCompanyById
+// which returns a shallow copy decorated with derived fields. Callers that
+// need to mutate a company (e.g. liquidateCompany) must use this, otherwise
+// their changes are made to a throwaway copy and never persist to state.
+export const getCompanyRefById = (state: IWorldState, id: string) => {
+  const company = state.companies.find((c) => c.id === id);
+
+  if (!company) {
+    throw Error(`Company with id ${id} doesn't exist`);
+  }
+
+  return company;
+};
+
 export const getCompanyByIdOrNull = (state: IWorldState, id: string) => {
   const company = state.companies.find((cm) => cm.id === id);
 
