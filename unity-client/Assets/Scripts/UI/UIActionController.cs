@@ -66,7 +66,7 @@ public class UIActionController : MonoBehaviour
         return actionButtons;
     }
 
-    public void LoadActions(List<UIItemAction> actions)
+    public void LoadActions(IEnumerable<UIItemAction> actions)
     {
         var actionButtonGOs = GetActionButtons().Select(b => b.gameObject).ToList();
 

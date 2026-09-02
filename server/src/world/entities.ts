@@ -13,3 +13,16 @@ export const getWorldEntityByPositionOrNull = (
 
   return worldEntities.find((e) => positionsAreEqual(e.position, position));
 };
+
+export const getWorldEntityByXPositionOrNull = (
+  state: IWorldState,
+  posX: number,
+) => {
+  const worldEntities = [
+    ...state.getLocations(),
+    ...state.geographies,
+    ...state.trucks,
+  ];
+
+  return worldEntities.find((e) => e.position.x === posX);
+};

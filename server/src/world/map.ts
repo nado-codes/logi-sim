@@ -14,7 +14,10 @@ import { Color, highlight } from "@logisim/lib/utils";
 import { loadConfig } from "../utils/configUtils";
 import { getCompanyByIdOrNull } from "./companies";
 import { getContractByDestinationIdOrNull } from "./contracts";
-import { getWorldEntityByPositionOrNull } from "./entities";
+import {
+  getWorldEntityByPositionOrNull,
+  getWorldEntityByXPositionOrNull,
+} from "./entities";
 import { loadGeographyConfig } from "./geographies";
 import { loadTownConfig } from "./locations/consumers/towns";
 import { getLocationByIdOrNull } from "./locations/locations";
@@ -80,11 +83,7 @@ export const getMap = (state: IWorldState) => {
   let spaces = 0;
 
   for (var posX = 0; posX <= maxPosition; posX++) {
-    const entityAtPos = getWorldEntityByPositionOrNull(state, {
-      x: posX,
-      y: 0,
-      z: 0,
-    });
+    const entityAtPos = getWorldEntityByXPositionOrNull(state, posX);
 
     if (entityAtPos) {
       if (entityAtPos.type === WorldEntityType.Geography) {

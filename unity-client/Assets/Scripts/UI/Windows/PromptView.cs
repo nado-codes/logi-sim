@@ -37,7 +37,19 @@ public class PromptView : BaseWindow<PromptView>
             Debug.LogError("Prompt prototype must have a UIActionController component");
             return;
         }
-        actionController.LoadActions(actions);
+        actionController.LoadActions(actions.Select(a =>
+        {
+            var action = new UIItemAction
+            {
+                Name = a.Name,
+                Callback = (itemId) =>
+                {
+                    a.Callback?.Invoke(itemId);
+                    Close();
+                }
+            };
+            return action;
+        }));
 
         txTitle.text = title;
         messageText.text = message;

@@ -164,6 +164,45 @@ Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, 
       res.send(world.getCompanyById(req.params.id));
     });
 
+    app.post("/api/company/transfer-to-state", (req, res) => {
+      try {
+        const { companyId, amount } = req.body;
+        const company = world.getCompanyById(companyId);
+        const result = world.transferFundsToState(company, amount);
+        res.send({ success: result === 0 }); // 0 = SUCCESS
+      } catch (error) {
+        res.status(400).send({ error: "Failed to transfer funds" });
+      }
+    });
+
+    app.post("/api/company/transfer-from-state", (req, res) => {
+      try {
+        const { companyId, amount } = req.body;
+        const company = world.getCompanyById(companyId);
+        world.transferFundsFromState(company, amount);
+        res.send({ success: true });
+      } catch (error) {
+        res.status(400).send({ error: "Failed to transfer funds" });
+      }
+    });
+
+    app.post("/api/company/liquidate/:id", (req, res) => {
+      try {
+        const company = world.getCompanyById(req.params.id as string);
+
+        if (!company) {
+          res.status(404).send({ error: "Company not found" });
+          return;
+        }
+
+        world.liquidateCompany(company);
+      } catch (error) {
+        res.status(500).send({
+          error: `Failed to liquidate company`,
+        });
+      }
+    });
+
     // TRUCKS
     app.get("/api/truck/getString", (req, res) => {
       try {
@@ -443,29 +482,6 @@ Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, 
         res.send({ success: true });
       } catch (error) {
         res.status(400).send({ error: "Failed to delete location" });
-      }
-    });
-
-    // COMPANY OPERATIONS
-    app.post("/api/company/transfer-to-state", (req, res) => {
-      try {
-        const { companyId, amount } = req.body;
-        const company = world.getCompanyById(companyId);
-        const result = world.transferFundsToState(company, amount);
-        res.send({ success: result === 0 }); // 0 = SUCCESS
-      } catch (error) {
-        res.status(400).send({ error: "Failed to transfer funds" });
-      }
-    });
-
-    app.post("/api/company/transfer-from-state", (req, res) => {
-      try {
-        const { companyId, amount } = req.body;
-        const company = world.getCompanyById(companyId);
-        world.transferFundsFromState(company, amount);
-        res.send({ success: true });
-      } catch (error) {
-        res.status(400).send({ error: "Failed to transfer funds" });
       }
     });
 

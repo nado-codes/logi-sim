@@ -63,6 +63,19 @@ public class Client : MonoBehaviour
             }
 
             ActiveCompanyId = CompanyDTOs.FirstOrDefault(c => c.Name == "NadoCo Logistics")?.Id;
+
+            var activeCompany = CompanyDTOs.FirstOrDefault(c => c.Id == ActiveCompanyId);
+            
+            if(activeCompany != null)
+            {
+                Debug.Log("initial company info="+JsonConvert.SerializeObject(activeCompany));
+            }
+
+            if(activeCompany != null && activeCompany.IsLiquidated)
+            {
+                
+                PromptController.ShowPrompt("Liquidation", $"While you were offline, {activeCompany.Name} was liquidated, so you can no longer play as this company. You may select another company to continue playing.");
+            }
         });
     }
 
@@ -92,7 +105,7 @@ public class Client : MonoBehaviour
         onComplete?.Invoke(success, response);
     }
     
-    public static Coroutine CallAPI(string uri, APICallType callType, Action<bool, string> onComplete, string data = null)
+    public static Coroutine CallAPI(string uri, APICallType callType, Action<bool, string> onComplete = null, string data = null)
     {
         return _client.StartCoroutine(callAPICoroutine(uri, callType, onComplete, data));
     }
@@ -201,8 +214,6 @@ public class Client : MonoBehaviour
     private void RefreshActiveCompanyState()
     {
         var activeCompany = CompanyDTOs.FirstOrDefault(c => c.Id == ActiveCompanyId);
-
-
 
         if(activeCompany != null && activeCompany.IsLiquidated)
         {

@@ -2,7 +2,7 @@ import axios from "axios";
 import { createMenuPage, IMenuPage, logMenuError } from "../menu";
 import { createEntitySelectorAction } from "../menuAction";
 import { highlight, logWarning, sum } from "@logisim/lib/utils";
-import { IContract } from "@logisim/lib/entities";
+import { ICompany, IContract } from "@logisim/lib/entities";
 
 export const createManageCompaniesPage = (apiBaseUrl: string): IMenuPage => {
   const createViewCompanyAction = createEntitySelectorAction(
@@ -10,8 +10,10 @@ export const createManageCompaniesPage = (apiBaseUrl: string): IMenuPage => {
     "company",
     async (companyChoiceIndex: number) => {
       try {
-        const companies = (await axios.get(`${apiBaseUrl}/companies`)).data;
-        const company = companies[companyChoiceIndex];
+        const companies: ICompany[] = (
+          await axios.get(`${apiBaseUrl}/companies`)
+        ).data;
+        const company = companies[companyChoiceIndex] as ICompany;
 
         if (!company) {
           logMenuError(`Company ${companyChoiceIndex} doesn't exist`);
@@ -25,6 +27,13 @@ export const createManageCompaniesPage = (apiBaseUrl: string): IMenuPage => {
             ).data;
             const locations = (await axios.get(`${apiBaseUrl}/world/locations`))
               .data;
+
+            console.log(
+              ` - Insolvent: ${highlight.yellow(`${company.isInsolvent ? "Yes" : "No"}`)}`,
+            );
+            console.log(
+              ` - Liquidated: ${highlight.yellow(`${company.isLiquidated ? "Yes" : "No"}`)}`,
+            );
 
             const companyContracts = contracts.filter(
               (c: any) => c.shipperId === company.id,
@@ -56,6 +65,10 @@ export const createManageCompaniesPage = (apiBaseUrl: string): IMenuPage => {
               ` - Total Payables: ${highlight.yellow(`$${totalCompanyPayables}`)}`,
             );
             console.log(
+              ` - Total Debts: ${highlight.yellow(`$${company.debts.map((d) => d.amount).reduce((a, c) => a + c, 0)}`)}`,
+            );
+
+            console.log(
               ` - Active Contracts: ${companyContracts.length > 0 ? "" : highlight.yellow(`None`)}`,
             );
             const contractStrings = (
@@ -70,6 +83,22 @@ export const createManageCompaniesPage = (apiBaseUrl: string): IMenuPage => {
 
             contractStrings.forEach((str) => {
               console.log(`  - ${str}`);
+            });
+
+            console.log(
+              ` - Active Debt Accounts: ${company.debts.length > 0 ? "" : highlight.yellow(`None`)}`,
+            );
+            company.debts.forEach((debt) => {
+              const creditorCompany = companies.find(
+                (c) => c.id === debt.creditorCompanyId,
+              );
+              const amountString = `Amount: ${highlight.yellow(`$${debt.amount}`)}`;
+              const creditorString = `Creditor: ${highlight.yellow(creditorCompany ? creditorCompany.name : "Unknown")}`;
+              const paymentString = `Payment Per Tick: ${highlight.yellow(`$${debt.paymentPerTick}`)}`;
+              const reasonString = `Reason: ${highlight.yellow(debt.reason)}`;
+              console.log(
+                `  - ${amountString} | ${creditorString} | ${paymentString} | ${reasonString}`,
+              );
             });
           } catch (error) {
             console.log(
