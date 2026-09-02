@@ -10,30 +10,30 @@ public class RegulatoryActionIndicator : MonoBehaviour
         On,
         Blinking
     }
-    private CanvasGroup cgToggle;
+    private CanvasGroup canvasGroup;
     public float BlinkSpeed = 0.5f;
 
     private IndicatorState indicatorState = IndicatorState.Off;
 
     void Start()
     {
-        cgToggle = GetComponent<CanvasGroup>();
+        canvasGroup = GetComponent<CanvasGroup>();
         Blink();
     }
     void Update()
     {
         if(indicatorState == IndicatorState.Blinking)
         {
-            cgToggle.alpha -= BlinkSpeed *Time.deltaTime;
+            canvasGroup.alpha -= BlinkSpeed *Time.deltaTime;
 
-            if(cgToggle.alpha <= 0.5)
+            if(canvasGroup.alpha <= 0.5)
             {
-                cgToggle.alpha = 1;
+                canvasGroup.alpha = 1;
             }
         }
         else
         {
-            cgToggle.alpha = Mathf.MoveTowards(cgToggle.alpha, indicatorState == IndicatorState.On ? 1 : .5f, Time.deltaTime * BlinkSpeed);
+            canvasGroup.alpha = Mathf.MoveTowards(canvasGroup.alpha, indicatorState == IndicatorState.On ? 1 : .5f, Time.deltaTime * BlinkSpeed);
         }
     }
 

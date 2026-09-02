@@ -60,9 +60,11 @@ public class CompanyInfo : MonoBehaviour
         companyMoneyTarget = company.Money;
 
         company.RegulatoryActionStatus = statusTarget;
-        Debug.Log("company.RegulatoryActionStatus=" + company.RegulatoryActionStatus);
 
-        regulatoryActionPanel.SetStatus(company.RegulatoryActionStatus);
+        if(regulatoryActionPanel.CurrentStatus != company.RegulatoryActionStatus)
+        {
+            regulatoryActionPanel.SetStatus(company.RegulatoryActionStatus);
+        }
     }
 
     void Update()

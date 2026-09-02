@@ -6,10 +6,10 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/OfficeScene.unity
+    path: Assets/Scenes/OfficeView.unity
     guid: 83f6cf522764b554ab92a73e04663af6
   - enabled: 1
-    path: Assets/Scenes/OutdoorsScene.unity
+    path: Assets/Scenes/OperatorView.unity
     guid: 8124e5870f4fd4c779e7a5f994e84ad1
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

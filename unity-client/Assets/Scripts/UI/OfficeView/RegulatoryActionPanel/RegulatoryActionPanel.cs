@@ -1,5 +1,6 @@
 
 using UnityEngine;
+using System.Collections.Generic;
 
 public enum RegulatoryActionStatus
     {
@@ -15,7 +16,10 @@ public enum RegulatoryActionStatus
 public class RegulatoryActionPanel : BaseWindow<RegulatoryActionPanel>
 {
     private RegulatoryActionIndicator probationIndicator, suspensionNoticeIndicator,ceasedOperationsIndicator;
-    protected void Start()
+    private RegulatoryActionStatus _currentStatus = RegulatoryActionStatus.None;
+    public RegulatoryActionStatus CurrentStatus => _currentStatus;
+
+    protected override void Start()
     {
         probationIndicator = transform.Find("pnProbation").GetComponent<RegulatoryActionIndicator>();
         suspensionNoticeIndicator = transform.Find("pnSuspensionNotice").GetComponent<RegulatoryActionIndicator>();
@@ -29,17 +33,24 @@ public class RegulatoryActionPanel : BaseWindow<RegulatoryActionPanel>
         base.Start();
     }
 
-    public void SetStatus(RegulatoryActionStatus status)
+    private void showPrompt(RegulatoryActionStatus status)
     {
-        if(status == RegulatoryActionStatus.None)
+        switch (status)
         {
-            Close();
+            case RegulatoryActionStatus.Probation:
+                PromptController.ShowPrompt("Probation", "The Department of Transport has placed your company on probation due to outstanding debts. You are required to resolve all financial obligations to avoid further regulatory action.");
+                break;
+            case RegulatoryActionStatus.SuspensionNotice:
+                PromptController.ShowPrompt("Suspension Notice", "Your company has received a formal suspension notice. You may not purchase new assets until all outstanding debts are resolved. You may continue operating your existing fleet and contracts, or voluntarily cease operations.");
+                break;
+            case RegulatoryActionStatus.CeasedOperations:
+                PromptController.ShowPrompt("Ceased Operations", "The Department of Transport has revoked your operating authority. All company assets will be liquidated and proceeds distributed to creditors. Your employment has been terminated.");
+                break;
         }
-        else
-        {
-            Open();
-        }
+    }
 
+    private void updateIndicators(RegulatoryActionStatus status)
+    {
         switch (status)
         {
             case RegulatoryActionStatus.None:
@@ -78,5 +89,26 @@ public class RegulatoryActionPanel : BaseWindow<RegulatoryActionPanel>
                 ceasedOperationsIndicator.TurnOn();
                 break;
         }
+    }
+
+    public void SetStatus(RegulatoryActionStatus status)
+    {
+        if(status == RegulatoryActionStatus.None)
+        {
+            Close();
+        }
+        else
+        {
+            Open();
+        }
+
+        updateIndicators(status);
+
+        if(status != _currentStatus)
+        {
+            showPrompt(status);
+        }
+
+        _currentStatus = status;
     }
 }

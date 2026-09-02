@@ -206,7 +206,7 @@ public class Client : MonoBehaviour
 
         if(activeCompany != null && activeCompany.IsLiquidated)
         {
-            Prompt.Show("Liquidation Event", "Due to your company's worsening financial situation and inability to resolve debts, it has been liquidated. You may restart the game if you wish to play again.");
+            PromptController.ShowPrompt("Liquidation Event", "Due to your company's worsening financial situation and inability to resolve debts, it has been liquidated. You may restart the game if you wish to play again.");
         }
     }
 
@@ -251,7 +251,7 @@ public class Client : MonoBehaviour
                     ContractDTOs.Remove(contract);
                     continue;
                 }*/ // TODO: The amount owed should be displayed in the prompt.
-                Prompt.Show("Contract Expired", $"Contract {contract.Id} has expired at tick {WorldTick}. You now owe {contractCompany?.Name} money for the failed contract. Due to the debt, your company is now insolvent and you cannot take new contracts or purchase assets until you resolve your debts.");
+                PromptController.ShowPrompt("Contract Expired", $"Contract {contract.Id} has expired at tick {WorldTick}. You now owe {contractCompany?.Name} money for the failed contract. Due to the debt, your company is now insolvent and you cannot take new contracts or purchase assets until you resolve your debts.");
                 Debug.Log($"Contract {contract.Id} has expired at tick {WorldTick}. Removing from active contracts.");
                 ContractDTOs.Remove(contract);
             }

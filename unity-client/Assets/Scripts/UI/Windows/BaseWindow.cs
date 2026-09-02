@@ -5,10 +5,17 @@ public class BaseWindow<T> : MonoBehaviour
 {
     protected CanvasGroupToggle canvasGroupToggle {get; private set;}
 
+    [SerializeField] private bool startOpen = false;
+
     protected virtual void Start()
     {
         canvasGroupToggle = GetComponent<CanvasGroupToggle>();
-        Close();
+
+        if(!startOpen)
+        {
+            Close();
+        }
+        
     }
 
     void Awake()
@@ -23,6 +30,7 @@ public class BaseWindow<T> : MonoBehaviour
 
     public virtual void Close()
     {
+        Debug.Log("closing window: " + gameObject.name);
        canvasGroupToggle.Hide();
     }
 }
