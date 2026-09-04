@@ -5,8 +5,7 @@ using System;
 
 public class CompanyInfo : MonoBehaviour
 {
-    private TextMeshProUGUI companyNameText;
-    private TextMeshProUGUI companyMoneyText;
+    private TextMeshProUGUI companyNameText, companyMoneyText;
     private RegulatoryActionPanel regulatoryActionPanel;
     private RegulatoryActionStatus statusTarget = RegulatoryActionStatus.None;
 
@@ -31,10 +30,7 @@ public class CompanyInfo : MonoBehaviour
         {
             Debug.LogError("Company Money TextMeshProUGUI component not found in children.");
         }
-        if(regulatoryActionPanel == null)
-        {
-            Debug.LogError("RegulatoryActionPanel component not found in children.");
-        }
+        
     }
 
     void UpdateCompanyInfo()

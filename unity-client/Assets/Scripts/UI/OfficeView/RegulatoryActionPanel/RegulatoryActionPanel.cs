@@ -1,6 +1,8 @@
 
 using UnityEngine;
 using System.Collections.Generic;
+using TMPro;
+using System.Linq;
 
 public enum RegulatoryActionStatus
     {
@@ -15,6 +17,7 @@ public enum RegulatoryActionStatus
 
 public class RegulatoryActionPanel : BaseWindow<RegulatoryActionPanel>
 {
+    private TextMeshProUGUI companyDebtText;
     private RegulatoryActionIndicator probationIndicator, suspensionNoticeIndicator,ceasedOperationsIndicator;
     private RegulatoryActionStatus _currentStatus = RegulatoryActionStatus.None;
     public RegulatoryActionStatus CurrentStatus => _currentStatus;
@@ -24,13 +27,27 @@ public class RegulatoryActionPanel : BaseWindow<RegulatoryActionPanel>
         probationIndicator = transform.Find("pnProbation").GetComponent<RegulatoryActionIndicator>();
         suspensionNoticeIndicator = transform.Find("pnSuspensionNotice").GetComponent<RegulatoryActionIndicator>();
         ceasedOperationsIndicator = transform.Find("pnCeasedOperations").GetComponent<RegulatoryActionIndicator>();
+        companyDebtText = transform.Find("txRemainingDebt").GetComponent<TextMeshProUGUI>();
 
         if(probationIndicator == null || suspensionNoticeIndicator == null || ceasedOperationsIndicator == null)
         {
             Debug.LogError("RegulatoryActionPanel: One or more regulatory indicators are missing!");
             throw new System.Exception("RegulatoryActionPanel: One or more regulatory indicators are missing!");
         }
+        if(companyDebtText == null)
+        {
+            Debug.LogError("Company Debt TextMeshProUGUI component not found in children.");
+        }
         base.Start();
+    }
+
+    void Update()
+    {
+        var company = Client.CompanyDTOs.FirstOrDefault(c => c.Id == Client.ActiveCompanyId);
+        if(company != null)
+        {
+            companyDebtText.text = "Remaining Debt: " + company.Debts.Sum(d => d.Amount).ToString("C");
+        }
     }
 
     private void showPrompt(RegulatoryActionStatus status)

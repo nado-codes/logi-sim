@@ -225,7 +225,22 @@ public class Client : MonoBehaviour
     {
         var expiredContracts = ContractDTOs.Where(c => c.ExpectedTick <= WorldTick).ToList();
             var companyContacts = expiredContracts.Where(c => c.ShipperId == ActiveCompanyId).ToList();
-            var companyDebts = CompanyDTOs.FirstOrDefault(c => c.Id == ActiveCompanyId)?.Debts ?? new CompanyDebtDTO[0];
+            var company = CompanyDTOs.FirstOrDefault(c => c.Id == ActiveCompanyId);
+
+            if(company != null) {
+                company.Debts = new CompanyDebtDTO[1]
+                {
+                    new CompanyDebtDTO
+                    {
+                        CreditorCompanyId = "creditor1",
+                        Amount = 1000
+                    },
+                };
+            }
+
+            var companyDebts = company?.Debts ?? new CompanyDebtDTO[0];
+
+            
 
             if(expiredContracts.Count > 0)
             {
