@@ -46,7 +46,8 @@ public class RegulatoryActionPanel : BaseWindow<RegulatoryActionPanel>
         var company = Client.CompanyDTOs.FirstOrDefault(c => c.Id == Client.ActiveCompanyId);
         if(company != null)
         {
-            companyDebtText.text = "Remaining Debt: " + company.Debts.Sum(d => d.Amount).ToString("C");
+            var debtAmount = company.Debts.Sum(d => d.Amount);
+            companyDebtText.text = $"Remaining Debt: <color=#FF6B6B>${debtAmount:N2}</color>";
         }
     }
 

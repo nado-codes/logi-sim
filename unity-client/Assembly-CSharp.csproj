@@ -84,6 +84,7 @@
     <Compile Include="Assets\Scripts\UI\OperatorView\ContractList.cs" />
     <Compile Include="Assets\Scripts\DTO\Item\TruckItemDTO.cs" />
     <Compile Include="Assets\Scripts\UI\UIActionController.cs" />
+    <Compile Include="Assets\Scripts\UI\OfficeView\DebtServicingWindow.cs" />
     <Compile Include="Assets\Scripts\UI\Windows\BaseWindow.cs" />
     <Compile Include="Assets\Scripts\UI\CompanyInfo.cs" />
     <Compile Include="Assets\Scripts\UI\UIProgressBar.cs" />
@@ -109,7 +110,6 @@
     <Compile Include="Assets\Scripts\DTO\CompanyDTO.cs" />
     <Compile Include="Assets\Scripts\UI\CanvasGroupToggle.cs" />
     <Compile Include="Assets\Scripts\Interfaces\IMarketplaceEntity.cs" />
-    <Compile Include="Assets\Scripts\UI\OfficeView\DebtResolutionWindow.cs" />
     <Compile Include="Assets\Scripts\Interfaces\ICompanyEntity.cs" />
     <Compile Include="Assets\Scripts\ViewModels\ContractViewModel.cs" />
   </ItemGroup>

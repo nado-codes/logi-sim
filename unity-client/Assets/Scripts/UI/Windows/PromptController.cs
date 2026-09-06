@@ -7,10 +7,10 @@ public class PromptController : MonoBehaviour
 {
     private static PromptController Instance;
 
-    public PromptView promptPrototype;
+    public PopupView promptPrototype;
     public UIFader fader;
 
-    private static PromptView activePrompt;
+    private static PopupView activePrompt;
 
     void Start()
     {
@@ -49,31 +49,31 @@ public class PromptController : MonoBehaviour
         prompt.transform.SetParent(Instance.transform.parent, false);
         prompt.name = "Prompt_" + title;
 
-        var promptComponent = prompt.GetComponent<PromptView>();
+        var popupComponent = prompt.GetComponent<PopupView>();
 
-        if(promptComponent == null)
+        if(popupComponent == null)
         {
-            Debug.LogError("Prompt prototype must have a Prompt component");
+            Debug.LogError("Prompt prototype must have a Popup component");
             return;
         }
 
-        var debtResolutionWindow = FindObjectsByType<DebtResolutionWindow>(FindObjectsSortMode.None).FirstOrDefault();
+        var debtResolutionWindow = FindObjectsByType<DebtServicingWindow>(FindObjectsSortMode.None).FirstOrDefault();
         if(debtResolutionWindow == null)
         {
-            Debug.LogError("Could not find DebtResolutionWindow in scene. Make sure there is a DebtResolutionWindow component in the scene");
+            Debug.LogError("Could not find DebtServicingWindow in scene. Make sure there is a DebtServicingWindow component in the scene");
             return;
         }
 
-        promptComponent.Setup(title, message, actions?? new List<UIItemAction>() { 
+        popupComponent.Setup(title, message, actions?? new List<UIItemAction>() { 
             new UIItemAction{ Name = "Ok", Callback = (itemId) => {
-                promptComponent.Close();
+                CloseActivePrompt();
             }
         }});
 
-        promptComponent.Open();
+        popupComponent.Open();
         
         Instance.fader.Activate();
-        activePrompt = promptComponent;
+        activePrompt = popupComponent;
     }
 
     public static void CloseActivePrompt()

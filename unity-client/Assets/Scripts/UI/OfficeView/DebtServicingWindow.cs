@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Linq;
 
-public class DebtResolutionWindow : BaseWindow<DebtResolutionWindow>
+public class DebtServicingWindow : BaseWindow<DebtServicingWindow>
 {
     private UIList list;
     private List<TruckItemViewModel> truckItemVMs;
@@ -59,7 +59,10 @@ public class DebtResolutionWindow : BaseWindow<DebtResolutionWindow>
 
         list.Populate(truckItemVMs,(truckItemId) => new List<UIItemAction>(){
             new UIItemAction(){
-                Name = "Sell",
+                Name = "Pay In Full",
+                Callback = (truckId) => SellTruck(truckId)
+            } ,new UIItemAction(){
+                Name = "Partial Payment",
                 Callback = (truckId) => SellTruck(truckId)
             } });
     }

@@ -4,7 +4,7 @@ using TMPro;
 using UnityEngine;
 
 [RequireComponent(typeof(UIActionController))]
-public class PromptView : BaseWindow<PromptView>
+public class PopupView : BaseWindow<PopupView>
 {
     private UIActionController actionController;
 
@@ -18,7 +18,7 @@ public class PromptView : BaseWindow<PromptView>
         var texts = GetComponentsInChildren<TextMeshProUGUI>();
         var txTitle = texts.FirstOrDefault(t => t.name == "txWindowTitle");
         var messageText = texts.FirstOrDefault(t => t.name == "txPromptBody");
-        var promptComponent = GetComponent<PromptView>();
+        var promptComponent = GetComponent<PopupView>();
 
         if(txTitle == null || messageText == null)
         {
@@ -53,11 +53,5 @@ public class PromptView : BaseWindow<PromptView>
 
         txTitle.text = title;
         messageText.text = message;
-    }
-
-    public override void Close()
-    {
-        base.Close();
-        PromptController.CloseActivePrompt();
     }
 }
