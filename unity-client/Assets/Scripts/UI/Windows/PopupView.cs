@@ -11,8 +11,10 @@ public class PopupView : BaseWindow<PopupView>
     
     private GameObject closeButton;
 
-    void Awake()
+    protected override void Awake()
     {
+        base.Awake();
+
        var windowBase = transform.Find("WindowBase");
        var windowTop = windowBase?.Find("WindowTop");
        closeButton = windowTop?.Find("btnClose")?.gameObject;
@@ -23,7 +25,7 @@ public class PopupView : BaseWindow<PopupView>
        }
     }
 
-    public void Setup(string title, string message, List<UIItemAction> actions, bool hideCloseButton = false)
+    public bool Setup(string title, string message, List<UIItemAction> actions, bool hideCloseButton = false)
     {
         var texts = GetComponentsInChildren<TextMeshProUGUI>();
         var txTitle = texts.FirstOrDefault(t => t.name == "txWindowTitle");
@@ -33,19 +35,19 @@ public class PopupView : BaseWindow<PopupView>
         if(txTitle == null || messageText == null)
         {
             Debug.LogError("Prompt prototype must have a TextMeshProUGUI called txWindowTitle and txPromptBody");
-            return;
+            return false;
         }
         if(promptComponent == null)
         {
             Debug.LogError("Prompt prototype must have a Prompt component");
-            return;
+            return false;
         }
 
         actionController = GetComponent<UIActionController>();
         if(actionController == null)
         {
             Debug.LogError("Prompt prototype must have a UIActionController component");
-            return;
+            return false;
         }
         actionController.LoadActions(actions.Select(a =>
         {
@@ -68,5 +70,7 @@ public class PopupView : BaseWindow<PopupView>
 
         txTitle.text = title;
         messageText.text = message;
+
+        return Open();
     }
 }

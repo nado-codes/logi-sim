@@ -9,6 +9,11 @@ public class BaseWindow<T> : MonoBehaviour
 
     [SerializeField] private bool startOpen = false;
 
+    protected virtual void Awake()
+    {
+        canvasGroupToggle = GetComponent<CanvasGroupToggle>();
+    }
+
     protected virtual void Start()
     {
         if(!startOpen)
@@ -17,19 +22,15 @@ public class BaseWindow<T> : MonoBehaviour
         }
     }
 
-    void Awake()
-    {
-        canvasGroupToggle = GetComponent<CanvasGroupToggle>();
-    }
-
-    public void Open()
+    public bool Open()
     {
         if (canvasGroupToggle == null)
         {
-            Debug.LogWarning($"CanvasGroupToggle not yet initialised on {gameObject.name}. Open() called before Start().");
-            return;
+            Debug.LogWarning($"CanvasGroupToggle not yet initialised on {gameObject.name}. Open() called before Awake().");
+            return false;
         }
         canvasGroupToggle.Show();
+        return true;
     }
 
     public virtual void Close()

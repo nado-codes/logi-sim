@@ -13,7 +13,7 @@ public class PopupController : MonoBehaviour
 
     private static PopupView activePrompt;
 
-    void Start()
+    void Awake()
     {
         if(Instance == null)
         {
@@ -53,11 +53,16 @@ public class PopupController : MonoBehaviour
             throw new Exception("Prompt prototype must have a Popup component");
         }
 
-        popupComponent.Setup(title, message, actions?? new List<UIItemAction>() { 
+        var didOpen = popupComponent.Setup(title, message, actions?? new List<UIItemAction>() {
             new UIItemAction{ Name = "Ok" }
         },isPrompt);
-        
-        popupComponent.Open();
+
+        if(!didOpen)
+        {
+            Debug.LogWarning($"PopupController: {prompt.name} failed to open (Setup() returned false). Destroying instantiated popup.");
+            Destroy(prompt);
+            return null;
+        }
 
         return popupComponent;
     }
@@ -70,6 +75,12 @@ public class PopupController : MonoBehaviour
         }
 
         var popupComponent = showPopup(title, message, actions,false);
+
+        if(popupComponent == null)
+        {
+            return;
+        }
+
         activePrompt = popupComponent;
 
         activePrompt.OnClose = () =>
