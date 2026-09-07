@@ -46,6 +46,7 @@ import {
   updateCompanies,
   liquidateCompany,
   getCompanies,
+  payCompanyDebt,
 } from "./companies";
 import { createTown, updateTowns } from "./locations/consumers/towns";
 import {
@@ -227,6 +228,11 @@ export interface IWorld {
   ) => COMPANY_TRANSFER_RESULT;
   transferFundsFromState: (toCompany: ICompany, amount: number) => void;
   liquidateCompany: (company: ICompany) => void;
+  payCompanyDebt: (
+    debtorCompany: ICompany,
+    creditorCompany: ICompany,
+    amount: number,
+  ) => void;
 
   // MARKETPLACE - UPDATE
   purchaseItem: (
@@ -497,6 +503,11 @@ export const createWorld = (): IWorld => {
         stateCompanyRef,
       );
     },
+    payCompanyDebt: (
+      debtorCompany: ICompany,
+      creditorCompany: ICompany,
+      amount: number,
+    ) => payCompanyDebt(debtorCompany, creditorCompany, amount),
 
     // MARKETPLACE - UPDATE
     purchaseItem: (itemId: string, buyerCompany: ICompany) =>

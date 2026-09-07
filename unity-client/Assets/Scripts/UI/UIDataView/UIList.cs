@@ -57,6 +57,11 @@ public class UIList : BaseUIDataView
             if(itemProp != null)
             {
                 var value = itemProp.GetValue(item);
+                if(value == null)
+                {
+                    Debug.LogWarning("Property "+fieldName+" on item "+item.Id+" is null");
+                    value = "[NULL]";
+                }
                 field.text = value.ToString();
             }
             else
@@ -117,6 +122,9 @@ public class UIList : BaseUIDataView
 
             buttonGO.name = action.Name+"ActionButton";
             buttonGO.transform.SetParent(actionsCell.transform, false);
+            var protoWidth = actionButtonPrototype.GetComponent<RectTransform>().sizeDelta.x;
+            buttonGO.GetComponent<RectTransform>().localPosition = new Vector3(protoWidth*actionButtonGOs.Count,0,0);
+
 
             button.onClick.AddListener(() => action.Invoke(listItem.name));
             buttonText.text = action.Name;

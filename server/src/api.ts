@@ -214,6 +214,33 @@ Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, 
       }
     });
 
+    app.post("/api/company/:companyId/debts/:creditorId/pay", (req, res) => {
+      try {
+        const company = world.getCompanyById(req.params.companyId as string);
+        const creditor = world.getCompanyById(req.params.creditorId as string);
+
+        if (!company) {
+          res.status(404).send({ error: "Company not found" });
+          return;
+        }
+        if (!creditor) {
+          res.status(404).send({ error: "Creditor company not found" });
+          return;
+        }
+        const amount = parseFloat(req.body.amount);
+        if (isNaN(amount) || amount <= 0) {
+          res.status(400).send({ error: "Invalid amount" });
+          return;
+        }
+
+        world.payCompanyDebt(company, creditor, amount);
+      } catch (error) {
+        res.status(500).send({
+          error: `Failed to pay company debt`,
+        });
+      }
+    });
+
     // TRUCKS
     app.get("/api/truck/getString", (req, res) => {
       try {

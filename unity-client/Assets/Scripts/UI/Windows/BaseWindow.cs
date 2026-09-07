@@ -22,7 +22,7 @@ public class BaseWindow<T> : MonoBehaviour
         }
     }
 
-    public bool Open()
+    public virtual bool Open()
     {
         if (canvasGroupToggle == null)
         {

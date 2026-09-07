@@ -28,6 +28,11 @@ public class PopupController : MonoBehaviour
         }
     }
 
+    void Start()
+    {
+        fader.Deactivate();
+    }
+
     private static PopupView showPopup(string title, string message, List<UIItemAction> actions = null, bool isPrompt = false)
     {
         if(Instance == null)

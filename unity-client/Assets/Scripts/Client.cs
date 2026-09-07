@@ -13,6 +13,11 @@ public enum APICallType
         Post
     }
 
+public enum ConnectionStatus
+{
+    Disconnected,
+    Connected,
+}
 public class Client : MonoBehaviour
 {
     public static readonly string BaseUrl = "http://localhost:3001/api";
@@ -40,21 +45,30 @@ public class Client : MonoBehaviour
     public bool SpawnEntities = false;
     const float positionScaleFactor = 5f;
 
-    private bool shownLiquidation = false;
-
     private static Client _client;
+    private ConnectionStatus connectionStatus = ConnectionStatus.Disconnected;
 
 
     void Start()
     {
         _client = this;
         SceneManager.sceneUnloaded += OnSceneUnloaded;
-        StartCoroutine(RefreshWorldState(.4f));
-        StartCoroutine(RefreshMarketplaceState());
+
+        Debug.Log("Connecting to server at " + BaseUrl+"...");
 
         CallAPI("/companies",APICallType.Get,(success,response) =>
         {
-            if (!success) Debug.LogError(response);
+            if (!success)
+            {
+                Debug.LogError("Failed to connect to server: " + response);
+                return;
+            }
+
+            Debug.Log("Connected to server!");
+            connectionStatus = ConnectionStatus.Connected;
+
+            StartCoroutine(RefreshWorldState(.4f));
+            StartCoroutine(RefreshMarketplaceState());
 
             var companiesResult = JsonConvert.DeserializeObject<List<CompanyDTO>>(response);
             if (companiesResult != null)
@@ -73,10 +87,10 @@ public class Client : MonoBehaviour
 
             if(activeCompany != null && activeCompany.IsLiquidated)
             {
-                
                 PopupController.ShowPrompt("Liquidation", $"While you were offline, {activeCompany.Name} was liquidated, so you can no longer play as this company. You may select another company to continue playing.");
             }
         });
+        
     }
 
     void OnSceneUnloaded(Scene scene)
@@ -107,14 +121,23 @@ public class Client : MonoBehaviour
     
     public static Coroutine CallAPI(string uri, APICallType callType, Action<bool, string> onComplete = null, string data = null)
     {
-        return _client.StartCoroutine(callAPICoroutine(uri, callType, onComplete, data));
+        return _client.StartCoroutine(callAPICoroutine(uri, callType, (success, response) =>
+        {
+            if(!success && _client.connectionStatus == ConnectionStatus.Connected)
+            {
+                _client.connectionStatus = ConnectionStatus.Disconnected;
+                Debug.LogError("Connection to server lost.");
+            }
+
+            onComplete?.Invoke(success, response);
+        }, data));
     }
 
     IEnumerator RefreshMarketplaceState()
     {
         yield return CallAPI("/location/items",APICallType.Get,(success,response) =>
         {
-            if (!success) Debug.LogError(response);
+            if (!success) Debug.LogError("Failed to fetch location items: " + response);
 
             var locationsResult = JsonConvert.DeserializeObject<List<LocationItemDTO>>(response);
             if (locationsResult != null)
@@ -137,7 +160,7 @@ public class Client : MonoBehaviour
 
     IEnumerator RefreshWorldState(float interval)
     {
-        while (true)
+        while (connectionStatus == ConnectionStatus.Connected)
         {
             yield return CallAPI("/companies",APICallType.Get,(success,response) =>
             {
@@ -209,6 +232,25 @@ public class Client : MonoBehaviour
 
             yield return new WaitForSeconds(interval);
         }
+
+        while(connectionStatus == ConnectionStatus.Disconnected)
+        {
+            Debug.LogWarning("Attempting to reconnect...");
+            yield return CallAPI("/companies",APICallType.Get,(success,response) =>
+            {
+                if (success)
+                {
+                    Debug.Log("Reconnected to server!");
+                    connectionStatus = ConnectionStatus.Connected;
+                }
+                else
+                {
+                    Debug.LogError("Reconnection attempt failed: " + response+" Will retry in 5 seconds...");
+                }
+            });
+
+            yield return new WaitForSeconds(5f); // Wait 5 seconds before trying to reconnect again
+        }
     }
 
     private void RefreshActiveCompanyState()
@@ -228,14 +270,11 @@ public class Client : MonoBehaviour
             var company = CompanyDTOs.FirstOrDefault(c => c.Id == ActiveCompanyId);
 
             if(company != null) {
-                company.Debts = new CompanyDebtDTO[1]
+                company.Debts = CompanyDTOs.Where(c => c.Id != ActiveCompanyId).Select(c => new CompanyDebtDTO
                 {
-                    new CompanyDebtDTO
-                    {
-                        CreditorCompanyId = "creditor1",
-                        Amount = 1000
-                    },
-                };
+                    CreditorCompanyId = c.Id,
+                    Amount = 1000
+                }).ToArray();
             }
 
             var companyDebts = company?.Debts ?? new CompanyDebtDTO[0];
@@ -435,12 +474,12 @@ public class Client : MonoBehaviour
 
     public void SwitchToOperatorView()
     {
-        SceneManager.LoadScene("OutdoorsScene");
+        SceneManager.LoadScene("OperatorView");
     }
 
     public void SwitchToOfficeView()
     {
         
-        SceneManager.LoadScene("OfficeScene");
+        SceneManager.LoadScene("OfficeView");
     }
 }

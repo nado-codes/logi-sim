@@ -338,7 +338,6 @@ export const processCompanyDebts = (
   const sumTotalDebtPayments = debtorCompany.debts
     .map((d) => d.paymentPerTick ?? 0)
     .reduce((a, c) => a + c, 0);
-
   const sumTotalDeferredRevenue = debtorContracts
     .map((c) => c.payment)
     .reduce((a, c) => a + c, 0);
@@ -419,6 +418,47 @@ export const processCompanyDebts = (
   if (debtorCompany.debts.length <= 0) {
     debtorCompany.isInsolvent = false;
     debtorCompany.insolvencyCounter = 0;
+  }
+};
+
+export const payCompanyDebt = (
+  debtorCompany: ICompany,
+  creditorCompany: ICompany,
+  amount: number,
+) => {
+  const debt = debtorCompany.debts.find(
+    (d) => d.creditorCompanyId === creditorCompany.id,
+  );
+
+  if (!debt) {
+    logError(
+      `Debtor company ${debtorCompany.name} does not have a debt with creditor company ${creditorCompany.name}`,
+    );
+    return;
+  }
+  if (amount < 0) {
+    logError(`Invalid payment amount: ${amount}`);
+    return;
+  }
+  if (amount > debt.amount) {
+    logError(`Payment amount exceeds debt amount: ${amount} > ${debt.amount}`);
+    return;
+  }
+  const result = transferCompanyFunds(debtorCompany, creditorCompany, amount);
+
+  if (result === COMPANY_TRANSFER_RESULT.INSUFFICIENT_FUNDS) {
+    logError(
+      `Debtor company ${debtorCompany.name} has insufficient funds to pay ${amount} to creditor company ${creditorCompany.name}`,
+    );
+    return;
+  } else if (result === COMPANY_TRANSFER_RESULT.SUCCESS) {
+    debt.amount -= Math.min(debt.amount, amount);
+
+    if (debt.amount <= 0) {
+      debtorCompany.debts = debtorCompany.debts.filter(
+        (d) => d.creditorCompanyId !== creditorCompany.id,
+      );
+    }
   }
 };
 

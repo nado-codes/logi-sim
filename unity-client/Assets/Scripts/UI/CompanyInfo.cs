@@ -75,14 +75,7 @@ public class CompanyInfo : MonoBehaviour
         companyMoneyText.text = companyMoneyCurrent.ToString("C");
         companyMoneyText.color = Color.Lerp(companyMoneyText.color, moneyGreen,Time.deltaTime);
 
-        var company = Client.CompanyDTOs.FirstOrDefault(c => c.Id == Client.ActiveCompanyId);
-
-        if(company == null)
-        {
-            Debug.LogError("Player's company not found in CompanyDTOs.");
-            return;
-        }   
-
+        // Debugging: Change regulatory action status with number keys
         if(Input.GetKeyDown(KeyCode.Alpha1))
         {
             statusTarget = RegulatoryActionStatus.None;
