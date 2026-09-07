@@ -115,6 +115,13 @@ export const createCompanyEntity = (companyId: string): ICompanyEntity => {
 export const getRegulatoryActionStatus = (
   company: ICompany,
 ): RegulatoryActionStatus => {
+  if (company.isLiquidated) {
+    return RegulatoryActionStatus.CeasedOperations;
+  }
+  if (company.debts.length === 0) {
+    return RegulatoryActionStatus.None;
+  }
+
   const probationWarningThreshold =
     companyConfig.probationThreshold *
     companyConfig.regulatoryWarningMultiplier;
@@ -129,10 +136,7 @@ export const getRegulatoryActionStatus = (
       companyConfig.suspensionNoticeThreshold) *
       companyConfig.regulatoryWarningMultiplier;
 
-  if (
-    company.insolvencyCounter >= companyConfig.ceasedOperationsThreshold ||
-    company.isLiquidated
-  ) {
+  if (company.insolvencyCounter >= companyConfig.ceasedOperationsThreshold) {
     return RegulatoryActionStatus.CeasedOperations;
   } else if (
     company.insolvencyCounter >= probationWarningThreshold &&

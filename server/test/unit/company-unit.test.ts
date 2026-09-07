@@ -20,11 +20,12 @@ import {
   RESOURCE_TYPE,
 } from "@logisim/lib/entities";
 import { createWorld } from "../../src/world/world";
-import { Color } from "@logisim/lib/utils";
+import { Color, logEntries } from "@logisim/lib/utils";
 import {
   defaultCompanyConfig,
   getRegulatoryActionStatus,
   liquidateCompany,
+  payCompanyDebt,
   processCompanyDebts,
 } from "../../src/world/companies";
 import { loadConfig } from "../../src/utils/configUtils";
@@ -89,6 +90,15 @@ describe("getRegulatoryActionStatus unit tests", () => {
     const data = setupBaseWorld();
     world = data.world;
     company = data.creditorCompany;
+    // .. the threshold logic below is only reachable once a company actually
+    // has outstanding debts - give it one by default so these tests exercise
+    // the threshold math rather than the new debts.length === 0 guard
+    company.debts.push({
+      creditorCompanyId: "some-other-company",
+      amount: 10,
+      reason: "Test Debt",
+      createdAtTick: world.getCurrentTick(),
+    });
   });
 
   it("should receive an inactive regulatory action status", () => {
@@ -136,6 +146,28 @@ describe("getRegulatoryActionStatus unit tests", () => {
   });
   it("should receive a ceased operations status if the company is liquidated already", () => {
     company.isLiquidated = true;
+    const companyRegulatoryAction = getRegulatoryActionStatus(company);
+    expect(companyRegulatoryAction).equals(
+      RegulatoryActionStatus.CeasedOperations,
+    );
+  });
+  it("should receive an inactive regulatory action status when there are no debts, even with a stale high insolvency counter", () => {
+    company.debts = [];
+    company.insolvencyCounter = defaultCompanyConfig.suspensionNoticeThreshold;
+    const companyRegulatoryAction = getRegulatoryActionStatus(company);
+    expect(companyRegulatoryAction).equals(RegulatoryActionStatus.None);
+  });
+  it("should receive a ceased operations status if the company is liquidated, even with no debts left", () => {
+    company.isLiquidated = true;
+    company.debts = [];
+    const companyRegulatoryAction = getRegulatoryActionStatus(company);
+    expect(companyRegulatoryAction).equals(
+      RegulatoryActionStatus.CeasedOperations,
+    );
+  });
+  it("should receive a ceased operations status if the company is liquidated, regardless of the insolvency counter", () => {
+    company.isLiquidated = true;
+    company.insolvencyCounter = 0;
     const companyRegulatoryAction = getRegulatoryActionStatus(company);
     expect(companyRegulatoryAction).equals(
       RegulatoryActionStatus.CeasedOperations,
@@ -326,6 +358,172 @@ describe("processCompanyDebt unit tests", () => {
     processCompanyDebts(debtorCompany, [creditorCompany], []);
 
     expect(debtorCompany.insolvencyCounter).toEqual(0);
+  });
+});
+
+describe("payCompanyDebt unit tests", () => {
+  let world: ReturnType<typeof createWorld>;
+  let creditorCompany: ICompany, debtorCompany: ICompany;
+  let creditorContract: IContract, supplier: ILocation, destination: ILocation;
+
+  beforeEach(() => {
+    const data = setupBaseWorld();
+    world = data.world;
+    creditorCompany = data.creditorCompany;
+    creditorContract = data.creditorContract;
+    supplier = data.supplier;
+    destination = data.destination;
+    debtorCompany = world.createCompany("Debtor Inc", 0, Color.Blue, {
+      isAiEnabled: true,
+    });
+  });
+
+  it("should clear the debt entry when paid in full", () => {
+    debtorCompany.money = 100;
+    const startingCreditorMoney = creditorCompany.money;
+    const debtEntry = {
+      creditorCompanyId: creditorCompany.id,
+      amount: 100,
+      reason: "Test Debt",
+      createdAtTick: world.getCurrentTick(),
+    };
+    debtorCompany.debts.push(debtEntry);
+
+    payCompanyDebt(debtorCompany, creditorCompany, 100);
+
+    expect(
+      debtorCompany.debts.find(
+        (d) => d.creditorCompanyId === creditorCompany.id,
+      ),
+    ).toBeUndefined();
+    expect(creditorCompany.money).toEqual(startingCreditorMoney + 100);
+    expect(debtorCompany.money).toEqual(0);
+  });
+
+  it("should reduce the debt amount without clearing it on a partial payment", () => {
+    debtorCompany.money = 100;
+    const startingCreditorMoney = creditorCompany.money;
+    const debtEntry = {
+      creditorCompanyId: creditorCompany.id,
+      amount: 100,
+      reason: "Test Debt",
+      createdAtTick: world.getCurrentTick(),
+    };
+    debtorCompany.debts.push(debtEntry);
+
+    payCompanyDebt(debtorCompany, creditorCompany, 40);
+
+    const finalDebtEntry = debtorCompany.debts.find(
+      (d) => d.creditorCompanyId === creditorCompany.id,
+    );
+    expect(finalDebtEntry).toBeDefined();
+    expect(finalDebtEntry?.amount).toEqual(60);
+    expect(creditorCompany.money).toEqual(startingCreditorMoney + 40);
+    expect(debtorCompany.money).toEqual(60);
+  });
+
+  it("should reject an overpayment and leave the debt and funds unchanged", () => {
+    debtorCompany.money = 200;
+    const startingCreditorMoney = creditorCompany.money;
+    const debtEntry = {
+      creditorCompanyId: creditorCompany.id,
+      amount: 100,
+      reason: "Test Debt",
+      createdAtTick: world.getCurrentTick(),
+    };
+    debtorCompany.debts.push(debtEntry);
+    const logCountBefore = logEntries.length;
+
+    payCompanyDebt(debtorCompany, creditorCompany, 150);
+
+    expect(debtEntry.amount).toEqual(100);
+    expect(debtorCompany.money).toEqual(200);
+    expect(creditorCompany.money).toEqual(startingCreditorMoney);
+    expect(logEntries.length).toBeGreaterThan(logCountBefore);
+  });
+
+  it("should reject a negative payment amount and leave the debt and funds unchanged", () => {
+    debtorCompany.money = 200;
+    const startingCreditorMoney = creditorCompany.money;
+    const debtEntry = {
+      creditorCompanyId: creditorCompany.id,
+      amount: 100,
+      reason: "Test Debt",
+      createdAtTick: world.getCurrentTick(),
+    };
+    debtorCompany.debts.push(debtEntry);
+    const logCountBefore = logEntries.length;
+
+    payCompanyDebt(debtorCompany, creditorCompany, -10);
+
+    expect(debtEntry.amount).toEqual(100);
+    expect(debtorCompany.money).toEqual(200);
+    expect(creditorCompany.money).toEqual(startingCreditorMoney);
+    expect(logEntries.length).toBeGreaterThan(logCountBefore);
+  });
+
+  it("should handle insufficient cash on hand gracefully without a partial transfer", () => {
+    debtorCompany.money = 20;
+    const startingCreditorMoney = creditorCompany.money;
+    const debtEntry = {
+      creditorCompanyId: creditorCompany.id,
+      amount: 100,
+      reason: "Test Debt",
+      createdAtTick: world.getCurrentTick(),
+    };
+    debtorCompany.debts.push(debtEntry);
+    const logCountBefore = logEntries.length;
+
+    payCompanyDebt(debtorCompany, creditorCompany, 100);
+
+    expect(debtEntry.amount).toEqual(100);
+    expect(debtorCompany.money).toEqual(20);
+    expect(creditorCompany.money).toEqual(startingCreditorMoney);
+    expect(logEntries.length).toBeGreaterThan(logCountBefore);
+  });
+
+  it("should make the regulatory action status reset immediately after paying off the last debt", () => {
+    debtorCompany.money = 100;
+    debtorCompany.isInsolvent = true;
+    debtorCompany.insolvencyCounter = 6; // mid Suspension Notice range
+    const debtEntry = {
+      creditorCompanyId: creditorCompany.id,
+      amount: 100,
+      reason: "Test Debt",
+      createdAtTick: world.getCurrentTick(),
+    };
+    debtorCompany.debts.push(debtEntry);
+
+    payCompanyDebt(debtorCompany, creditorCompany, 100);
+
+    expect(debtorCompany.debts.length).toEqual(0);
+    expect(getRegulatoryActionStatus(debtorCompany)).toEqual(
+      RegulatoryActionStatus.None,
+    );
+  });
+
+  it("should let processCompanyDebts correctly clear a small remainder left by a manual partial payment", () => {
+    debtorCompany.money = 1500;
+    const debtEntry = {
+      creditorCompanyId: creditorCompany.id,
+      amount: 1000,
+      paymentPerTick: 1000,
+      reason: "Test Debt",
+      createdAtTick: world.getCurrentTick(),
+    };
+    debtorCompany.debts.push(debtEntry);
+
+    payCompanyDebt(debtorCompany, creditorCompany, 500);
+    expect(debtEntry.amount).toEqual(500);
+
+    processCompanyDebts(debtorCompany, [creditorCompany], []);
+
+    expect(debtEntry.amount).toEqual(0);
+    expect(
+      debtorCompany.debts.find(
+        (d) => d.creditorCompanyId === creditorCompany.id,
+      ),
+    ).toBeUndefined();
   });
 });
 
