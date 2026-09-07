@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System;
 using TMPro;
 using UnityEngine;
 
@@ -7,13 +8,22 @@ using UnityEngine;
 public class PopupView : BaseWindow<PopupView>
 {
     private UIActionController actionController;
+    
+    private GameObject closeButton;
 
-    protected override void Start()
+    void Awake()
     {
-        base.Start();
+       var windowBase = transform.Find("WindowBase");
+       var windowTop = windowBase?.Find("WindowTop");
+       closeButton = windowTop?.Find("btnClose")?.gameObject;
+
+       if(closeButton == null)
+       {
+           Debug.LogError("PopupView: Close button not found in children. Make sure there is a GameObject named 'btnClose' under 'WindowBase/WindowTop'");
+       }
     }
 
-    public void Setup(string title, string message, List<UIItemAction> actions)
+    public void Setup(string title, string message, List<UIItemAction> actions, bool hideCloseButton = false)
     {
         var texts = GetComponentsInChildren<TextMeshProUGUI>();
         var txTitle = texts.FirstOrDefault(t => t.name == "txWindowTitle");
@@ -50,6 +60,11 @@ public class PopupView : BaseWindow<PopupView>
             };
             return action;
         }));
+
+        if(closeButton != null)
+        {
+            Destroy(closeButton.gameObject);
+        }
 
         txTitle.text = title;
         messageText.text = message;

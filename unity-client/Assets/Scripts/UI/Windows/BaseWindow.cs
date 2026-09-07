@@ -1,21 +1,20 @@
 using UnityEngine;
+using System;
 
 [RequireComponent(typeof(CanvasGroupToggle))]
 public class BaseWindow<T> : MonoBehaviour
 {
+    public Action OnClose { get; set; }
     protected CanvasGroupToggle canvasGroupToggle {get; private set;}
 
     [SerializeField] private bool startOpen = false;
 
     protected virtual void Start()
     {
-        canvasGroupToggle = GetComponent<CanvasGroupToggle>();
-
         if(!startOpen)
         {
             Close();
         }
-        
     }
 
     void Awake()
@@ -25,12 +24,22 @@ public class BaseWindow<T> : MonoBehaviour
 
     public void Open()
     {
+        if (canvasGroupToggle == null)
+        {
+            Debug.LogWarning($"CanvasGroupToggle not yet initialised on {gameObject.name}. Open() called before Start().");
+            return;
+        }
         canvasGroupToggle.Show();
     }
 
     public virtual void Close()
     {
-        Debug.Log("closing window: " + gameObject.name);
-       canvasGroupToggle.Hide();
+        if (canvasGroupToggle == null)
+        {
+            Debug.LogWarning($"CanvasGroupToggle not yet initialised on {gameObject.name}. Open() called before Start().");
+            return;
+        }
+        canvasGroupToggle.Hide();
+        OnClose?.Invoke();
     }
 }

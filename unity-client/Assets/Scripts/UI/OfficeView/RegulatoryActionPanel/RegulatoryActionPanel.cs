@@ -59,10 +59,10 @@ public class RegulatoryActionPanel : BaseWindow<RegulatoryActionPanel>
         switch (status)
         {
             case RegulatoryActionStatus.Probation:
-                PromptController.ShowPrompt("Probation", probationText);
+                PopupController.ShowPrompt("Probation", probationText);
                 break;
             case RegulatoryActionStatus.SuspensionNotice:
-                PromptController.ShowPrompt("Suspension Notice", suspensionNoticeText,new List<UIItemAction>() { 
+                PopupController.ShowPrompt("Suspension Notice", suspensionNoticeText,new List<UIItemAction>() { 
                     new UIItemAction{ Name = "Enter Voluntary Liquidation", Callback = (itemId) => {
                         Client.CallAPI($"/company/liquidate/{Client.ActiveCompanyId}",APICallType.Post);
                     } },
@@ -70,7 +70,7 @@ public class RegulatoryActionPanel : BaseWindow<RegulatoryActionPanel>
                 });
                 break;
             case RegulatoryActionStatus.CeasedOperations:
-                PromptController.ShowPrompt("Ceased Operations", ceasedOperationsText);
+                PopupController.ShowPrompt("Ceased Operations", ceasedOperationsText);
                 break;
         }
     }
