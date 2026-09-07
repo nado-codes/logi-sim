@@ -34,6 +34,7 @@ import {
 } from "./trucks";
 import {
   COMPANY_TRANSFER_RESULT,
+  PAY_DEBT_RESULT,
   createCompany,
   getCompanyById,
   getCompanyByIdOrNull,
@@ -232,7 +233,7 @@ export interface IWorld {
     debtorCompany: ICompany,
     creditorCompany: ICompany,
     amount: number,
-  ) => void;
+  ) => PAY_DEBT_RESULT;
 
   // MARKETPLACE - UPDATE
   purchaseItem: (

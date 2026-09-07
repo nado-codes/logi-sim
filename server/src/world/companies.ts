@@ -45,6 +45,14 @@ export enum COMPANY_TRANSFER_RESULT {
   INSUFFICIENT_FUNDS,
 }
 
+export enum PAY_DEBT_RESULT {
+  SUCCESS,
+  DEBT_NOT_FOUND,
+  INVALID_AMOUNT,
+  AMOUNT_EXCEEDS_DEBT,
+  INSUFFICIENT_FUNDS,
+}
+
 interface ICompanyConfig {
   aiConfig: {
     dispatchChance: number;
@@ -429,7 +437,7 @@ export const payCompanyDebt = (
   debtorCompany: ICompany,
   creditorCompany: ICompany,
   amount: number,
-) => {
+): PAY_DEBT_RESULT => {
   const debt = debtorCompany.debts.find(
     (d) => d.creditorCompanyId === creditorCompany.id,
   );
@@ -438,15 +446,15 @@ export const payCompanyDebt = (
     logError(
       `Debtor company ${debtorCompany.name} does not have a debt with creditor company ${creditorCompany.name}`,
     );
-    return;
+    return PAY_DEBT_RESULT.DEBT_NOT_FOUND;
   }
   if (amount < 0) {
     logError(`Invalid payment amount: ${amount}`);
-    return;
+    return PAY_DEBT_RESULT.INVALID_AMOUNT;
   }
   if (amount > debt.amount) {
     logError(`Payment amount exceeds debt amount: ${amount} > ${debt.amount}`);
-    return;
+    return PAY_DEBT_RESULT.AMOUNT_EXCEEDS_DEBT;
   }
   const result = transferCompanyFunds(debtorCompany, creditorCompany, amount);
 
@@ -454,16 +462,18 @@ export const payCompanyDebt = (
     logError(
       `Debtor company ${debtorCompany.name} has insufficient funds to pay ${amount} to creditor company ${creditorCompany.name}`,
     );
-    return;
-  } else if (result === COMPANY_TRANSFER_RESULT.SUCCESS) {
-    debt.amount -= Math.min(debt.amount, amount);
-
-    if (debt.amount <= 0) {
-      debtorCompany.debts = debtorCompany.debts.filter(
-        (d) => d.creditorCompanyId !== creditorCompany.id,
-      );
-    }
+    return PAY_DEBT_RESULT.INSUFFICIENT_FUNDS;
   }
+
+  debt.amount -= Math.min(debt.amount, amount);
+
+  if (debt.amount <= 0) {
+    debtorCompany.debts = debtorCompany.debts.filter(
+      (d) => d.creditorCompanyId !== creditorCompany.id,
+    );
+  }
+
+  return PAY_DEBT_RESULT.SUCCESS;
 };
 
 export const transferCompanyFundsFromState = (

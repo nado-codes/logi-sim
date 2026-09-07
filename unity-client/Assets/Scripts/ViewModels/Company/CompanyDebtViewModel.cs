@@ -2,7 +2,9 @@ using System;
 
 public class CompanyDebtViewModel : BaseViewModel
 {
+    public string CreditorCompanyId { get; set; }
     public string CreditorCompanyName { get; set; }
+    public float RawAmount { get; set; }
     public string Amount { get; set; }
     public string Description { get; set; }
 
@@ -21,7 +23,9 @@ public class CompanyDebtViewModel : BaseViewModel
             return new CompanyDebtViewModel()
             {
                 Id = dto.Id,
+                CreditorCompanyId = dto.CreditorCompanyId,
                 CreditorCompanyName = creditorCompany.Name,
+                RawAmount = dto.Amount,
                 Amount = dto.Amount.ToString("C"),
                 Description = description
             };

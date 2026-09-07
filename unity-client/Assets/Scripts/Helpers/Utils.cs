@@ -24,4 +24,17 @@ public static class Utils
         var configText = System.IO.File.ReadAllText("Assets/Scripts/Config/notification-config.json");
         return JsonConvert.DeserializeObject<NotificationConfig>(configText);
     }
+
+    public static string ExtractErrorMessage(string response)
+    {
+        try
+        {
+            var parsed = JsonConvert.DeserializeAnonymousType(response, new { error = "" });
+            return parsed?.error ?? "The payment could not be processed.";
+        }
+        catch
+        {
+            return "The payment could not be processed.";
+        }
+    }
 }

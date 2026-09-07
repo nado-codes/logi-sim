@@ -5,7 +5,7 @@ import { logEntries } from "@logisim/lib/utils";
 import Anthropic from "@anthropic-ai/sdk";
 import path from "path";
 import * as fs from "fs";
-import { getRegulatoryActionStatus } from "./world/companies";
+import { getRegulatoryActionStatus, PAY_DEBT_RESULT } from "./world/companies";
 
 export const logisimApi = (world: IWorld) => {
   const _path = path.resolve(`logisim.apik`);
@@ -233,7 +233,26 @@ Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, 
           return;
         }
 
-        world.payCompanyDebt(company, creditor, amount);
+        const result = world.payCompanyDebt(company, creditor, amount);
+
+        switch (result) {
+          case PAY_DEBT_RESULT.SUCCESS:
+            res.send({ success: true });
+            break;
+          case PAY_DEBT_RESULT.DEBT_NOT_FOUND:
+            res.status(404).send({ error: "No debt found with this creditor" });
+            break;
+          case PAY_DEBT_RESULT.AMOUNT_EXCEEDS_DEBT:
+            res.status(400).send({ error: "Payment amount exceeds debt amount" });
+            break;
+          case PAY_DEBT_RESULT.INSUFFICIENT_FUNDS:
+            res
+              .status(400)
+              .send({ error: "Insufficient funds to make this payment" });
+            break;
+          default:
+            res.status(400).send({ error: "Payment could not be processed" });
+        }
       } catch (error) {
         res.status(500).send({
           error: `Failed to pay company debt`,

@@ -19,6 +19,8 @@ public class DebtServicingWindow : BaseWindow<DebtServicingWindow>
             throw new NullReferenceException("DebtServicingWindow: No PartialPaymentPopup found in children");
         }
 
+        partialPaymentPopup.OnPaymentSucceeded += (debtId, amount) => RefreshDebtList();
+
         base.Awake();
     }
 
@@ -36,36 +38,49 @@ public class DebtServicingWindow : BaseWindow<DebtServicingWindow>
 
     private void PayDebtInFull(string debtId)
     {
-        Debug.Log("paying debt in full: " + debtId);
-        companyDebtVMs.RemoveAll(t => t.Id == debtId);
-        list.Refresh(companyDebtVMs);
-        /*Client.CallAPI("/company/pay-debt-in-full",APICallType.Post,(success,response) =>
-        {
-            if (!success) {
-                Debug.LogError(response);
-                Debug.LogError($"Failed to pay debt {debtId} in full: {response}");
-            }   
-        },JsonConvert.SerializeObject(new 
-        { 
-            debtId
-        }));*/
+        var debtVM = companyDebtVMs.FirstOrDefault(t => t.Id == debtId);
+        if (debtVM == null) return;
+
+        Client.CallAPI(
+            $"/company/{Client.ActiveCompanyId}/debts/{debtVM.CreditorCompanyId}/pay",
+            APICallType.Post,
+            (success, response) =>
+            {
+                if (success)
+                {
+                    companyDebtVMs.RemoveAll(t => t.Id == debtId);
+                    list.Refresh(companyDebtVMs);
+                    PopupController.ShowPopup("Payment Successful", $"Paid {debtVM.CreditorCompanyName} in full.");
+
+                    if (companyDebtVMs.Count == 0)
+                    {
+                        Close();
+                    }
+                }
+                else
+                {
+                    Debug.LogError($"Failed to pay debt {debtId} in full: {response}");
+                    PopupController.ShowPopup("Payment Failed", Utils.ExtractErrorMessage(response));
+                }
+            },
+            JsonConvert.SerializeObject(new { amount = debtVM.RawAmount })
+        );
     }
 
-    public new void Open()
+    private void RefreshDebtList()
     {
-        if(canvasGroupToggle.IsVisible)
-            return;
-
-        base.Open();
-
         var activeCompanyDTO = Client.CompanyDTOs.FirstOrDefault(c => c.Id == Client.ActiveCompanyId);
 
         companyDebtVMs = new List<CompanyDebtViewModel>();
-        foreach(CompanyDebtDTO debt in activeCompanyDTO.Debts)
+
+        if (activeCompanyDTO != null)
         {
-            debt.Id = Guid.NewGuid().ToString();
-            var companyDebtVM = CompanyDebtViewModel.FromDTO(debt);
-            companyDebtVMs.Add(companyDebtVM);
+            foreach(CompanyDebtDTO debt in activeCompanyDTO.Debts)
+            {
+                debt.Id = Guid.NewGuid().ToString();
+                var companyDebtVM = CompanyDebtViewModel.FromDTO(debt);
+                companyDebtVMs.Add(companyDebtVM);
+            }
         }
 
         list.Populate(companyDebtVMs,(debtId) => new List<UIItemAction>(){
@@ -76,11 +91,28 @@ public class DebtServicingWindow : BaseWindow<DebtServicingWindow>
                 Name = "Partial Payment",
                 Callback = (debtId) =>
                 {
+                    var debtVM = companyDebtVMs.FirstOrDefault(d => d.Id == debtId);
+                    if (debtVM == null) return;
+
                     partialPaymentPopup.Open();
-                    var companyName = companyDebtVMs.FirstOrDefault(d => d.Id == debtId)?.CreditorCompanyName ?? "Unknown Creditor";
-                    partialPaymentPopup.Setup(companyName, debtId);
+                    partialPaymentPopup.Setup(debtVM.CreditorCompanyName, debtVM.CreditorCompanyId, debtId, debtVM.RawAmount);
                 }
             } });
+
+        if (companyDebtVMs.Count == 0)
+        {
+            Close();
+        }
+    }
+
+    public new void Open()
+    {
+        if(canvasGroupToggle.IsVisible)
+            return;
+
+        base.Open();
+
+        RefreshDebtList();
     }
 
     public new void Close()

@@ -27,6 +27,7 @@ import {
   liquidateCompany,
   payCompanyDebt,
   processCompanyDebts,
+  PAY_DEBT_RESULT,
 } from "../../src/world/companies";
 import { loadConfig } from "../../src/utils/configUtils";
 
@@ -389,8 +390,9 @@ describe("payCompanyDebt unit tests", () => {
     };
     debtorCompany.debts.push(debtEntry);
 
-    payCompanyDebt(debtorCompany, creditorCompany, 100);
+    const result = payCompanyDebt(debtorCompany, creditorCompany, 100);
 
+    expect(result).toEqual(PAY_DEBT_RESULT.SUCCESS);
     expect(
       debtorCompany.debts.find(
         (d) => d.creditorCompanyId === creditorCompany.id,
@@ -411,8 +413,9 @@ describe("payCompanyDebt unit tests", () => {
     };
     debtorCompany.debts.push(debtEntry);
 
-    payCompanyDebt(debtorCompany, creditorCompany, 40);
+    const result = payCompanyDebt(debtorCompany, creditorCompany, 40);
 
+    expect(result).toEqual(PAY_DEBT_RESULT.SUCCESS);
     const finalDebtEntry = debtorCompany.debts.find(
       (d) => d.creditorCompanyId === creditorCompany.id,
     );
@@ -434,8 +437,9 @@ describe("payCompanyDebt unit tests", () => {
     debtorCompany.debts.push(debtEntry);
     const logCountBefore = logEntries.length;
 
-    payCompanyDebt(debtorCompany, creditorCompany, 150);
+    const result = payCompanyDebt(debtorCompany, creditorCompany, 150);
 
+    expect(result).toEqual(PAY_DEBT_RESULT.AMOUNT_EXCEEDS_DEBT);
     expect(debtEntry.amount).toEqual(100);
     expect(debtorCompany.money).toEqual(200);
     expect(creditorCompany.money).toEqual(startingCreditorMoney);
@@ -454,8 +458,9 @@ describe("payCompanyDebt unit tests", () => {
     debtorCompany.debts.push(debtEntry);
     const logCountBefore = logEntries.length;
 
-    payCompanyDebt(debtorCompany, creditorCompany, -10);
+    const result = payCompanyDebt(debtorCompany, creditorCompany, -10);
 
+    expect(result).toEqual(PAY_DEBT_RESULT.INVALID_AMOUNT);
     expect(debtEntry.amount).toEqual(100);
     expect(debtorCompany.money).toEqual(200);
     expect(creditorCompany.money).toEqual(startingCreditorMoney);
@@ -474,11 +479,21 @@ describe("payCompanyDebt unit tests", () => {
     debtorCompany.debts.push(debtEntry);
     const logCountBefore = logEntries.length;
 
-    payCompanyDebt(debtorCompany, creditorCompany, 100);
+    const result = payCompanyDebt(debtorCompany, creditorCompany, 100);
 
+    expect(result).toEqual(PAY_DEBT_RESULT.INSUFFICIENT_FUNDS);
     expect(debtEntry.amount).toEqual(100);
     expect(debtorCompany.money).toEqual(20);
     expect(creditorCompany.money).toEqual(startingCreditorMoney);
+    expect(logEntries.length).toBeGreaterThan(logCountBefore);
+  });
+
+  it("should reject a payment when there is no debt with the given creditor", () => {
+    const logCountBefore = logEntries.length;
+
+    const result = payCompanyDebt(debtorCompany, creditorCompany, 100);
+
+    expect(result).toEqual(PAY_DEBT_RESULT.DEBT_NOT_FOUND);
     expect(logEntries.length).toBeGreaterThan(logCountBefore);
   });
 
@@ -494,8 +509,9 @@ describe("payCompanyDebt unit tests", () => {
     };
     debtorCompany.debts.push(debtEntry);
 
-    payCompanyDebt(debtorCompany, creditorCompany, 100);
+    const result = payCompanyDebt(debtorCompany, creditorCompany, 100);
 
+    expect(result).toEqual(PAY_DEBT_RESULT.SUCCESS);
     expect(debtorCompany.debts.length).toEqual(0);
     expect(getRegulatoryActionStatus(debtorCompany)).toEqual(
       RegulatoryActionStatus.None,
@@ -513,7 +529,8 @@ describe("payCompanyDebt unit tests", () => {
     };
     debtorCompany.debts.push(debtEntry);
 
-    payCompanyDebt(debtorCompany, creditorCompany, 500);
+    const result = payCompanyDebt(debtorCompany, creditorCompany, 500);
+    expect(result).toEqual(PAY_DEBT_RESULT.SUCCESS);
     expect(debtEntry.amount).toEqual(500);
 
     processCompanyDebts(debtorCompany, [creditorCompany], []);

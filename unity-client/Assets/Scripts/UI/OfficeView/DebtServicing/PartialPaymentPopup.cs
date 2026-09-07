@@ -3,11 +3,16 @@ using UnityEngine;
 using System.Linq;
 using System.Collections.Generic;
 using System;
+using Newtonsoft.Json;
 
 public class PartialPaymentPopup : BaseWindow<PartialPaymentPopup>
 {
     private TMP_InputField inputField;
     private UIActionController actionController;
+    private string creditorCompanyId;
+    private float maxAmount;
+
+    public System.Action<string, decimal> OnPaymentSucceeded;
 
     protected override void Awake()
     {
@@ -23,22 +28,32 @@ public class PartialPaymentPopup : BaseWindow<PartialPaymentPopup>
 
     private void PayDebtPartially(string debtId, decimal amount)
     {
-        Debug.Log($"paying debt {debtId} partially: {amount}");
-        /*Client.CallAPI("/company/pay-debt-partially",APICallType.Post,(success,response) =>
-        {
-            if (!success) {
-                Debug.LogError(response);
-                Debug.LogError($"Failed to pay debt {debtId} partially: {response}");
-            }   
-        },JsonConvert.SerializeObject(new 
-        { 
-            debtId,
-            amount
-        }));*/
+        Client.CallAPI(
+            $"/company/{Client.ActiveCompanyId}/debts/{creditorCompanyId}/pay",
+            APICallType.Post,
+            (success, response) =>
+            {
+                if (success)
+                {
+                    Close();
+                    OnPaymentSucceeded?.Invoke(debtId, amount);
+                    PopupController.ShowPopup("Payment Successful", $"Payment of {amount:C} sent.");
+                }
+                else
+                {
+                    Debug.LogError($"Failed to pay debt {debtId} partially: {response}");
+                    PopupController.ShowPopup("Payment Failed", Utils.ExtractErrorMessage(response));
+                }
+            },
+            JsonConvert.SerializeObject(new { amount })
+        );
     }
 
-    public bool Setup(string companyName, string debtId)
+    public bool Setup(string companyName, string creditorCompanyId, string debtId, float maxAmount)
     {
+        this.creditorCompanyId = creditorCompanyId;
+        this.maxAmount = maxAmount;
+
         var texts = GetComponentsInChildren<TextMeshProUGUI>();
         var titleText = texts.FirstOrDefault(t => t.name == "txWindowTitle");
         var messageText = texts.FirstOrDefault(t => t.name == "txPromptBody");
@@ -72,19 +87,24 @@ public class PartialPaymentPopup : BaseWindow<PartialPaymentPopup>
         actionController.LoadActions(new List<UIItemAction>(){
             new UIItemAction(){
                 Name = "Pay",
-                Callback = (debtId) => {
-                    if (decimal.TryParse(inputField.text, out decimal amount))
+                Callback = (id) => {
+                    if (decimal.TryParse(inputField.text, out decimal amount) && amount > 0)
                     {
+                        if ((float)amount > this.maxAmount)
+                        {
+                            PopupController.ShowPopup("Invalid Amount", $"Amount cannot exceed the outstanding debt of {this.maxAmount:C}.");
+                            return;
+                        }
                         PayDebtPartially(debtId, amount);
                     }
                     else
                     {
-                        Debug.LogError("Invalid amount entered.");
+                        PopupController.ShowPopup("Invalid Amount", "Please enter a valid payment amount.");
                     }
                 }
             } ,new UIItemAction(){
                 Name = "Cancel",
-                Callback = (debtId) => Close()
+                Callback = (id) => Close()
             } });
 
         return true;
