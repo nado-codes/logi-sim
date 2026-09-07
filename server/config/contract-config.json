@@ -1,7 +1,7 @@
 {
   "perUnitRate": 10,
   "distanceRate": 2,
-  "bufferMultiplier": 10,
+  "bufferMultiplier": 1,
   "urgencyMultipliers": {
     "critical": {
       "threshold": 3,
@@ -17,5 +17,5 @@
     }
   },
   "debtCollectionEnabled": true,
-  "breachPenaltyMultiplier": 0.0001
+  "breachPenaltyMultiplier": 1
 }

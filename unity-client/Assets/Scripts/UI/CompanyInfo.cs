@@ -2,6 +2,7 @@ using UnityEngine;
 using TMPro;
 using System.Linq;
 using System;
+using Newtonsoft.Json;
 
 public class CompanyInfo : MonoBehaviour
 {
@@ -103,6 +104,28 @@ public class CompanyInfo : MonoBehaviour
         if(Input.GetKeyDown(KeyCode.Alpha7))
         {
             statusTarget = RegulatoryActionStatus.CeasedOperations;
+        }
+        if(Input.GetKeyDown(KeyCode.Alpha0))
+        {
+            var creditorCompanyId = Client.CompanyDTOs.FirstOrDefault(c => c.Id != Client.ActiveCompanyId).Id;
+            var amount = 1000;
+
+            Client.CallAPI(
+            $"/company/{Client.ActiveCompanyId}/debts/{creditorCompanyId}/create",
+            APICallType.Post,
+            (success, response) =>
+            {
+                if (success)
+                {
+                    PopupController.ShowPopup("Payment Successful", $"Payment of {amount:C} sent.");
+                }
+                else
+                {
+                    PopupController.ShowPopup("Payment Failed", Utils.ExtractErrorMessage(response));
+                }
+            },
+            JsonConvert.SerializeObject(new { amount })
+        );
         }
     }
 

@@ -269,17 +269,7 @@ public class Client : MonoBehaviour
             var companyContacts = expiredContracts.Where(c => c.ShipperId == ActiveCompanyId).ToList();
             var company = CompanyDTOs.FirstOrDefault(c => c.Id == ActiveCompanyId);
 
-            if(company != null) {
-                company.Debts = CompanyDTOs.Where(c => c.Id != ActiveCompanyId).Select(c => new CompanyDebtDTO
-                {
-                    CreditorCompanyId = c.Id,
-                    Amount = 1000
-                }).ToArray();
-            }
-
             var companyDebts = company?.Debts ?? new CompanyDebtDTO[0];
-
-            
 
             if(expiredContracts.Count > 0)
             {
