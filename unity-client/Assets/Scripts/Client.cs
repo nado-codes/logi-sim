@@ -23,7 +23,9 @@ public class Client : MonoBehaviour
     public static readonly string BaseUrl = "http://localhost:3001/api";
 
     public static string? ActiveCompanyId = null;
-    
+
+    private static readonly HashSet<string> liquidationPromptShownCompanyIds = new HashSet<string>();
+
     // Entity DTOS
     public static List<TruckDTO> TruckDTOs = new List<TruckDTO>();
     private static List<GameObject> trucks = new List<GameObject>();
@@ -87,6 +89,7 @@ public class Client : MonoBehaviour
 
             if(activeCompany != null && activeCompany.IsLiquidated)
             {
+                liquidationPromptShownCompanyIds.Add(activeCompany.Id);
                 PopupController.ShowPrompt("Liquidation", $"While you were offline, {activeCompany.Name} was liquidated, so you can no longer play as this company. You may select another company to continue playing.");
             }
         });
@@ -257,8 +260,9 @@ public class Client : MonoBehaviour
     {
         var activeCompany = CompanyDTOs.FirstOrDefault(c => c.Id == ActiveCompanyId);
 
-        if(activeCompany != null && activeCompany.IsLiquidated)
+        if(activeCompany != null && activeCompany.IsLiquidated && !liquidationPromptShownCompanyIds.Contains(activeCompany.Id))
         {
+            liquidationPromptShownCompanyIds.Add(activeCompany.Id);
             PopupController.ShowPrompt("Liquidation Event", "Due to your company's worsening financial situation and inability to resolve debts, it has been liquidated. You may restart the game if you wish to play again.");
         }
     }
