@@ -8,7 +8,6 @@ public class CompanyInfo : MonoBehaviour
 {
     private TextMeshProUGUI companyNameText, companyMoneyText;
     private RegulatoryActionPanel regulatoryActionPanel;
-    private RegulatoryActionStatus statusTarget = RegulatoryActionStatus.None;
 
     private Color moneyGreen = new Color(0,1,0.1264467f,1);
     private Color moneyRed = new Color(1,0,0.0611949f,1);
@@ -56,8 +55,6 @@ public class CompanyInfo : MonoBehaviour
  
         companyMoneyTarget = company.Money;
 
-        company.RegulatoryActionStatus = statusTarget;
-
         if(regulatoryActionPanel.CurrentStatus != company.RegulatoryActionStatus)
         {
             regulatoryActionPanel.SetStatus(company.RegulatoryActionStatus);
@@ -76,35 +73,6 @@ public class CompanyInfo : MonoBehaviour
         companyMoneyText.text = companyMoneyCurrent.ToString("C");
         companyMoneyText.color = Color.Lerp(companyMoneyText.color, moneyGreen,Time.deltaTime);
 
-        // Debugging: Change regulatory action status with number keys
-        if(Input.GetKeyDown(KeyCode.Alpha1))
-        {
-            statusTarget = RegulatoryActionStatus.None;
-        }
-        if(Input.GetKeyDown(KeyCode.Alpha2))
-        {
-            statusTarget = RegulatoryActionStatus.PreProbation;
-        }
-        if(Input.GetKeyDown(KeyCode.Alpha3))
-        {
-            statusTarget = RegulatoryActionStatus.Probation;
-        }
-        if(Input.GetKeyDown(KeyCode.Alpha4))
-        {
-            statusTarget = RegulatoryActionStatus.PreSuspensionNotice;
-        }
-        if(Input.GetKeyDown(KeyCode.Alpha5))
-        {
-            statusTarget = RegulatoryActionStatus.SuspensionNotice;
-        }
-        if(Input.GetKeyDown(KeyCode.Alpha6))
-        {
-            statusTarget = RegulatoryActionStatus.PreCeasedOperations;
-        }
-        if(Input.GetKeyDown(KeyCode.Alpha7))
-        {
-            statusTarget = RegulatoryActionStatus.CeasedOperations;
-        }
         if(Input.GetKeyDown(KeyCode.Alpha0))
         {
             var creditorCompanyId = Client.CompanyDTOs.FirstOrDefault(c => c.Id != Client.ActiveCompanyId).Id;
