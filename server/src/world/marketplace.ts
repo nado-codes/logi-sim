@@ -13,6 +13,7 @@ import {
   COMPANY_TRANSFER_RESULT,
   getCompanyByName,
   getCompanyEntityByCompanyIdEntityId,
+  isPurchaseRestricted,
   transferCompanyFunds,
   transferCompanyFundsFromState,
   transferCompanyFundsToState,
@@ -43,6 +44,10 @@ export const purchaseItem = (
   // .. eventually, this will be overidden by the "sellItem" system where almost all items are traded between companies
   // .. and only certain items will be created by the state
   // .. the caller will then spawn it in exchange for cash
+  if (isPurchaseRestricted(buyerCompany)) {
+    return EMarketplaceTransactionResult.REGULATORY_RESTRICTED;
+  }
+
   const marketplaceItem = getMarketplaceItemById(itemId);
   const paymentResult = transferCompanyFundsToState(
     state,

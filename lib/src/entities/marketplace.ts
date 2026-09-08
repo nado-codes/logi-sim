@@ -4,6 +4,7 @@ export enum EMarketplaceTransactionResult {
   REPOSESS_ERROR,
   UNKNOWN_ERROR,
   NOT_SELLABLE,
+  REGULATORY_RESTRICTED,
 }
 
 export interface IMarketplaceEntity {

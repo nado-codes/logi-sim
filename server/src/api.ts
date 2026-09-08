@@ -1,11 +1,15 @@
 import express from "express";
 import { IWorld } from "./world/world";
-import { LOCATION_TYPE } from "@logisim/lib/entities";
+import { EMarketplaceTransactionResult, LOCATION_TYPE } from "@logisim/lib/entities";
 import { logEntries } from "@logisim/lib/utils";
 import Anthropic from "@anthropic-ai/sdk";
 import path from "path";
 import * as fs from "fs";
-import { getRegulatoryActionStatus, PAY_DEBT_RESULT } from "./world/companies";
+import {
+  getRegulatoryActionStatus,
+  isPurchaseRestricted,
+  PAY_DEBT_RESULT,
+} from "./world/companies";
 
 export const logisimApi = (world: IWorld) => {
   const _path = path.resolve(`logisim.apik`);
@@ -378,7 +382,24 @@ Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, 
 
         const company = world.getCompanyById(companyId);
 
-        world.purchaseItem(itemId, company);
+        const result = world.purchaseItem(itemId, company);
+
+        switch (result) {
+          case EMarketplaceTransactionResult.REGULATORY_RESTRICTED:
+            res.status(403).send({
+              error: "Company cannot purchase trucks while under Suspension Notice",
+            });
+            return;
+          case EMarketplaceTransactionResult.INSUFFICIENT_FUNDS:
+            res.status(400).send({ error: "Insufficient funds to purchase truck" });
+            return;
+          case EMarketplaceTransactionResult.SUCCESS:
+            break;
+          default:
+            res.status(400).send({ error: "Failed to purchase truck" });
+            return;
+        }
+
         const truck = world.createTruckFromItemId(itemId, companyId, position);
 
         res.send({ success: true, truck });
@@ -392,16 +413,22 @@ Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, 
         const { truckId } = req.body;
         const truck = world.getTruckById(truckId);
 
-        if (truck.itemId) {
-          const truckCompany = world.getCompanyById(truck.companyId);
-          world.sellItem(truck.itemId, truckCompany);
-        } else {
+        if (!truck.itemId) {
           res.status(400).send({
             error:
               "Truck cannot be sold because it doesn't have an associated item",
           });
           return;
         }
+
+        const truckCompany = world.getCompanyById(truck.companyId);
+        const result = world.sellItem(truck.id, truckCompany);
+
+        if (result !== EMarketplaceTransactionResult.SUCCESS) {
+          res.status(400).send({ error: "Failed to sell truck" });
+          return;
+        }
+
         res.send({ success: true });
       } catch (error) {
         res.status(400).send({ error: "Failed to sell truck" });
@@ -553,6 +580,13 @@ Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, 
         const company = world.getCompanyById(companyId);
         const locationItem = world.getLocationItemById(itemId);
 
+        if (isPurchaseRestricted(company)) {
+          res.status(403).send({
+            error: "Company cannot purchase locations while under Suspension Notice",
+          });
+          return;
+        }
+
         if (company.money < locationItem.price) {
           res
             .status(400)
@@ -581,6 +615,24 @@ Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, 
         res.send({ success: true });
       } catch (error) {
         res.status(400).send({ error: "Failed to delete location" });
+      }
+    });
+
+    app.post("/api/location/sell", (req, res) => {
+      try {
+        const { locationId } = req.body;
+        const location = world.getLocationById(locationId);
+        const locationCompany = world.getCompanyById(location.companyId);
+        const result = world.sellItem(location.id, locationCompany);
+
+        if (result !== EMarketplaceTransactionResult.SUCCESS) {
+          res.status(400).send({ error: "Failed to sell location" });
+          return;
+        }
+
+        res.send({ success: true });
+      } catch (error) {
+        res.status(400).send({ error: "Failed to sell location" });
       }
     });
 

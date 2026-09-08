@@ -176,6 +176,14 @@ export const getRegulatoryActionStatus = (
   }
 };
 
+// Purchases are blocked from Suspension Notice onward (and while ceased/liquidated);
+// Probation and below remain unrestricted per current design decision.
+export const isPurchaseRestricted = (company: ICompany): boolean => {
+  return (
+    getRegulatoryActionStatus(company) >= RegulatoryActionStatus.SuspensionNotice
+  );
+};
+
 export const getCompanies = (state: IWorldState) => {
   const companies = state.companies.map((c) => ({
     ...c,
