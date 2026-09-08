@@ -6,5 +6,7 @@
   "regulatoryWarningMultiplier": 0.5,
   "probationThreshold": 1,
   "suspensionNoticeThreshold": 5,
-  "ceasedOperationsThreshold": 10
+  "ceasedOperationsThreshold": 10,
+  "aiDebtTermTicks": 10,
+  "playerDebtTermTicks": 75
 }

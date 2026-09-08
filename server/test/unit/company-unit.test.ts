@@ -566,6 +566,46 @@ describe("processCompanyDebt unit tests", () => {
     expect(debtEntryA.amount).toEqual(1000 - 5);
     expect(debtEntryB.amount).toEqual(1000 - 5);
   });
+
+  // Regression check for "AI debt still auto-pays exactly as before" is already
+  // covered precisely by "should reduce the debt amount and transfer funds to
+  // the creditor" above (single AI debtor, isAiEnabled: true) - not duplicated
+  // here, since that test already asserts the debt reduces by paymentPerTick
+  // and the creditor receives it.
+
+  it("should count a player debt toward the insolvency counter without automatically paying it", () => {
+    const playerDebtorCompany = world.createCompany(
+      "Player Debtor Inc",
+      0,
+      Color.Green,
+      {},
+    );
+    const startingCreditorMoney = creditorCompany.money;
+
+    const debtEntry = {
+      creditorCompanyId: creditorCompany.id,
+      amount: 1000,
+      paymentPerTick: 20,
+      reason: "Test Debt",
+      createdAtTick: world.getCurrentTick(),
+    };
+    playerDebtorCompany.debts.push(debtEntry);
+
+    processCompanyDebts(playerDebtorCompany, [creditorCompany], []);
+
+    expect(playerDebtorCompany.insolvencyCounter).toEqual(1);
+    expect(debtEntry.amount).toEqual(1000);
+    expect(creditorCompany.money).toEqual(startingCreditorMoney);
+  });
+
+  // "Mixed debtor: one AI-style auto-paid debt and one player-style
+  // counter-only debt on the same company" (task 3.4) is skipped as an
+  // unrealistic scenario: the automatic-transfer gate in processCompanyDebts
+  // is keyed on debtorCompany.options.isAiEnabled, a company-level flag, not
+  // a per-debt one. Every debt on a given company is therefore either
+  // auto-paid (company is AI-enabled) or manual-only (company is not) - a
+  // single company can never have one of each, so constructing such a case
+  // would test a state that cannot occur in production.
 });
 
 describe("payCompanyDebt unit tests", () => {
@@ -724,6 +764,33 @@ describe("payCompanyDebt unit tests", () => {
     );
   });
 
+  it("should reset the regulatory action status after a player pays off a debt that carries a paymentPerTick", () => {
+    const playerDebtorCompany = world.createCompany(
+      "Player Debtor Inc",
+      100,
+      Color.Green,
+      {},
+    );
+    playerDebtorCompany.isInsolvent = true;
+    playerDebtorCompany.insolvencyCounter = 6; // mid Suspension Notice range
+    const debtEntry = {
+      creditorCompanyId: creditorCompany.id,
+      amount: 100,
+      paymentPerTick: 5, // player debts now always carry one (see collectFromCompany)
+      reason: "Test Debt",
+      createdAtTick: world.getCurrentTick(),
+    };
+    playerDebtorCompany.debts.push(debtEntry);
+
+    const result = payCompanyDebt(playerDebtorCompany, creditorCompany, 100);
+
+    expect(result).toEqual(PAY_DEBT_RESULT.SUCCESS);
+    expect(playerDebtorCompany.debts.length).toEqual(0);
+    expect(getRegulatoryActionStatus(playerDebtorCompany)).toEqual(
+      RegulatoryActionStatus.None,
+    );
+  });
+
   it("should let processCompanyDebts correctly clear a small remainder left by a manual partial payment", () => {
     debtorCompany.money = 1500;
     const debtEntry = {
@@ -845,5 +912,32 @@ describe("collectFromCompany unit tests", () => {
     );
     expect(debtEntry).toBeDefined();
     expect(debtEntry?.amount).equals(2);
+  });
+
+  it("should assign a player debt a paymentPerTick using playerDebtTermTicks, not aiDebtTermTicks", () => {
+    const playerDebtorCompany = world.createCompany(
+      "Player Debtor Inc",
+      0,
+      Color.Green,
+      {},
+    );
+    creditorContract.payment = 750;
+    world.assignContractToCompany(creditorContract, playerDebtorCompany);
+    world.breakContract(
+      creditorContract,
+      CONTRACT_BREAK_TYPE.Breach,
+      CONTRACT_BREAK_FAULT.Shipper,
+    );
+
+    const debtEntry = playerDebtorCompany.debts.find(
+      (d) => d.creditorCompanyId === creditorCompany.id,
+    );
+    expect(debtEntry).toBeDefined();
+    expect(debtEntry?.paymentPerTick).toEqual(
+      Math.max(1, Math.floor(750 / defaultCompanyConfig.playerDebtTermTicks)),
+    );
+    expect(debtEntry?.paymentPerTick).not.toEqual(
+      Math.max(1, Math.floor(750 / defaultCompanyConfig.aiDebtTermTicks)),
+    );
   });
 });
