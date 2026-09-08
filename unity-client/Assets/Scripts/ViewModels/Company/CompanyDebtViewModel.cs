@@ -1,4 +1,4 @@
-using System;
+using UnityEngine;
 
 public class CompanyDebtViewModel : BaseViewModel
 {
@@ -12,10 +12,17 @@ public class CompanyDebtViewModel : BaseViewModel
     {
         var creditorCompany = Client.CompanyDTOs.Find(c => c.Id == dto.CreditorCompanyId);
 
-        if(creditorCompany == null)
+        string creditorName;
+        if (creditorCompany == null)
         {
-            throw new Exception($"Creditor company with ID {dto.CreditorCompanyId} not found.");
+            Debug.LogWarning($"CompanyDebtViewModel: Creditor company with ID {dto.CreditorCompanyId} not found in cache. Falling back to placeholder name.");
+            creditorName = "Unknown Creditor";
         }
+        else
+        {
+            creditorName = creditorCompany.Name;
+        }
+
         var description = $"Reason: {dto.Reason}\nPer-Tick Payment: {dto.PaymentPerTick:C}";
 
         return FromDTO(dto,() => {
@@ -24,7 +31,7 @@ public class CompanyDebtViewModel : BaseViewModel
             {
                 Id = dto.Id,
                 CreditorCompanyId = dto.CreditorCompanyId,
-                CreditorCompanyName = creditorCompany.Name,
+                CreditorCompanyName = creditorName,
                 RawAmount = dto.Amount,
                 Amount = dto.Amount.ToString("C"),
                 Description = description

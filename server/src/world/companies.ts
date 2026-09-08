@@ -452,11 +452,18 @@ export const payCompanyDebt = (
     logError(`Invalid payment amount: ${amount}`);
     return PAY_DEBT_RESULT.INVALID_AMOUNT;
   }
-  if (amount > debt.amount) {
+
+  // The Unity client round-trips debt amounts through a 32-bit float, so a
+  // "pay in full" request can arrive a fraction of a cent above the
+  // server's double-precision debt.amount. Treat anything within a cent as
+  // an exact match rather than rejecting a legitimate full payment.
+  const AMOUNT_EXCEEDS_DEBT_EPSILON = 0.01;
+  if (amount > debt.amount + AMOUNT_EXCEEDS_DEBT_EPSILON) {
     logError(`Payment amount exceeds debt amount: ${amount} > ${debt.amount}`);
     return PAY_DEBT_RESULT.AMOUNT_EXCEEDS_DEBT;
   }
-  const result = transferCompanyFunds(debtorCompany, creditorCompany, amount);
+  const amountToPay = Math.min(amount, debt.amount);
+  const result = transferCompanyFunds(debtorCompany, creditorCompany, amountToPay);
 
   if (result === COMPANY_TRANSFER_RESULT.INSUFFICIENT_FUNDS) {
     logError(
@@ -465,7 +472,7 @@ export const payCompanyDebt = (
     return PAY_DEBT_RESULT.INSUFFICIENT_FUNDS;
   }
 
-  debt.amount -= Math.min(debt.amount, amount);
+  debt.amount -= amountToPay;
 
   if (debt.amount <= 0) {
     debtorCompany.debts = debtorCompany.debts.filter(
