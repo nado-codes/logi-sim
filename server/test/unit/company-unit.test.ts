@@ -360,6 +360,212 @@ describe("processCompanyDebt unit tests", () => {
 
     expect(debtorCompany.insolvencyCounter).toEqual(0);
   });
+
+  it("should pay both debts in full when cash is sufficient, without triggering pro-rata", () => {
+    const creditorCompanyB = world.createCompany(
+      "Creditor Co B",
+      0,
+      Color.Green,
+      { isAiEnabled: true },
+    );
+    debtorCompany.money = 100;
+
+    const debtEntryA = {
+      creditorCompanyId: creditorCompany.id,
+      amount: 100,
+      paymentPerTick: 10,
+      reason: "Test Debt A",
+      createdAtTick: world.getCurrentTick(),
+    };
+    const debtEntryB = {
+      creditorCompanyId: creditorCompanyB.id,
+      amount: 100,
+      paymentPerTick: 10,
+      reason: "Test Debt B",
+      createdAtTick: world.getCurrentTick(),
+    };
+    debtorCompany.debts.push(debtEntryA, debtEntryB);
+
+    processCompanyDebts(
+      debtorCompany,
+      [creditorCompany, creditorCompanyB],
+      [],
+    );
+
+    expect(debtorCompany.isInsolvent).toBeFalsy();
+    expect(debtorCompany.insolvencyCounter).toEqual(0);
+    expect(debtEntryA.amount).toEqual(90);
+    expect(debtEntryB.amount).toEqual(90);
+    expect(creditorCompany.money).toEqual(10);
+    expect(creditorCompanyB.money).toEqual(10);
+  });
+
+  it("should split an insufficient payment pro-rata by paymentPerTick across two creditors", () => {
+    const creditorCompanyB = world.createCompany(
+      "Creditor Co B",
+      0,
+      Color.Green,
+      { isAiEnabled: true },
+    );
+    debtorCompany.money = 20;
+
+    const debtEntryA = {
+      creditorCompanyId: creditorCompany.id,
+      amount: 1000,
+      paymentPerTick: 30,
+      reason: "Test Debt A",
+      createdAtTick: world.getCurrentTick(),
+    };
+    const debtEntryB = {
+      creditorCompanyId: creditorCompanyB.id,
+      amount: 1000,
+      paymentPerTick: 10,
+      reason: "Test Debt B",
+      createdAtTick: world.getCurrentTick(),
+    };
+    debtorCompany.debts.push(debtEntryA, debtEntryB);
+
+    processCompanyDebts(
+      debtorCompany,
+      [creditorCompany, creditorCompanyB],
+      [],
+    );
+
+    expect(debtorCompany.insolvencyCounter).toEqual(1);
+    expect(creditorCompany.money).toEqual(15);
+    expect(creditorCompanyB.money).toEqual(5);
+    expect(debtEntryA.amount).toEqual(1000 - 15);
+    expect(debtEntryB.amount).toEqual(1000 - 5);
+    expect(debtorCompany.money).toEqual(0);
+  });
+
+  it("should split an insufficient payment pro-rata by paymentPerTick across three creditors", () => {
+    const creditorCompanyB = world.createCompany(
+      "Creditor Co B",
+      0,
+      Color.Green,
+      { isAiEnabled: true },
+    );
+    const creditorCompanyC = world.createCompany(
+      "Creditor Co C",
+      0,
+      Color.Yellow,
+      { isAiEnabled: true },
+    );
+    debtorCompany.money = 50;
+
+    const debtEntryA = {
+      creditorCompanyId: creditorCompany.id,
+      amount: 1000,
+      paymentPerTick: 50,
+      reason: "Test Debt A",
+      createdAtTick: world.getCurrentTick(),
+    };
+    const debtEntryB = {
+      creditorCompanyId: creditorCompanyB.id,
+      amount: 1000,
+      paymentPerTick: 30,
+      reason: "Test Debt B",
+      createdAtTick: world.getCurrentTick(),
+    };
+    const debtEntryC = {
+      creditorCompanyId: creditorCompanyC.id,
+      amount: 1000,
+      paymentPerTick: 20,
+      reason: "Test Debt C",
+      createdAtTick: world.getCurrentTick(),
+    };
+    debtorCompany.debts.push(debtEntryA, debtEntryB, debtEntryC);
+
+    processCompanyDebts(
+      debtorCompany,
+      [creditorCompany, creditorCompanyB, creditorCompanyC],
+      [],
+    );
+
+    expect(creditorCompany.money).toEqual(25);
+    expect(creditorCompanyB.money).toEqual(15);
+    expect(creditorCompanyC.money).toEqual(10);
+    expect(debtEntryA.amount).toEqual(1000 - 25);
+    expect(debtEntryB.amount).toEqual(1000 - 15);
+    expect(debtEntryC.amount).toEqual(1000 - 10);
+    expect(debtorCompany.money).toEqual(0);
+  });
+
+  it("should transfer nothing but still only increase the insolvency counter once when there is zero cash available", () => {
+    const creditorCompanyB = world.createCompany(
+      "Creditor Co B",
+      0,
+      Color.Green,
+      { isAiEnabled: true },
+    );
+    debtorCompany.money = 0;
+
+    const debtEntryA = {
+      creditorCompanyId: creditorCompany.id,
+      amount: 1000,
+      paymentPerTick: 30,
+      reason: "Test Debt A",
+      createdAtTick: world.getCurrentTick(),
+    };
+    const debtEntryB = {
+      creditorCompanyId: creditorCompanyB.id,
+      amount: 1000,
+      paymentPerTick: 10,
+      reason: "Test Debt B",
+      createdAtTick: world.getCurrentTick(),
+    };
+    debtorCompany.debts.push(debtEntryA, debtEntryB);
+
+    processCompanyDebts(
+      debtorCompany,
+      [creditorCompany, creditorCompanyB],
+      [],
+    );
+
+    expect(debtorCompany.insolvencyCounter).toEqual(1);
+    expect(creditorCompany.money).toEqual(0);
+    expect(creditorCompanyB.money).toEqual(0);
+    expect(debtEntryA.amount).toEqual(1000);
+    expect(debtEntryB.amount).toEqual(1000);
+  });
+
+  it("should split an insufficient payment equally between two creditors with equal paymentPerTick", () => {
+    const creditorCompanyB = world.createCompany(
+      "Creditor Co B",
+      0,
+      Color.Green,
+      { isAiEnabled: true },
+    );
+    debtorCompany.money = 10;
+
+    const debtEntryA = {
+      creditorCompanyId: creditorCompany.id,
+      amount: 1000,
+      paymentPerTick: 10,
+      reason: "Test Debt A",
+      createdAtTick: world.getCurrentTick(),
+    };
+    const debtEntryB = {
+      creditorCompanyId: creditorCompanyB.id,
+      amount: 1000,
+      paymentPerTick: 10,
+      reason: "Test Debt B",
+      createdAtTick: world.getCurrentTick(),
+    };
+    debtorCompany.debts.push(debtEntryA, debtEntryB);
+
+    processCompanyDebts(
+      debtorCompany,
+      [creditorCompany, creditorCompanyB],
+      [],
+    );
+
+    expect(creditorCompany.money).toEqual(5);
+    expect(creditorCompanyB.money).toEqual(5);
+    expect(debtEntryA.amount).toEqual(1000 - 5);
+    expect(debtEntryB.amount).toEqual(1000 - 5);
+  });
 });
 
 describe("payCompanyDebt unit tests", () => {
