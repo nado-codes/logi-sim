@@ -63,7 +63,7 @@ public class PopupView : BaseWindow<PopupView>
             return action;
         }));
 
-        if(closeButton != null)
+        if(hideCloseButton && closeButton != null)
         {
             Destroy(closeButton.gameObject);
         }
