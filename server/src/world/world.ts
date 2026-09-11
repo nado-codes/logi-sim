@@ -48,6 +48,8 @@ import {
   liquidateCompany,
   getCompanies,
   payCompanyDebt,
+  updateCompanyDebt,
+  deleteCompanyDebt,
 } from "./companies";
 import { createTown, updateTowns } from "./locations/consumers/towns";
 import {
@@ -81,6 +83,7 @@ import {
   EMarketplaceTransactionResult,
   IMarketplaceEntity,
   ICompanyEntity,
+  ICompanyDebt,
 } from "@logisim/lib/entities";
 import { Color, highlight } from "@logisim/lib/utils";
 import { purchaseItem, sellItem } from "./marketplace";
@@ -234,6 +237,7 @@ export interface IWorld {
     creditorCompany: ICompany,
     amount: number,
   ) => PAY_DEBT_RESULT;
+  updateCompanyDebt: (debt: ICompanyDebt) => void;
 
   // MARKETPLACE - UPDATE
   purchaseItem: (
@@ -248,6 +252,7 @@ export interface IWorld {
   // DELETE
   deleteTruck: (truck: ITruck) => void;
   deleteLocation: (location: ILocation) => void;
+  deleteCompanyDebt: (debt: ICompanyDebt) => void;
 }
 
 export const STATE_COMPANY_NAME = "State";
@@ -509,6 +514,7 @@ export const createWorld = (): IWorld => {
       creditorCompany: ICompany,
       amount: number,
     ) => payCompanyDebt(debtorCompany, creditorCompany, amount),
+    updateCompanyDebt: (debt: ICompanyDebt),
 
     // MARKETPLACE - UPDATE
     purchaseItem: (itemId: string, buyerCompany: ICompany) =>
@@ -519,5 +525,6 @@ export const createWorld = (): IWorld => {
     // DELETE
     deleteTruck: (truck: ITruck) => deleteTruck(state, truck),
     deleteLocation: (location: ILocation) => deleteLocation(state, location),
+    deleteCompanyDebt: (debt: ICompanyDebt) => deleteCompanyDebt(state, debt),
   };
 };

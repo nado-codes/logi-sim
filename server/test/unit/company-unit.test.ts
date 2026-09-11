@@ -386,11 +386,7 @@ describe("processCompanyDebt unit tests", () => {
     };
     debtorCompany.debts.push(debtEntryA, debtEntryB);
 
-    processCompanyDebts(
-      debtorCompany,
-      [creditorCompany, creditorCompanyB],
-      [],
-    );
+    processCompanyDebts(debtorCompany, [creditorCompany, creditorCompanyB], []);
 
     expect(debtorCompany.isInsolvent).toBeFalsy();
     expect(debtorCompany.insolvencyCounter).toEqual(0);
@@ -425,11 +421,7 @@ describe("processCompanyDebt unit tests", () => {
     };
     debtorCompany.debts.push(debtEntryA, debtEntryB);
 
-    processCompanyDebts(
-      debtorCompany,
-      [creditorCompany, creditorCompanyB],
-      [],
-    );
+    processCompanyDebts(debtorCompany, [creditorCompany, creditorCompanyB], []);
 
     expect(debtorCompany.insolvencyCounter).toEqual(1);
     expect(creditorCompany.money).toEqual(15);
@@ -517,11 +509,7 @@ describe("processCompanyDebt unit tests", () => {
     };
     debtorCompany.debts.push(debtEntryA, debtEntryB);
 
-    processCompanyDebts(
-      debtorCompany,
-      [creditorCompany, creditorCompanyB],
-      [],
-    );
+    processCompanyDebts(debtorCompany, [creditorCompany, creditorCompanyB], []);
 
     expect(debtorCompany.insolvencyCounter).toEqual(1);
     expect(creditorCompany.money).toEqual(0);
@@ -555,11 +543,7 @@ describe("processCompanyDebt unit tests", () => {
     };
     debtorCompany.debts.push(debtEntryA, debtEntryB);
 
-    processCompanyDebts(
-      debtorCompany,
-      [creditorCompany, creditorCompanyB],
-      [],
-    );
+    processCompanyDebts(debtorCompany, [creditorCompany, creditorCompanyB], []);
 
     expect(creditorCompany.money).toEqual(5);
     expect(creditorCompanyB.money).toEqual(5);
@@ -934,10 +918,7 @@ describe("collectFromCompany unit tests", () => {
     );
     expect(debtEntry).toBeDefined();
     expect(debtEntry?.paymentPerTick).toEqual(
-      Math.max(1, Math.floor(750 / defaultCompanyConfig.playerDebtTermTicks)),
-    );
-    expect(debtEntry?.paymentPerTick).not.toEqual(
-      Math.max(1, Math.floor(750 / defaultCompanyConfig.aiDebtTermTicks)),
+      Math.max(1, Math.floor(750 / defaultCompanyConfig.debtTermTicks)),
     );
   });
 });

@@ -62,11 +62,7 @@ interface ICompanyConfig {
   probationThreshold: number;
   suspensionNoticeThreshold: number;
   ceasedOperationsThreshold: number;
-  aiDebtTermTicks: number;
-  // .. PROVISIONAL: no pacing/tick-rate design pass has been done for player
-  // debt terms yet. This is a placeholder (5-10x the AI term) and should not
-  // be treated as final.
-  playerDebtTermTicks: number;
+  debtTermTicks: number;
 }
 
 export const defaultCompanyConfig: ICompanyConfig = {
@@ -78,8 +74,7 @@ export const defaultCompanyConfig: ICompanyConfig = {
   probationThreshold: 1,
   suspensionNoticeThreshold: 5,
   ceasedOperationsThreshold: 10,
-  aiDebtTermTicks: 10,
-  playerDebtTermTicks: 75,
+  debtTermTicks: 50,
 };
 
 const companyConfig = loadConfig("company", defaultCompanyConfig);
@@ -322,20 +317,18 @@ export const collectFromCompany = (
     );
 
     if (!existingDebtWithCreditor) {
+      const paymentPerTick = Math.max(
+        1,
+        Math.floor(amountLeftToPay / companyConfig.debtTermTicks),
+      );
       const newDebt: ICompanyDebt = {
         createdAtTick: state.currentTick,
         creditorCompanyId: creditorCompany.id,
         amount: amountLeftToPay,
         reason,
+        paymentPerTick,
       };
-      const debtTerm = debtorCompany.options.isAiEnabled
-        ? companyConfig.aiDebtTermTicks
-        : companyConfig.playerDebtTermTicks;
 
-      newDebt.paymentPerTick = Math.max(
-        1,
-        Math.floor(amountLeftToPay / debtTerm),
-      );
       debtorCompany.debts.push(newDebt);
     } else {
       existingDebtWithCreditor.amount += amountLeftToPay;
@@ -400,13 +393,6 @@ export const processCompanyDebts = (
       );
     }
     if (!debt.paymentPerTick) {
-      return;
-    }
-
-    if (!debtorCompany.options.isAiEnabled) {
-      // .. player debts still count toward sumTotalDebtPayments (and thus
-      // the insolvency counter) above, but are only ever reduced by the
-      // player's own manual payCompanyDebt calls, never auto-paid here.
       return;
     }
 
