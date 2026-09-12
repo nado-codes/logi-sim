@@ -9,8 +9,8 @@ import { getRegulatoryActionStatus, PAY_DEBT_RESULT } from "./world/companies";
 
 export const logisimApi = (world: IWorld) => {
   const _path = path.resolve(`logisim.apik`);
-  const apiKey = fs.readFileSync(_path, "utf-8");
-  const client = new Anthropic({ apiKey });
+  //const apiKey = fs.readFileSync(_path, "utf-8");
+  //const client = new Anthropic({ apiKey });
   const app = express();
   app.use(express.json());
 
@@ -126,7 +126,7 @@ Bad:
 
 Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, no emotes, no character name prefix. Just the words Sam would say.`;
 
-        const dateBefore = Date.now();
+        /*const dateBefore = Date.now();
         const response = await client.messages.create({
           model: "claude-haiku-4-5-20251001",
           max_tokens: 150,
@@ -144,7 +144,8 @@ Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, 
         res.json({
           dialogue: response.content.filter((c) => c.type === "text")[0].text,
           ms: `${dateMSDifference}`,
-        });
+        });*/
+        res.send();
       } catch (err) {
         var error: Error = err as Error;
         res.status(500).send(error.message);
@@ -197,6 +198,24 @@ Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, 
       }
     });
 
+    app.post("/api/company/:companyId/funds/update", (req, res) => {
+      try {
+        const company = world.getCompanyById(req.params.companyId);
+
+        const amount = parseFloat(req.body.amount);
+
+        if (isNaN(amount) || amount <= 0) {
+          res.status(400).send({ error: "Invalid amount" });
+          return;
+        }
+
+        world.updateCompanyFunds(company, amount);
+        res.send({ success: true });
+      } catch (error) {
+        res.status(400).send({ error: "Failed to update company funds" });
+      }
+    });
+
     app.post("/api/company/liquidate/:id", (req, res) => {
       try {
         const company = world.getCompanyById(req.params.id as string);
@@ -232,6 +251,11 @@ Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, 
           res.status(400).send({ error: "Invalid amount" });
           return;
         }
+        const paymentPerTick = parseFloat(req.body.paymentPerTick);
+        if (isNaN(paymentPerTick) || paymentPerTick <= 0) {
+          res.status(400).send({ error: "Invalid payment per tick" });
+          return;
+        }
 
         const existingDebt = company.debts.find(
           (d) => d.creditorCompanyId === creditor.id,
@@ -243,9 +267,94 @@ Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, 
             amount,
             reason: "Debt created manually by the user",
             createdAtTick: world.getCurrentTick(),
+            paymentPerTick,
           });
         } else {
           existingDebt.amount += amount;
+        }
+      } catch (error) {
+        res.status(500).send({
+          error: `Failed to create company debt`,
+        });
+      }
+    });
+
+    app.post("/api/company/:companyId/debts/:creditorId/delete", (req, res) => {
+      try {
+        const company = world.getCompanyById(req.params.companyId as string);
+        const creditor = world.getCompanyById(req.params.creditorId as string);
+
+        if (!company) {
+          res.status(404).send({ error: "Company not found" });
+          return;
+        }
+        if (!creditor) {
+          res.status(404).send({ error: "Creditor company not found" });
+          return;
+        }
+
+        const existingDebt = company.debts.find(
+          (d) => d.creditorCompanyId === creditor.id,
+        );
+
+        if (!existingDebt) {
+          res.status(404).send({
+            error: `No debt exists between ${company.name} and ${creditor.name}`,
+          });
+          return;
+        }
+
+        world.deleteCompanyDebt(company, req.params.creditorId);
+      } catch (error) {
+        res.status(500).send({
+          error: `Failed to create company debt`,
+        });
+      }
+    });
+
+    app.post("/api/company/:companyId/debts/:creditorId/update", (req, res) => {
+      try {
+        const company = world.getCompanyById(req.params.companyId as string);
+        const creditor = world.getCompanyById(req.params.creditorId as string);
+
+        if (!company) {
+          res.status(404).send({ error: "Company not found" });
+          return;
+        }
+        if (!creditor) {
+          res.status(404).send({ error: "Creditor company not found" });
+          return;
+        }
+
+        const amount = parseFloat(req.body.amount);
+        if (amount !== undefined && (isNaN(amount) || amount <= 0)) {
+          res.status(400).send({ error: "Invalid amount" });
+          return;
+        }
+        const paymentPerTick = parseFloat(req.body.paymentPerTick);
+        if (
+          paymentPerTick !== undefined &&
+          (isNaN(paymentPerTick) || paymentPerTick <= 0)
+        ) {
+          res.status(400).send({ error: "Invalid payment per tick" });
+          return;
+        }
+
+        const existingDebt = company.debts.find(
+          (d) => d.creditorCompanyId === creditor.id,
+        );
+
+        if (!existingDebt) {
+          res.status(404).send({
+            error: `No debt exists between ${company.name} and ${creditor.name}`,
+          });
+          return;
+        } else {
+          world.updateCompanyDebt(company, {
+            ...existingDebt,
+            amount,
+            paymentPerTick,
+          });
         }
       } catch (error) {
         res.status(500).send({

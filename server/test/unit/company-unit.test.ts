@@ -14,6 +14,7 @@ import {
 } from "../../src/world/contracts";
 import {
   ICompany,
+  ICompanyDebt,
   IContract,
   ILocation,
   RegulatoryActionStatus,
@@ -920,5 +921,81 @@ describe("collectFromCompany unit tests", () => {
     expect(debtEntry?.paymentPerTick).toEqual(
       Math.max(1, Math.floor(750 / defaultCompanyConfig.debtTermTicks)),
     );
+  });
+});
+
+describe("company CRUD unit tests", () => {
+  let world: ReturnType<typeof createWorld>;
+  let creditorCompany: ICompany, debtorCompany: ICompany;
+
+  beforeEach(() => {
+    const data = setupBaseWorld();
+    world = data.world;
+    creditorCompany = data.creditorCompany;
+
+    debtorCompany = world.createCompany("Debtor Inc", 0, Color.Blue, {
+      isAiEnabled: true,
+    });
+
+    debtorCompany.debts.push({
+      creditorCompanyId: creditorCompany.id,
+      amount: 100,
+      paymentPerTick: 10,
+      createdAtTick: world.getCurrentTick(),
+      reason: "test",
+    });
+  });
+
+  it("should update the company funds", () => {
+    debtorCompany.money = 0;
+    world.updateCompanyFunds(debtorCompany, 999);
+
+    expect(debtorCompany.money).toEqual(999);
+  });
+});
+
+describe("companyDebt CRUD unit tests", () => {
+  let world: ReturnType<typeof createWorld>;
+  let creditorCompany: ICompany, debtorCompany: ICompany;
+
+  beforeEach(() => {
+    const data = setupBaseWorld();
+    world = data.world;
+    creditorCompany = data.creditorCompany;
+
+    debtorCompany = world.createCompany("Debtor Inc", 0, Color.Blue, {
+      isAiEnabled: true,
+    });
+
+    debtorCompany.debts.push({
+      creditorCompanyId: creditorCompany.id,
+      amount: 100,
+      paymentPerTick: 10,
+      createdAtTick: world.getCurrentTick(),
+      reason: "test",
+    });
+  });
+
+  it("should update the debt with a new paymentPerTick and amount", () => {
+    const existingDebt: ICompanyDebt = { ...debtorCompany.debts[0] };
+
+    world.updateCompanyDebt(debtorCompany, {
+      ...existingDebt,
+      amount: 101,
+      paymentPerTick: 11,
+    });
+
+    const refreshDebt = debtorCompany.debts[0];
+    expect(refreshDebt.amount).toEqual(101);
+    expect(refreshDebt.paymentPerTick).toEqual(11);
+  });
+
+  it("should delete the debt", () => {
+    world.deleteCompanyDebt(debtorCompany, creditorCompany.id);
+
+    const refreshDebt = debtorCompany.debts.find(
+      (d) => d.creditorCompanyId === creditorCompany.id,
+    );
+    expect(refreshDebt).toBeUndefined();
   });
 });

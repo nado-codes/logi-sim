@@ -4,7 +4,7 @@ import { createViewLogsPage } from "./pages/viewLogs";
 import { createManageContractsPage } from "./pages/manageContracts";
 import { createManageLocationsPage } from "./pages/manageLocations";
 import { createManageTrucksPage } from "./pages/manageTrucks";
-import { createManageCompaniesPage } from "./pages/manageCompanies";
+import { createManageCompaniesPage } from "./pages/manageCompanies/manageCompanies";
 import axios from "axios";
 import { IUserSession } from "@logisim/lib";
 import { highlight } from "@logisim/lib/utils";

@@ -283,6 +283,10 @@ export const transferCompanyFunds = (
   }
 };
 
+export const updateCompanyFunds = (company: ICompany, amount: number) => {
+  company.money = amount;
+};
+
 export const collectFromCompany = (
   state: IWorldState,
   debtorCompany: ICompany,
@@ -880,4 +884,29 @@ export const updateCompanies = (state: IWorldState) => {
   if (notificationConfig.logCompanyNotifications.all) {
     logSuccess(`[SYSTEM] Finished updating companies`);
   }
+};
+
+export const updateCompanyDebt = (debtor: ICompany, debt: ICompanyDebt) => {
+  const existingDebt = debtor.debts.find(
+    (d) => d.creditorCompanyId === debt.creditorCompanyId,
+  );
+
+  if (!existingDebt) {
+    throw Error(
+      `${debtor.name} has no debt associated with Company ${debt.creditorCompanyId}`,
+    );
+  }
+
+  existingDebt.amount = debt?.amount ?? existingDebt.amount;
+  existingDebt.paymentPerTick =
+    debt?.paymentPerTick ?? existingDebt.paymentPerTick;
+};
+
+export const deleteCompanyDebt = (
+  debtor: ICompany,
+  creditorCompanyId: string,
+) => {
+  debtor.debts = debtor.debts.filter(
+    (d) => d.creditorCompanyId !== creditorCompanyId,
+  );
 };

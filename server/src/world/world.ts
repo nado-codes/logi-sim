@@ -50,6 +50,7 @@ import {
   payCompanyDebt,
   updateCompanyDebt,
   deleteCompanyDebt,
+  updateCompanyFunds,
 } from "./companies";
 import { createTown, updateTowns } from "./locations/consumers/towns";
 import {
@@ -231,13 +232,14 @@ export interface IWorld {
     amount: number,
   ) => COMPANY_TRANSFER_RESULT;
   transferFundsFromState: (toCompany: ICompany, amount: number) => void;
+  updateCompanyFunds: (company: ICompany, amount: number) => void;
   liquidateCompany: (company: ICompany) => void;
   payCompanyDebt: (
     debtorCompany: ICompany,
     creditorCompany: ICompany,
     amount: number,
   ) => PAY_DEBT_RESULT;
-  updateCompanyDebt: (debt: ICompanyDebt) => void;
+  updateCompanyDebt: (company: ICompany, debt: ICompanyDebt) => void;
 
   // MARKETPLACE - UPDATE
   purchaseItem: (
@@ -252,7 +254,7 @@ export interface IWorld {
   // DELETE
   deleteTruck: (truck: ITruck) => void;
   deleteLocation: (location: ILocation) => void;
-  deleteCompanyDebt: (debt: ICompanyDebt) => void;
+  deleteCompanyDebt: (company: ICompany, creditorCompanyId: string) => void;
 }
 
 export const STATE_COMPANY_NAME = "State";
@@ -486,6 +488,8 @@ export const createWorld = (): IWorld => {
       transferCompanyFundsToState(state, fromCompany, amount),
     transferFundsFromState: (toCompany: ICompany, amount: number) =>
       transferCompanyFundsFromState(state, toCompany, amount),
+    updateCompanyFunds: (company: ICompany, amount: number) =>
+      updateCompanyFunds(company, amount),
     liquidateCompany: (company: ICompany) => {
       const companyRef = getCompanyById(state, company.id);
       const debtorLocations = state
@@ -514,7 +518,8 @@ export const createWorld = (): IWorld => {
       creditorCompany: ICompany,
       amount: number,
     ) => payCompanyDebt(debtorCompany, creditorCompany, amount),
-    updateCompanyDebt: (debt: ICompanyDebt),
+    updateCompanyDebt: (company: ICompany, debt: ICompanyDebt) =>
+      updateCompanyDebt(company, debt),
 
     // MARKETPLACE - UPDATE
     purchaseItem: (itemId: string, buyerCompany: ICompany) =>
@@ -525,6 +530,7 @@ export const createWorld = (): IWorld => {
     // DELETE
     deleteTruck: (truck: ITruck) => deleteTruck(state, truck),
     deleteLocation: (location: ILocation) => deleteLocation(state, location),
-    deleteCompanyDebt: (debt: ICompanyDebt) => deleteCompanyDebt(state, debt),
+    deleteCompanyDebt: (company: ICompany, creditorCompanyId: string) =>
+      deleteCompanyDebt(company, creditorCompanyId),
   };
 };
