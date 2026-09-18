@@ -192,7 +192,9 @@ export const createManageCompanyDebtsPage = (
               }
             } catch (error) {
               console.log(
-                highlight.error(`[DEBT ERROR] Failed to modify debt: ${error}`),
+                highlight.error(
+                  `[DEBT ERROR] Failed to modify debt: ${JSON.stringify(error)}`,
+                ),
               );
             }
           },
@@ -211,7 +213,7 @@ export const createManageCompanyDebtsPage = (
               console.log(
                 ` - Payment Per Tick: ${highlight.yellow(`$${debt.paymentPerTick}`)}`,
               );
-              console.log(` - Reason: ${highlight.yellow(`$${debt.reason}`)}`);
+              console.log(` - Reason: ${highlight.yellow(`${debt.reason}`)}`);
             } catch (error) {
               console.log(
                 highlight.error(`Failed to load debt data: ${error}`),

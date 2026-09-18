@@ -332,7 +332,7 @@ Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, 
 
         const amount = parseFloat(req.body.amount);
         if (amount !== undefined && (isNaN(amount) || amount <= 0)) {
-          res.status(400).send({ error: "Invalid amount" });
+          res.status(400).send({ message: "Invalid amount" });
           return;
         }
         const paymentPerTick = parseFloat(req.body.paymentPerTick);
@@ -340,7 +340,7 @@ Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, 
           paymentPerTick !== undefined &&
           (isNaN(paymentPerTick) || paymentPerTick <= 0)
         ) {
-          res.status(400).send({ error: "Invalid payment per tick" });
+          res.status(400).send({ message: "Invalid payment per tick" });
           return;
         }
 
@@ -362,7 +362,7 @@ Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, 
         }
       } catch (error) {
         res.status(500).send({
-          error: `Failed to create company debt`,
+          error: `Failed to update company debt`,
         });
       }
     });

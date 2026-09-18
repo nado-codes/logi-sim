@@ -56,7 +56,7 @@ public class CompanyInfo : MonoBehaviour
  
         companyMoneyTarget = company.Money;
 
-        company.RegulatoryActionStatus = statusTarget;
+        
 
         if(regulatoryActionPanel.CurrentStatus != company.RegulatoryActionStatus)
         {
@@ -76,34 +76,36 @@ public class CompanyInfo : MonoBehaviour
         companyMoneyText.text = companyMoneyCurrent.ToString("C");
         companyMoneyText.color = Color.Lerp(companyMoneyText.color, moneyGreen,Time.deltaTime);
 
+        var company = Client.CompanyDTOs.FirstOrDefault(c => c.Id == Client.ActiveCompanyId);
+
         // Debugging: Change regulatory action status with number keys
         if(Input.GetKeyDown(KeyCode.Alpha1))
         {
-            statusTarget = RegulatoryActionStatus.None;
+            company.RegulatoryActionStatus = RegulatoryActionStatus.None;
         }
         if(Input.GetKeyDown(KeyCode.Alpha2))
         {
-            statusTarget = RegulatoryActionStatus.PreProbation;
+            company.RegulatoryActionStatus = RegulatoryActionStatus.PreProbation;
         }
         if(Input.GetKeyDown(KeyCode.Alpha3))
         {
-            statusTarget = RegulatoryActionStatus.Probation;
+            company.RegulatoryActionStatus = RegulatoryActionStatus.Probation;
         }
         if(Input.GetKeyDown(KeyCode.Alpha4))
         {
-            statusTarget = RegulatoryActionStatus.PreSuspensionNotice;
+            company.RegulatoryActionStatus = RegulatoryActionStatus.PreSuspensionNotice;
         }
         if(Input.GetKeyDown(KeyCode.Alpha5))
         {
-            statusTarget = RegulatoryActionStatus.SuspensionNotice;
+            company.RegulatoryActionStatus = RegulatoryActionStatus.SuspensionNotice;
         }
         if(Input.GetKeyDown(KeyCode.Alpha6))
         {
-            statusTarget = RegulatoryActionStatus.PreCeasedOperations;
+            company.RegulatoryActionStatus = RegulatoryActionStatus.PreCeasedOperations;
         }
         if(Input.GetKeyDown(KeyCode.Alpha7))
         {
-            statusTarget = RegulatoryActionStatus.CeasedOperations;
+            company.RegulatoryActionStatus = RegulatoryActionStatus.CeasedOperations;
         }
         if(Input.GetKeyDown(KeyCode.Alpha0))
         {

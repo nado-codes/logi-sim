@@ -6,7 +6,7 @@
       "recipe": {
         "inputs": {},
         "outputs": {
-          "Grain": 1000
+          "Grain": 10
         }
       },
       "locationType": "Producer",
@@ -17,10 +17,10 @@
       "name": "Flour Mill",
       "recipe": {
         "inputs": {
-          "Grain": 1000
+          "Grain": 10
         },
         "outputs": {
-          "Flour": 800
+          "Flour": 100
         }
       },
       "locationType": "Processor",

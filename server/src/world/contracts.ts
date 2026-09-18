@@ -534,7 +534,7 @@ export const breakContract = (
         notificationConfig.logContractNotifications.update
       ) {
         logInfo(
-          ` - Contract ${highlight.yellow(contract.id)} was breached by the shipper - a penalty of ${penalty} has been transferred from the shipper to the destination company`,
+          ` - Contract ${highlight.yellow(contract.id)} was breached by the shipper - a penalty of ${Math.round(penalty)} has been transferred from the shipper to the destination company`,
         );
       }
     }
