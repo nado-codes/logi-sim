@@ -94,18 +94,6 @@ export const createManageCompaniesPage = (apiBaseUrl: string): IMenuPage => {
               console.log(
                 ` - Active Debt Accounts: ${company.debts.length > 0 ? "" : highlight.yellow(`None`)}`,
               );
-              company.debts.forEach((debt) => {
-                const creditorCompany = companies.find(
-                  (c) => c.id === debt.creditorCompanyId,
-                );
-                const amountString = `Amount: ${highlight.yellow(`$${debt.amount}`)}`;
-                const creditorString = `Creditor: ${highlight.yellow(creditorCompany ? creditorCompany.name : "Unknown")}`;
-                const paymentString = `Payment Per Tick: ${highlight.yellow(`$${debt.paymentPerTick}`)}`;
-                const reasonString = `Reason: ${highlight.yellow(debt.reason)}`;
-                console.log(
-                  `  - ${amountString} | ${creditorString} | ${paymentString} | ${reasonString}`,
-                );
-              });
             } catch (error) {
               console.log(
                 highlight.error(`Failed to load company data: ${error}`),

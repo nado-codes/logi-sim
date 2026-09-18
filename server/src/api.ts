@@ -257,6 +257,10 @@ Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, 
           return;
         }
 
+        if (!req.body.reason) {
+          res.status(400).send({ error: "A reason must be specified" });
+        }
+
         const existingDebt = company.debts.find(
           (d) => d.creditorCompanyId === creditor.id,
         );
@@ -265,7 +269,7 @@ Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, 
           company.debts.push({
             creditorCompanyId: creditor.id,
             amount,
-            reason: "Debt created manually by the user",
+            reason: req.body.reason,
             createdAtTick: world.getCurrentTick(),
             paymentPerTick,
           });

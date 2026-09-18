@@ -17,5 +17,5 @@
     }
   },
   "debtCollectionEnabled": true,
-  "breachPenaltyMultiplier": 1
+  "breachPenaltyMultiplier": 0.05
 }
