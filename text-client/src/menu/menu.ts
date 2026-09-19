@@ -8,6 +8,7 @@ import { createManageCompaniesPage } from "./pages/manageCompanies/manageCompani
 import axios from "axios";
 import { IUserSession } from "@logisim/lib";
 import { highlight } from "@logisim/lib/utils";
+import { createManageSystemPage } from "./pages/manageSystem";
 
 export enum MenuItemType {
   Page,
@@ -85,6 +86,7 @@ export const createMenu = (callback: () => void, userSession: IUserSession) => {
     createManageTrucksPage(apiBaseUrl, userSession),
     createManageLocationsPage(apiBaseUrl, userSession),
     createManageCompaniesPage(apiBaseUrl),
+    createManageSystemPage(apiBaseUrl),
     createViewLogsPage(apiBaseUrl),
   ]);
 

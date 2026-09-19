@@ -6,6 +6,9 @@ import Anthropic from "@anthropic-ai/sdk";
 import path from "path";
 import * as fs from "fs";
 import { getRegulatoryActionStatus, PAY_DEBT_RESULT } from "./world/companies";
+import { loadConfig } from "./utils/configUtils";
+import { loadSystemConfig } from ".";
+import { ITimespans } from "@logisim/lib";
 
 export const logisimApi = (world: IWorld) => {
   const _path = path.resolve(`logisim.apik`);
@@ -21,6 +24,28 @@ export const logisimApi = (world: IWorld) => {
     // WORLD
     app.get("/api/world/tick", (req, res) => {
       res.send(world.getCurrentTick());
+    });
+
+    app.get("/api/world/tick/rate", (req, res) => {
+      const systemConfig = loadSystemConfig();
+      res.send(systemConfig.tickRateMS);
+    });
+
+    app.get("/api/world/tick/timespans", (req, res) => {
+      const systemConfig = loadSystemConfig();
+      const timespans: ITimespans = {
+        hourLengthTicks: systemConfig.getHourTicks(),
+        hourLengthMS: systemConfig.getHourMS(),
+        dayLengthTicks: systemConfig.dayLengthTicks,
+        dayLengthMS: systemConfig.getDayMS(),
+        weekLengthTicks: systemConfig.getWeekTicks(),
+        weekLengthMS: systemConfig.getWeekMS(),
+        monthLengthTicks: systemConfig.getMonthTicks(),
+        monthLengthMS: systemConfig.getMonthMS(),
+        yearLengthTicks: systemConfig.getYearTicks(),
+        yearLengthMS: systemConfig.getYearMS(),
+      };
+      res.send(timespans);
     });
 
     app.get("/api/world/map", (req, res) => {

@@ -33,12 +33,13 @@ import {
   getDistanceBetweenPositions,
   logError,
 } from "@logisim/lib/utils";
-import { sellItem } from "./marketplace";
+import { loadSystemConfig } from "..";
 
 const geographyConfig = loadGeographyConfig();
 const notificationConfig = loadNotificationConfig();
 const townConfig = loadTownConfig();
 const truckConfig = loadTruckConfig();
+const systemConfig = loadSystemConfig();
 
 export enum COMPANY_TRANSFER_RESULT {
   SUCCESS,
@@ -809,7 +810,10 @@ export const updateCompanies = (state: IWorldState) => {
     );
     const creditorIds = company.debts.map((d) => d.creditorCompanyId);
     const creditors = state.companies.filter((c) => creditorIds.includes(c.id));
-    processCompanyDebts(company, creditors, companyContracts);
+
+    if (state.currentTick % systemConfig.timespans.monthLengthTicks === 0) {
+      processCompanyDebts(company, creditors, companyContracts);
+    }
 
     if (company.insolvencyCounter >= companyConfig.insolvencyThreshold) {
       if (
