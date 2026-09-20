@@ -33,7 +33,7 @@ import {
   getDistanceBetweenPositions,
   logError,
 } from "@logisim/lib/utils";
-import { loadSystemConfig } from "..";
+import { loadSystemConfig } from "../system";
 
 const geographyConfig = loadGeographyConfig();
 const notificationConfig = loadNotificationConfig();
@@ -811,7 +811,7 @@ export const updateCompanies = (state: IWorldState) => {
     const creditorIds = company.debts.map((d) => d.creditorCompanyId);
     const creditors = state.companies.filter((c) => creditorIds.includes(c.id));
 
-    if (state.currentTick % systemConfig.timespans.monthLengthTicks === 0) {
+    if (state.currentTick % systemConfig.monthTicks === 0) {
       processCompanyDebts(company, creditors, companyContracts);
     }
 

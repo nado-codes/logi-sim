@@ -88,6 +88,7 @@ import {
 } from "@logisim/lib/entities";
 import { Color, highlight } from "@logisim/lib/utils";
 import { purchaseItem, sellItem } from "./marketplace";
+import { loadConfig } from "../utils/configUtils";
 
 export interface IWorld {
   advanceTick: () => void;

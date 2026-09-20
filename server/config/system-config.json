@@ -1,4 +1,14 @@
 {
   "tickRateMS": 500,
+  "hourTicks": 0.4166666666666667,
+  "hourMS": 208.33333333333334,
+  "dayTicks": 10,
+  "dayMS": 5000,
+  "weekTicks": 70,
+  "weekMS": 35000,
+  "monthTicks": 280,
+  "monthMS": 140000,
+  "yearTicks": 3650,
+  "yearMS": 1825000,
   "dayLengthTicks": 10
 }

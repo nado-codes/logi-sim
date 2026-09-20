@@ -7,7 +7,7 @@ import path from "path";
 import * as fs from "fs";
 import { getRegulatoryActionStatus, PAY_DEBT_RESULT } from "./world/companies";
 import { loadConfig } from "./utils/configUtils";
-import { loadSystemConfig } from ".";
+import { loadSystemConfig } from "./system";
 import { ITimespans } from "@logisim/lib";
 
 export const logisimApi = (world: IWorld) => {
@@ -34,16 +34,16 @@ export const logisimApi = (world: IWorld) => {
     app.get("/api/world/tick/timespans", (req, res) => {
       const systemConfig = loadSystemConfig();
       const timespans: ITimespans = {
-        hourLengthTicks: systemConfig.getHourTicks(),
-        hourLengthMS: systemConfig.getHourMS(),
-        dayLengthTicks: systemConfig.dayLengthTicks,
-        dayLengthMS: systemConfig.getDayMS(),
-        weekLengthTicks: systemConfig.getWeekTicks(),
-        weekLengthMS: systemConfig.getWeekMS(),
-        monthLengthTicks: systemConfig.getMonthTicks(),
-        monthLengthMS: systemConfig.getMonthMS(),
-        yearLengthTicks: systemConfig.getYearTicks(),
-        yearLengthMS: systemConfig.getYearMS(),
+        hourLengthTicks: systemConfig.hourTicks,
+        hourLengthMS: systemConfig.hourMS,
+        dayLengthTicks: systemConfig.dayTicks,
+        dayLengthMS: systemConfig.dayMS,
+        weekLengthTicks: systemConfig.weekTicks,
+        weekLengthMS: systemConfig.weekMS,
+        monthLengthTicks: systemConfig.monthTicks,
+        monthLengthMS: systemConfig.monthMS,
+        yearLengthTicks: systemConfig.yearTicks,
+        yearLengthMS: systemConfig.yearMS,
       };
       res.send(timespans);
     });
