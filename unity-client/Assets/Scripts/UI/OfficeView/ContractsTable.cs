@@ -33,7 +33,6 @@ public class ContractsTable : UITable
         if(acceptContractAction != null)
         {
             var activeCompany = Client.CompanyDTOs.FirstOrDefault(c => c.Id == Client.ActiveCompanyId);
-            acceptContractAction.interactable = !activeCompany.IsInsolvent;
         }
     }
 }

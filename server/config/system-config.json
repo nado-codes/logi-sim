@@ -6,7 +6,7 @@
   "dayMS": 5000,
   "weekTicks": 70,
   "weekMS": 35000,
-  "monthTicks": 280,
+  "monthTicks": 10,
   "monthMS": 140000,
   "yearTicks": 3650,
   "yearMS": 1825000,
