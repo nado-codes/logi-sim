@@ -19,8 +19,9 @@ const playerCompany = world.createCompany(
 const competitorCompany = world.createCompany("RivalCo", 100000, Color.Red, {
   isAiEnabled: true,
 });
+
 const competitorCompany2 = world.createCompany(
-  "Disruptor Inc",
+  "DisruptorCo",
   100000,
   Color.Yellow,
   {

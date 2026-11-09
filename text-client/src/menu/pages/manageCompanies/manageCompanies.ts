@@ -4,6 +4,7 @@ import { createEntitySelectorAction } from "../../menuAction";
 import { highlight, logWarning, sum } from "@logisim/lib/utils";
 import { ICompany, IContract } from "@logisim/lib/entities";
 import { createManageCompanyDebtsPage } from "./manageCompanyDebts";
+import { createManageCompanyMoneyPage } from "./manageCompanyMoney";
 
 export const createManageCompaniesPage = (apiBaseUrl: string): IMenuPage => {
   const createViewCompanyAction = createEntitySelectorAction(
@@ -24,7 +25,10 @@ export const createManageCompaniesPage = (apiBaseUrl: string): IMenuPage => {
         return createMenuPage(
           company.name,
           false,
-          [createManageCompanyDebtsPage(apiBaseUrl, company, companies)],
+          [
+            createManageCompanyDebtsPage(apiBaseUrl, company, companies),
+            createManageCompanyMoneyPage(apiBaseUrl, company),
+          ],
           async () => {
             try {
               const contracts: IContract[] = (
