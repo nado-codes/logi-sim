@@ -12,7 +12,7 @@ public class PartialPaymentPopup : BaseWindow<PartialPaymentPopup>
     private string creditorCompanyId;
     private float maxAmount;
 
-    public System.Action<string, decimal> OnPaymentSucceeded;
+    public Action<object> OnPaymentSucceeded;
 
     protected override void Awake()
     {
@@ -28,6 +28,8 @@ public class PartialPaymentPopup : BaseWindow<PartialPaymentPopup>
 
     private void PayDebtPartially(string debtId, decimal amount)
     {
+        Debug.Log("Sending debt amount to pay: " + amount);
+
         Client.CallAPI(
             $"/company/{Client.ActiveCompanyId}/debts/{creditorCompanyId}/pay",
             APICallType.Post,
@@ -36,7 +38,8 @@ public class PartialPaymentPopup : BaseWindow<PartialPaymentPopup>
                 if (success)
                 {
                     Close();
-                    OnPaymentSucceeded?.Invoke(debtId, amount);
+                    var responseObject = JsonConvert.DeserializeObject<Dictionary<string, object>>(response);
+                    OnPaymentSucceeded?.Invoke(responseObject["data"]);
                     PopupController.ShowPopup("Payment Successful", $"Payment of {amount:C} sent.");
                 }
                 else

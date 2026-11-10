@@ -75,60 +75,6 @@ public class CompanyInfo : MonoBehaviour
 
         companyMoneyText.text = companyMoneyCurrent.ToString("C");
         companyMoneyText.color = Color.Lerp(companyMoneyText.color, moneyGreen,Time.deltaTime);
-
-        var company = Client.CompanyDTOs.FirstOrDefault(c => c.Id == Client.ActiveCompanyId);
-
-        // Debugging: Change regulatory action status with number keys
-        if(Input.GetKeyDown(KeyCode.Alpha1))
-        {
-            company.RegulatoryActionStatus = RegulatoryActionStatus.None;
-        }
-        if(Input.GetKeyDown(KeyCode.Alpha2))
-        {
-            company.RegulatoryActionStatus = RegulatoryActionStatus.PreProbation;
-        }
-        if(Input.GetKeyDown(KeyCode.Alpha3))
-        {
-            company.RegulatoryActionStatus = RegulatoryActionStatus.Probation;
-        }
-        if(Input.GetKeyDown(KeyCode.Alpha4))
-        {
-            company.RegulatoryActionStatus = RegulatoryActionStatus.PreSuspensionNotice;
-        }
-        if(Input.GetKeyDown(KeyCode.Alpha5))
-        {
-            company.RegulatoryActionStatus = RegulatoryActionStatus.SuspensionNotice;
-        }
-        if(Input.GetKeyDown(KeyCode.Alpha6))
-        {
-            company.RegulatoryActionStatus = RegulatoryActionStatus.PreCeasedOperations;
-        }
-        if(Input.GetKeyDown(KeyCode.Alpha7))
-        {
-            company.RegulatoryActionStatus = RegulatoryActionStatus.CeasedOperations;
-        }
-        if(Input.GetKeyDown(KeyCode.Alpha0))
-        {
-            var creditorCompanyId = Client.CompanyDTOs.FirstOrDefault(c => c.Id != Client.ActiveCompanyId).Id;
-            var amount = 1000;
-
-            Client.CallAPI(
-            $"/company/{Client.ActiveCompanyId}/debts/{creditorCompanyId}/create",
-            APICallType.Post,
-            (success, response) =>
-            {
-                if (success)
-                {
-                    PopupController.ShowPopup("Payment Successful", $"Payment of {amount:C} sent.");
-                }
-                else
-                {
-                    PopupController.ShowPopup("Payment Failed", Utils.ExtractErrorMessage(response));
-                }
-            },
-            JsonConvert.SerializeObject(new { amount })
-        );
-        }
     }
 
     public void SwitchCompany(string companyId)

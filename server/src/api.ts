@@ -415,7 +415,13 @@ Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, 
 
         switch (result) {
           case PAY_DEBT_RESULT.SUCCESS:
-            res.send({ success: true });
+            const updatedDebt = company.debts.find(
+              (d) => d.creditorCompanyId === creditor.id,
+            );
+            res.send({
+              success: true,
+              data: updatedDebt || null,
+            });
             break;
           case PAY_DEBT_RESULT.DEBT_NOT_FOUND:
             res.status(404).send({ error: "No debt found with this creditor" });

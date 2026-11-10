@@ -19,7 +19,12 @@ public class DebtServicingWindow : BaseWindow<DebtServicingWindow>
             throw new NullReferenceException("DebtServicingWindow: No PartialPaymentPopup found in children");
         }
 
-        partialPaymentPopup.OnPaymentSucceeded += (debtId, amount) => RefreshDebtList();
+        partialPaymentPopup.OnPaymentSucceeded += (updatedDebt) =>
+        {
+            var activeCompany = Client.CompanyDTOs.FirstOrDefault(c => c.Id == Client.ActiveCompanyId);
+            var debtToUpdate = activeCompany.Debts.FirstOrDefault(d => d.Id == updatedDebt.ToString());
+            RefreshDebtList();
+        };
 
         base.Awake();
     }
@@ -67,7 +72,7 @@ public class DebtServicingWindow : BaseWindow<DebtServicingWindow>
         );
     }
 
-    private void RefreshDebtList()
+    public void RefreshDebtList()
     {
         var activeCompanyDTO = Client.CompanyDTOs.FirstOrDefault(c => c.Id == Client.ActiveCompanyId);
 
