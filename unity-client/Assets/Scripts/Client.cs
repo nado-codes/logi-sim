@@ -357,8 +357,6 @@ public class Client : MonoBehaviour
             locations.Add(locationGO);
         }
 
-        
-
         foreach(TownDTO town in TownDTOs)
         {
             var townGO = locations.FirstOrDefault(l => l.name == town.Id);

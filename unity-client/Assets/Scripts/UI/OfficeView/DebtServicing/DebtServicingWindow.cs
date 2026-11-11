@@ -21,8 +21,16 @@ public class DebtServicingWindow : BaseWindow<DebtServicingWindow>
 
         partialPaymentPopup.OnPaymentSucceeded += (updatedDebt) =>
         {
+            Debug.Log("UPDATED DEBT: "+JsonConvert.SerializeObject(updatedDebt));
             var activeCompany = Client.CompanyDTOs.FirstOrDefault(c => c.Id == Client.ActiveCompanyId);
-            var debtToUpdate = activeCompany.Debts.FirstOrDefault(d => d.Id == updatedDebt.ToString());
+            int index = Array.FindIndex(activeCompany.Debts,d => d.CreditorCompanyId == updatedDebt.CreditorCompanyId);
+            if (updatedDebt.Amount <= 0) {
+                activeCompany.Debts = activeCompany.Debts.Where(d => d.CreditorCompanyId != updatedDebt.CreditorCompanyId).ToArray();
+            }
+            else {
+                activeCompany.Debts[index] = updatedDebt;
+            }
+
             RefreshDebtList();
         };
 

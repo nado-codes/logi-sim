@@ -12,7 +12,7 @@ public class PartialPaymentPopup : BaseWindow<PartialPaymentPopup>
     private string creditorCompanyId;
     private float maxAmount;
 
-    public Action<object> OnPaymentSucceeded;
+    public Action<CompanyDebtDTO> OnPaymentSucceeded;
 
     protected override void Awake()
     {
@@ -37,9 +37,8 @@ public class PartialPaymentPopup : BaseWindow<PartialPaymentPopup>
             {
                 if (success)
                 {
-                    Close();
-                    var responseObject = JsonConvert.DeserializeObject<Dictionary<string, object>>(response);
-                    OnPaymentSucceeded?.Invoke(responseObject["data"]);
+                    var debtDTO = JsonConvert.DeserializeObject<CompanyDebtDTO>(response);
+                    OnPaymentSucceeded?.Invoke(debtDTO);
                     PopupController.ShowPopup("Payment Successful", $"Payment of {amount:C} sent.");
                 }
                 else
@@ -47,6 +46,7 @@ public class PartialPaymentPopup : BaseWindow<PartialPaymentPopup>
                     Debug.LogError($"Failed to pay debt {debtId} partially: {response}");
                     PopupController.ShowPopup("Payment Failed", Utils.ExtractErrorMessage(response));
                 }
+                Close();
             },
             JsonConvert.SerializeObject(new { amount })
         );
