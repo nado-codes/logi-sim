@@ -9,6 +9,7 @@ public class DebtServicingWindow : BaseWindow<DebtServicingWindow>
     private UIList list;
     private List<CompanyDebtViewModel> companyDebtVMs;
     private PartialPaymentPopup partialPaymentPopup;
+    private bool paymentInFlight;
 
     protected override void Awake()
     {
@@ -23,12 +24,27 @@ public class DebtServicingWindow : BaseWindow<DebtServicingWindow>
         {
             Debug.Log("UPDATED DEBT: "+JsonConvert.SerializeObject(updatedDebt));
             var activeCompany = Client.CompanyDTOs.FirstOrDefault(c => c.Id == Client.ActiveCompanyId);
-            int index = Array.FindIndex(activeCompany.Debts,d => d.CreditorCompanyId == updatedDebt.CreditorCompanyId);
-            if (updatedDebt.Amount <= 0) {
+
+            if (updatedDebt == null || activeCompany == null)
+            {
+                Debug.LogWarning("DebtServicingWindow: Payment succeeded but the updated debt or active company was missing; rebuilding list from current data.");
+                RefreshDebtList();
+                return;
+            }
+
+            int index = Array.FindIndex(activeCompany.Debts, d => d.CreditorCompanyId == updatedDebt.CreditorCompanyId);
+            if (updatedDebt.Amount <= 0)
+            {
                 activeCompany.Debts = activeCompany.Debts.Where(d => d.CreditorCompanyId != updatedDebt.CreditorCompanyId).ToArray();
             }
-            else {
+            else if (index >= 0)
+            {
                 activeCompany.Debts[index] = updatedDebt;
+            }
+            else
+            {
+                Debug.LogWarning($"DebtServicingWindow: Updated debt for creditor {updatedDebt.CreditorCompanyId} not found locally; adding it.");
+                activeCompany.Debts = activeCompany.Debts.Append(updatedDebt).ToArray();
             }
 
             RefreshDebtList();
@@ -51,24 +67,29 @@ public class DebtServicingWindow : BaseWindow<DebtServicingWindow>
 
     private void PayDebtInFull(string debtId)
     {
+        if (paymentInFlight) return;
+
         var debtVM = companyDebtVMs.FirstOrDefault(t => t.Id == debtId);
         if (debtVM == null) return;
 
+        paymentInFlight = true;
         Client.CallAPI(
             $"/company/{Client.ActiveCompanyId}/debts/{debtVM.CreditorCompanyId}/pay",
             APICallType.Post,
             (success, response) =>
             {
+                paymentInFlight = false;
+
                 if (success)
                 {
-                    companyDebtVMs.RemoveAll(t => t.Id == debtId);
-                    list.Refresh(companyDebtVMs);
-                    PopupController.ShowPopup("Payment Successful", $"Paid {debtVM.CreditorCompanyName} in full.");
-
-                    if (companyDebtVMs.Count == 0)
+                    var activeCompany = Client.CompanyDTOs.FirstOrDefault(c => c.Id == Client.ActiveCompanyId);
+                    if (activeCompany != null)
                     {
-                        Close();
+                        activeCompany.Debts = activeCompany.Debts.Where(d => d.CreditorCompanyId != debtVM.CreditorCompanyId).ToArray();
                     }
+
+                    RefreshDebtList();
+                    PopupController.ShowPopup("Payment Successful", $"Paid {debtVM.CreditorCompanyName} in full.");
                 }
                 else
                 {
@@ -123,6 +144,7 @@ public class DebtServicingWindow : BaseWindow<DebtServicingWindow>
         if(canvasGroupToggle.IsVisible)
             return;
 
+        paymentInFlight = false;
         base.Open();
 
         RefreshDebtList();
