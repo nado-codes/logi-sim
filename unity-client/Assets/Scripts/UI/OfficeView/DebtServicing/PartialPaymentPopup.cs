@@ -11,6 +11,7 @@ public class PartialPaymentPopup : BaseWindow<PartialPaymentPopup>
     private UIActionController actionController;
     private string creditorCompanyId;
     private float maxAmount;
+    private bool paymentInFlight;
 
     public Action<CompanyDebtDTO> OnPaymentSucceeded;
 
@@ -28,16 +29,30 @@ public class PartialPaymentPopup : BaseWindow<PartialPaymentPopup>
 
     private void PayDebtPartially(string debtId, decimal amount)
     {
+        if (paymentInFlight) return;
+
         Debug.Log("Sending debt amount to pay: " + amount);
 
+        paymentInFlight = true;
         Client.CallAPI(
             $"/company/{Client.ActiveCompanyId}/debts/{creditorCompanyId}/pay",
             APICallType.Post,
             (success, response) =>
             {
+                paymentInFlight = false;
+
                 if (success)
                 {
-                    var debtDTO = JsonConvert.DeserializeObject<CompanyDebtDTO>(response);
+                    CompanyDebtDTO debtDTO = null;
+                    try
+                    {
+                        debtDTO = JsonConvert.DeserializeObject<CompanyDebtDTO>(response);
+                    }
+                    catch (JsonException e)
+                    {
+                        Debug.LogError($"Failed to parse updated debt from payment response: {e.Message}");
+                    }
+
                     OnPaymentSucceeded?.Invoke(debtDTO);
                     PopupController.ShowPopup("Payment Successful", $"Payment of {amount:C} sent.");
                 }
@@ -50,6 +65,12 @@ public class PartialPaymentPopup : BaseWindow<PartialPaymentPopup>
             },
             JsonConvert.SerializeObject(new { amount })
         );
+    }
+
+    public override bool Open()
+    {
+        paymentInFlight = false;
+        return base.Open();
     }
 
     public bool Setup(string companyName, string creditorCompanyId, string debtId, float maxAmount)
