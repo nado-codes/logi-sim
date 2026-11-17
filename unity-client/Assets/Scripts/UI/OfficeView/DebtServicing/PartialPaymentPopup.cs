@@ -54,7 +54,15 @@ public class PartialPaymentPopup : BaseWindow<PartialPaymentPopup>
                     }
 
                     OnPaymentSucceeded?.Invoke(debtDTO);
-                    PopupController.ShowPopup("Payment Successful", $"Payment of {amount:C} sent.");
+
+                    if ((float)amount > maxAmount)
+                    {
+                        PopupController.ShowPopup("Payment Successful", $"Amount was greater than the remaining debt, so only {Math.Min((float)amount,maxAmount):C} was sent.");
+                    }
+                    else
+                    {
+                        PopupController.ShowPopup("Payment Successful", $"Payment of {amount:C} sent.");
+                    }
                 }
                 else
                 {
@@ -114,11 +122,6 @@ public class PartialPaymentPopup : BaseWindow<PartialPaymentPopup>
                 Callback = (id) => {
                     if (decimal.TryParse(inputField.text, out decimal amount) && amount > 0)
                     {
-                        if ((float)amount > this.maxAmount)
-                        {
-                            PopupController.ShowPopup("Invalid Amount", $"Amount cannot exceed the outstanding debt of {this.maxAmount:C}.");
-                            return;
-                        }
                         PayDebtPartially(debtId, amount);
                     }
                     else
