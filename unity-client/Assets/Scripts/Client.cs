@@ -259,7 +259,7 @@ public class Client : MonoBehaviour
 
         if(activeCompany != null && activeCompany.IsLiquidated)
         {
-            PopupController.ShowPrompt("Liquidation Event", "Due to your company's worsening financial situation and inability to resolve debts, it has been liquidated. You may restart the game if you wish to play again.");
+            PopupController.ShowPrompt("Liquidation Event", "Due to your company's worsening financial situation and inability to resolve debts, it has been liquidated. You may start a new company if you wish to continue playing.");
         }
     }
 

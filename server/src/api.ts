@@ -5,8 +5,11 @@ import { logEntries } from "@logisim/lib/utils";
 import Anthropic from "@anthropic-ai/sdk";
 import path from "path";
 import * as fs from "fs";
-import { getRegulatoryActionStatus, PAY_DEBT_RESULT } from "./world/companies";
-import { loadConfig } from "./utils/configUtils";
+import {
+  getRegulatoryActionStatus,
+  loadCompanyConfig,
+  PAY_DEBT_RESULT,
+} from "./world/companies";
 import { loadSystemConfig } from "./system";
 import { ITimespans } from "@logisim/lib";
 
@@ -199,6 +202,21 @@ Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, 
         ...company,
         regulatoryActionStatus: getRegulatoryActionStatus(company),
       });
+    });
+
+    app.post("/api/company/create", (req, res) => {
+      try {
+        const { name, color } = req.body;
+        const companyConfig = loadCompanyConfig();
+        const company = world.createCompany(
+          name,
+          companyConfig.startingMoney,
+          color,
+        );
+        res.send(company);
+      } catch (error) {
+        res.status(400).send({ error: "Failed to create company" });
+      }
     });
 
     app.post("/api/company/transfer-to-state", (req, res) => {

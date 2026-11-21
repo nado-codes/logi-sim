@@ -64,6 +64,7 @@ interface ICompanyConfig {
   suspensionNoticeThreshold: number;
   ceasedOperationsThreshold: number;
   debtTermTicks: number;
+  startingMoney: number;
 }
 
 export const defaultCompanyConfig: ICompanyConfig = {
@@ -76,9 +77,14 @@ export const defaultCompanyConfig: ICompanyConfig = {
   suspensionNoticeThreshold: 5,
   ceasedOperationsThreshold: 10,
   debtTermTicks: 50,
+  startingMoney: 100000,
 };
 
-const companyConfig = loadConfig("company", defaultCompanyConfig);
+export const loadCompanyConfig = (): ICompanyConfig => {
+  return loadConfig("company", defaultCompanyConfig);
+};
+
+const companyConfig = loadCompanyConfig();
 
 // .. CREATE
 export const createCompany = (

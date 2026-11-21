@@ -226,6 +226,12 @@ describe("liquidateCompany unit tests", () => {
     );
 
     expect(debtorCompany.isLiquidated).toBeTruthy();
+    expect(
+      companyLocations.every((l) => l.companyId === stateCompany.id),
+    ).toBeTruthy();
+    expect(
+      companyTrucks.every((t) => t.companyId === stateCompany.id),
+    ).toBeTruthy();
   });
 });
 
