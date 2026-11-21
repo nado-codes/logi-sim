@@ -418,7 +418,10 @@ Respond with ONLY Sam's dialogue line. No quotation marks, no stage directions, 
             const updatedDebt = company.debts.find(
               (d) => d.creditorCompanyId === creditor.id,
             );
-            res.send(updatedDebt);
+            res.send({
+              creditorCompanyId: creditor.id,
+              debt: updatedDebt ?? null,
+            });
             break;
           case PAY_DEBT_RESULT.DEBT_NOT_FOUND:
             res.status(404).send({ error: "No debt found with this creditor" });

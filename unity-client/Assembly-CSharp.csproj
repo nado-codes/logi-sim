@@ -61,6 +61,7 @@
     <Compile Include="Assets\Scripts\UI\UIDataView\UI Dropdown\UIDropdown.cs" />
     <Compile Include="Assets\Scripts\UI\UIAction.cs" />
     <Compile Include="Assets\Scripts\UI\Windows\PopupView.cs" />
+    <Compile Include="Assets\Scripts\DTO\CompanyDebtPaymentResponse.cs" />
     <Compile Include="Assets\Scripts\Types.cs" />
     <Compile Include="Assets\Scripts\DTO\ContractDTO.cs" />
     <Compile Include="Assets\Scripts\UI\UIDataView\BaseUIDataView.cs" />

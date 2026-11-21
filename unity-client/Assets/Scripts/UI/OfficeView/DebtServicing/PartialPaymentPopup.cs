@@ -13,7 +13,7 @@ public class PartialPaymentPopup : BaseWindow<PartialPaymentPopup>
     private float maxAmount;
     private bool paymentInFlight;
 
-    public Action<CompanyDebtDTO> OnPaymentSucceeded;
+    public Action<CompanyDebtPaymentResponse> OnPaymentSucceeded;
 
     protected override void Awake()
     {
@@ -43,17 +43,17 @@ public class PartialPaymentPopup : BaseWindow<PartialPaymentPopup>
 
                 if (success)
                 {
-                    CompanyDebtDTO debtDTO = null;
+                    CompanyDebtPaymentResponse debtResponse = null;
                     try
                     {
-                        debtDTO = JsonConvert.DeserializeObject<CompanyDebtDTO>(response);
+                        debtResponse = JsonConvert.DeserializeObject<CompanyDebtPaymentResponse>(response);
                     }
                     catch (JsonException e)
                     {
                         Debug.LogError($"Failed to parse updated debt from payment response: {e.Message}");
                     }
 
-                    OnPaymentSucceeded?.Invoke(debtDTO);
+                    OnPaymentSucceeded?.Invoke(debtResponse);
 
                     if ((float)amount > maxAmount)
                     {

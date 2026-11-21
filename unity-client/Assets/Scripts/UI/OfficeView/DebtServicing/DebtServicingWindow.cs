@@ -20,33 +20,40 @@ public class DebtServicingWindow : BaseWindow<DebtServicingWindow>
             throw new NullReferenceException("DebtServicingWindow: No PartialPaymentPopup found in children");
         }
 
-        partialPaymentPopup.OnPaymentSucceeded += (updatedDebt) =>
+        partialPaymentPopup.OnPaymentSucceeded += (debtResponse) =>
         {
-            Debug.Log("UPDATED DEBT: "+JsonConvert.SerializeObject(updatedDebt));
             var activeCompany = Client.CompanyDTOs.FirstOrDefault(c => c.Id == Client.ActiveCompanyId);
 
-            if (updatedDebt == null || activeCompany == null)
+            if (activeCompany == null)
             {
                 Debug.LogWarning("DebtServicingWindow: Payment succeeded but the updated debt or active company was missing; rebuilding list from current data.");
                 RefreshDebtList();
                 return;
             }
 
-            int index = Array.FindIndex(activeCompany.Debts, d => d.CreditorCompanyId == updatedDebt.CreditorCompanyId);
-            if (updatedDebt.Amount <= 0)
+            if(debtResponse.Debt == null)
             {
-                activeCompany.Debts = activeCompany.Debts.Where(d => d.CreditorCompanyId != updatedDebt.CreditorCompanyId).ToArray();
-            }
-            else if (index >= 0)
-            {
-                activeCompany.Debts[index] = updatedDebt;
+                activeCompany.Debts = activeCompany.Debts.Where(d => d.CreditorCompanyId != debtResponse.CreditorCompanyId).ToArray();
             }
             else
             {
-                Debug.LogWarning($"DebtServicingWindow: Updated debt for creditor {updatedDebt.CreditorCompanyId} not found locally; adding it.");
-                activeCompany.Debts = activeCompany.Debts.Append(updatedDebt).ToArray();
+                int index = Array.FindIndex(activeCompany.Debts, d => d.CreditorCompanyId == debtResponse.Debt.CreditorCompanyId);
+            
+                if (debtResponse.Debt.Amount <= 0)
+                {
+                    activeCompany.Debts = activeCompany.Debts.Where(d => d.CreditorCompanyId != debtResponse.Debt.CreditorCompanyId).ToArray();
+                }
+                else if (index >= 0)
+                {
+                    activeCompany.Debts[index] = debtResponse.Debt;
+                }
+                else
+                {
+                    Debug.LogWarning($"DebtServicingWindow: Updated debt for creditor {debtResponse.Debt.CreditorCompanyId} not found locally; adding it.");
+                    activeCompany.Debts = activeCompany.Debts.Append(debtResponse.Debt).ToArray();
+                }
             }
-
+            
             RefreshDebtList();
         };
 
