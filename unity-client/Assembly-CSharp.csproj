@@ -69,6 +69,7 @@
     <Compile Include="Assets\Scripts\UI\OperatorView\UIFacer.cs" />
     <Compile Include="Assets\Scripts\UI\OfficeView\ContractsTable.cs" />
     <Compile Include="Assets\Scripts\UI\OfficeView\ContractsWindow.cs" />
+    <Compile Include="Assets\Scripts\UI\CreateCompanyPopup.cs" />
     <Compile Include="Assets\Scripts\UI\OfficeView\DebtServicing\DebtServicingWindow.cs" />
     <Compile Include="Assets\Scripts\UI\UIDataView\UIList.cs" />
     <Compile Include="Assets\Scripts\UI\OperatorView\TruckUIBehaviour.cs" />
