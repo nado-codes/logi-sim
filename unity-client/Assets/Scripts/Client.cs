@@ -48,6 +48,29 @@ public class Client : MonoBehaviour
     private static Client _client;
     private ConnectionStatus connectionStatus = ConnectionStatus.Disconnected;
 
+    public CreateCompanyPopup createCompanyPopup;
+
+    void Awake()
+    {
+        createCompanyPopup = GetComponentInChildren<CreateCompanyPopup>();
+
+        if(createCompanyPopup == null)
+        {
+            throw new NullReferenceException("DebtServicingWindow: No PartialPaymentPopup found in children");
+        }
+
+        createCompanyPopup.OnCreateCompanySucceeded += (company) =>
+        {
+            if(company == null)
+            {
+                Debug.LogError("CreateCompanyPopup: Company object was null");
+                return;
+            }
+
+            PopupController.ShowPopup("Payment Successful", $"Company \"${company.Name}\" created");
+            ActiveCompanyId = company.Id;
+        };
+    }
 
     void Start()
     {
@@ -259,7 +282,17 @@ public class Client : MonoBehaviour
 
         if(activeCompany != null && activeCompany.IsLiquidated)
         {
-            PopupController.ShowPrompt("Liquidation Event", "Due to your company's worsening financial situation and inability to resolve debts, it has been liquidated. You may start a new company if you wish to continue playing.");
+            PopupController.ShowPrompt("Liquidation Event", "Due to your company's worsening financial situation and inability to resolve debts, it has been liquidated. You may start a new company if you wish to continue playing.",new List<UIItemAction>()
+            {
+                new UIItemAction()
+                {
+                    Name = "Start New Company",
+                    Callback = (id) =>
+                    {
+                        createCompanyPopup.Open();
+                    }
+                }
+            });
         }
     }
 

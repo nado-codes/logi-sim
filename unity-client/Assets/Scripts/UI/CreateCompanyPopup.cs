@@ -23,8 +23,10 @@ public class CreateCompanyPopup : BaseWindow<CreateCompanyPopup>
         base.Awake();
     }
 
-    public bool Setup()
+    public new void Open()
     {
+        if(canvasGroupToggle.IsVisible)
+            return;
 
         var texts = GetComponentsInChildren<TextMeshProUGUI>();
         var titleText = texts.FirstOrDefault(t => t.name == "txWindowTitle");
@@ -37,7 +39,7 @@ public class CreateCompanyPopup : BaseWindow<CreateCompanyPopup>
         else
         {
             Debug.LogError("CreateCompanyPopup: TextMeshProUGUI with name 'txWindowTitle' not found in children.");
-            return false;
+            return ;
         }
 
         if(messageText != null)
@@ -47,14 +49,14 @@ public class CreateCompanyPopup : BaseWindow<CreateCompanyPopup>
         else
         {
             Debug.LogError("CreateCompanyPopup: TextMeshProUGUI with name 'txPromptBody' not found in children.");
-            return false;
+            return ;
         }
 
         actionController = GetComponent<UIActionController>();
         if(actionController == null)
         {
             Debug.LogError("CreateCompanyPopup: UIActionController component not found.");
-            return false;
+            return ;
         }
 
         actionController.LoadActions(new List<UIItemAction>(){
@@ -74,6 +76,6 @@ public class CreateCompanyPopup : BaseWindow<CreateCompanyPopup>
                 Callback = (id) => Close()
             } });
 
-        return true;
+        base.Open();
     }
 }
