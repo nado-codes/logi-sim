@@ -8,6 +8,7 @@
   "suspensionNoticeThreshold": 5,
   "ceasedOperationsThreshold": 10,
   "debtTermTicks": 50,
+  "startingMoney": 100000,
   "aiDebtTermTicks": 100,
   "playerDebtTermTicks": 100
 }

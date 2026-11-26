@@ -1,7 +1,13 @@
 import axios from "axios";
-import { createMenuPage, IMenuPage, logMenuError } from "../../menu";
+import {
+  createMenuPage,
+  IMenuAction,
+  IMenuPage,
+  logMenuError,
+  MenuItemType,
+} from "../../menu";
 import { createEntitySelectorAction } from "../../menuAction";
-import { highlight, logWarning, sum } from "@logisim/lib/utils";
+import { highlight, logSuccess, logWarning, sum } from "@logisim/lib/utils";
 import { ICompany, IContract } from "@logisim/lib/entities";
 import { createManageCompanyDebtsPage } from "./manageCompanyDebts";
 import { createManageCompanyMoneyPage } from "./manageCompanyMoney";
@@ -22,12 +28,55 @@ export const createManageCompaniesPage = (apiBaseUrl: string): IMenuPage => {
           return false;
         }
 
+        const createLiquidateCompanyAction = (): IMenuAction => ({
+          title: "Liquidate Company",
+          type: MenuItemType.Action,
+          action: async (args: string[] = []) => {
+            const createConfirmLiquidateCompanyAction = (): IMenuAction => ({
+              title: "Confirm",
+              type: MenuItemType.Action,
+              action: async (args: string[] = []) => {
+                try {
+                  // Transfer funds from state for selling
+                  await axios.post(
+                    `${apiBaseUrl}/company/liquidate/${company.id}`,
+                  );
+
+                  logSuccess(`${company.name} was successfully liquidated`);
+                  console.log(
+                    highlight.success(`${company.name} was liquidated`),
+                  );
+                  console.log(
+                    ` - All assets have been sold off and the "isLiquidated" flag has been set to true`,
+                  );
+                } catch (error) {
+                  logMenuError(`Failed to liquidate company: ${error}`);
+                }
+              },
+            });
+
+            return createMenuPage(
+              `Are you sure?`,
+              false,
+              [createConfirmLiquidateCompanyAction()],
+              () => {
+                console.log(`You're about to liquidate ${company.name}`);
+
+                console.log(
+                  ` - All company assets will be seized by the state and the company will become unusable. This action cannot be undone.`,
+                );
+              },
+            );
+          },
+        });
+
         return createMenuPage(
           company.name,
           false,
           [
             createManageCompanyDebtsPage(apiBaseUrl, company, companies),
             createManageCompanyMoneyPage(apiBaseUrl, company),
+            createLiquidateCompanyAction(),
           ],
           async () => {
             try {
