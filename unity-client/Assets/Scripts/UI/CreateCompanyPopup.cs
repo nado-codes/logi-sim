@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 using TMPro;
 using UnityEngine;
 
@@ -69,7 +70,27 @@ public class CreateCompanyPopup : BaseWindow<CreateCompanyPopup>
                         return;
                     }
 
-                    // create the company
+                    Client.CallAPI(
+                    $"/company/create",
+                    APICallType.Post,
+                    (success, response) =>
+                    {
+                        CompanyDTO newCompany = JsonConvert.DeserializeObject<CompanyDTO>(response);
+
+                        if (success)
+                        {
+                            PopupController.ShowPopup("Company created", $"You've been promoted to CEO/Founder of ${newCompany.Name}. Welcome back sir.");
+                        }
+                        else
+                        {
+                            Debug.LogError($"Failed to create company: {response}");
+                            PopupController.ShowPopup("Failed to create company", Utils.ExtractErrorMessage(response));
+                        }
+
+                        OnCreateCompanySucceeded?.Invoke(newCompany);
+
+                        Debug.Log("NEW COMPANY="+response);
+                    });
                 }
             } ,new UIItemAction(){
                 Name = "Cancel",

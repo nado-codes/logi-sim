@@ -7,6 +7,8 @@ public class BaseWindow<T> : MonoBehaviour
     public Action OnClose { get; set; }
     protected CanvasGroupToggle canvasGroupToggle {get; private set;}
 
+    public bool IsOpen {get; private set;}
+
     [SerializeField] private bool startOpen = false;
 
     protected virtual void Awake()
@@ -30,6 +32,7 @@ public class BaseWindow<T> : MonoBehaviour
             return false;
         }
         canvasGroupToggle.Show();
+        IsOpen = true;
         return true;
     }
 
@@ -42,5 +45,6 @@ public class BaseWindow<T> : MonoBehaviour
         }
         canvasGroupToggle.Hide();
         OnClose?.Invoke();
+        IsOpen = false;
     }
 }
